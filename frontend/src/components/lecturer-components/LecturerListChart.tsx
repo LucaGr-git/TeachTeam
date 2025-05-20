@@ -1,0 +1,280 @@
+import React, {useEffect, useState} from "react";
+import { useClassData, LecturerShortList} from "@/localStorage-context/classDataProvider";
+import { useAuth } from "@/localStorage-context/auth";
+import Section from "@/components/general-components/Section";
+import { Switch } from "../ui/switch";
+import { Button } from "../ui/button";
+
+// rechats Axis and chart
+import { Bar, BarChart } from "recharts"
+import { XAxis, YAxis } from "recharts";
+// shadcn chart imports
+import { ChartConfig, ChartContainer } from "@/components/ui/chart"
+
+// interface for the class card details
+interface LecturerListChartProps {
+  courseCode: string; // course code
+}
+
+// constant value for number of shortlisted applicants shown when the toggle is selected
+const MAX_LIMIT_SHORTLIST = 10;
+
+const LecturerListChart = (
+    { courseCode }: LecturerListChartProps) => {
+
+    // useState for the color of the chart
+    const [chartColor, setChartColor] = useState("#FF0000"); // red if the css cannot be red
+
+    // get class records
+    const { getClassRecords} = useClassData();
+    // get user records
+    const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+    
+
+    
+
+    // get class record
+    const classRecords = getClassRecords();
+    const lecturerClass = classRecords[courseCode];
+
+    // get users record
+    const users = getUsers();
+
+    // get current user
+    const currUser = getCurrentUser();
+
+    if (!currUser || !isAuthenticated || !isLecturer) {
+    return (
+        <Section title="Error">
+            <p className="text-destructive"> User is not authenticated.</p>
+        </Section>
+    )
+    }
+
+
+    // return error card if course code is wrong
+    if (!lecturerClass) {
+        return (
+            <Section title="Error course code not found">
+                <p className="text-destructive">Course code {courseCode} not found.</p>
+            </Section>
+        )
+    }
+
+
+    // useState for the graph data array
+    const [shortlistScoreArr, setShortlistScoreArr] = useState<ShortlistedTutor[]>([]);
+    // useState for whether the array should be sorted lowest-highest vs highest-lowest
+    const [viewMostSelected, setviewMostSelected] = useState<boolean>(true);
+
+    // useState for whether the graph sshoudl display max applicants or just a 
+    const [visibility, setVisibility] = useState<boolean>(false);
+
+    // useState for whether the graph should be visible
+    const [limitApplicants, setLimitApplicants] = useState<boolean>(true);
+
+
+    // get a list of shortlisted tutors with their email + full name and rank
+    interface ShortlistedTutor {
+        email: string,
+        fullName: string,
+        rankingScore: number,
+    }
+    
+    // todo stop using useEffect and useStates conditionally 
+    // useEffect for loading chart data on component mount
+    useEffect(() => {
+
+        const shortlistedTutors: ShortlistedTutor[] = [];
+
+        // iterate through all shortlidted tutors emails
+        for (const applicant of classRecords[courseCode].tutorsShortlist){
+
+            // find corresponding full name
+            const applicantUserData = users[applicant.tutorEmail];
+
+            // get their ranking 
+            let rankingScore: number = 0;
+            // iterate over all lecturers ranking and add indexes of current applicant
+            const shortlistMap: LecturerShortList = classRecords[courseCode].lecturerShortlist;
+
+            for (const lecturerEmail in shortlistMap){
+                // gets the position relative to the end not the start by subtracting from  length
+                rankingScore += 
+                    (shortlistMap[lecturerEmail].length - 
+                        shortlistMap[lecturerEmail].indexOf(applicant.tutorEmail) + 1)
+            }
+
+
+
+            // create entry in array 
+            shortlistedTutors.push({
+                email: applicant.tutorEmail,
+                fullName: applicantUserData.firstName + " " + applicantUserData.lastName,
+                rankingScore: rankingScore,
+            })
+
+            // change colour based on global css var
+            const primaryColorCode = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+            // if primaryColorCode exists then set the chart colour to that code 
+            if (primaryColorCode) setChartColor(primaryColorCode);
+        }
+        
+        // Sort by highest score first
+        shortlistedTutors.sort((applicantA, applicantB) => {
+            if (applicantA.rankingScore < applicantB.rankingScore) return 1;
+            if (applicantA.rankingScore > applicantB.rankingScore) return -1;
+            return 0;
+        });
+        setShortlistScoreArr(shortlistedTutors);
+        // setShortlistScoreArr([{
+        //         email: "1",
+        //         fullName: "1",
+        //         rankingScore: 100},
+        //     {
+        //         email: "2",
+        //         fullName: "2",
+        //         rankingScore: 90},
+        //     {
+        //         email: "3",
+        //         fullName: "3",
+        //         rankingScore: 70
+        //     },
+        //     {
+        //         email: "4",
+        //         fullName: "4",
+        //         rankingScore: 200
+        //     },
+        //     {
+        //         email: "5",
+        //         fullName: "5",
+        //         rankingScore: 1
+        //     },
+        //     {
+        //         email: "6",
+        //         fullName: "6",
+        //         rankingScore: 10
+        //     },
+        //     {
+        //         email: "7",
+        //         fullName: "7",
+        //         rankingScore: 30
+        //     },
+        //     {
+        //         email: "8",
+        //         fullName: "8",
+        //         rankingScore: 30
+        //     },
+        //     {
+        //         email: "9",
+        //         fullName: "9",
+        //         rankingScore: 30
+        //     },
+        //     {
+        //         email: "10",
+        //         fullName: "10",
+        //         rankingScore: 30
+        //     },
+        //     {
+        //         email: "11",
+        //         fullName: "11",
+        //         rankingScore: 30
+        //     },
+        // ]);
+
+
+        
+    }, [classRecords, courseCode, users]);
+
+    // config for chart
+    const chartConfig = {
+        tutor: {
+        label: "tutor",
+        // get colour from css --primary variable 
+        color: chartColor, // use chart colour state as using the document on top level was causing issues
+        },
+    } satisfies ChartConfig
+    
+
+
+    const changeViewOrder = (highestFirst: boolean): void => {
+        // if the viewMostSelected state will be updated update array subsequently
+        if (viewMostSelected != highestFirst){
+            // reverse array so it is in the selected order
+            let shortlistedTutors: ShortlistedTutor[] = [...shortlistScoreArr];
+            shortlistedTutors = shortlistedTutors.reverse();
+
+            setShortlistScoreArr(shortlistedTutors);
+        }
+
+        setviewMostSelected(highestFirst);
+    }
+
+    
+    
+
+    return (
+        <>
+            <Button 
+                className="mt-3 mb-3"
+                type="button" 
+                variant="secondary"
+                onClick={() => setVisibility(!visibility)} >
+                    View/Hide 
+            </Button> 
+
+            <div hidden={!visibility}>
+                
+                {(shortlistScoreArr.length != 0)?
+                // only display chart if there is at least one shortlisted applicant 
+                <>
+                <section className="flex gap-4 mb-4">
+                    <p className={(viewMostSelected)? 
+                        "text-sm text-muted-foreground":
+                        "text-sm text-primary"}>See Least Selected First</p>
+                    <Switch 
+                        className=""
+                        id="view-most-selected" 
+                        checked={viewMostSelected} 
+                        onCheckedChange={changeViewOrder}/>
+                    <p className={(viewMostSelected)? 
+                        "text-sm text-primary":
+                        "text-sm text-muted-foreground"}>See Most Selected First</p>
+
+                    <section className="ml-auto flex">
+                        <p className={(limitApplicants)? 
+                            "text-sm text-primary ml-auto":
+                            "text-sm text-muted-foreground"}>Show max of {MAX_LIMIT_SHORTLIST} shortlisted tutors</p>
+                        <Switch className="ml-4" onCheckedChange={setLimitApplicants} checked={limitApplicants}/>
+                    </section>
+                </section>
+
+                <ChartContainer config={chartConfig} className="min-h-[20vh] w-full max-h-[50vh] ">
+                    <BarChart data={(limitApplicants || shortlistScoreArr.length <= MAX_LIMIT_SHORTLIST)? 
+                                    // If max applicants selected show full array or 
+                                    shortlistScoreArr : 
+                                    // If max applicants not selected show only a certain amount 
+                                    shortlistScoreArr.slice(0, MAX_LIMIT_SHORTLIST)}>
+                        <XAxis dataKey="fullName" />
+                        <YAxis />
+                        <Bar dataKey="rankingScore" fill="var(--primary)" radius={8} />
+                    </BarChart>
+                </ChartContainer>
+                
+                <p className="text-sm text-muted-foreground"> This score is an aggregate that represents how many other 
+                    applicants a particular applicant has been ranked higher than in <b>the opinions of all lecturers 
+                        of this course</b></p>
+                </>
+
+                // use tagDisplay to display there are no shortlisted tutors
+                : <h1 className="text-destructive"> <b> There are no shortlisted applicants. 
+                    Start shortlisting to see a visualization of their ranking</b></h1>}
+
+                
+            </div>
+        </>
+        
+    );
+};
+
+    export default LecturerListChart;
