@@ -233,7 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         console.log(getUsers()); // ! send dummy data to console to see accounts
         // !!! end loading dummy data 
-    }, [login, router, signup]);
+    });
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser }}>
