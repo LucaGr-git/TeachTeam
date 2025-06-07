@@ -9,7 +9,7 @@ export class Course {
   @Column({type: "varchar", length: 100})
   courseTitle: string;
 
-  @Column({type: Boolean})
+  @Column({type: "boolean"})
   partTimeFriendly: boolean;
 
   @Column()
