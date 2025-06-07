@@ -52,7 +52,7 @@ export class CourseController {
    * @param res - Express response object
    * @returns JSON object of the created Course with 201 status
    */
-  async createCoure(req: Request, res: Response) {
+  async createCourse(req: Request, res: Response) {
     /** Create a new pet object from the request body */
     const course = this.courseRepo.create(req.body);
 
