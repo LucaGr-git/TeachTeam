@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { ProfileController } from "../controller/ProfileController";
 import { validateDto } from "../middlewares/validate";
-import { CreateProfileDTO } from "../dtos/create-profile.dto";
-import { UpdateProfileDTO } from "../dtos/update-profile.dto";
+import { CreateProfileDTO } from "../exampledtos/create-profile.dto";
+import { UpdateProfileDTO } from "../exampledtos/update-profile.dto";
 
 const router = Router();
 

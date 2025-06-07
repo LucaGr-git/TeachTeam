@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { PetController } from "../controller/PetController";
 import { validateDto } from "../middlewares/validate";
-import { CreatePetDTO } from "../dtos/create-pet.dto";
-import { UpdatePetDTO } from "../dtos/update-pet.dto";
+import { CreatePetDTO } from "../exampledtos/create-pet.dto";
+import { UpdatePetDTO } from "../exampledtos/update-pet.dto";
 const router = Router();
 
 const petController = new PetController();
