@@ -8,9 +8,9 @@ export const AppDataSource = new DataSource({
   host: "209.38.26.237",
   port: 3306,
   /* Change to your own credentials */
-  username: "matt",
-  password: "matt",
-  database: "matt",
+  username: "s4095471",
+  password: "P20050802!!",
+  database: "s4095471",
   // synchronize: true will automatically create database tables based on entity definitions
   // and update them when entity definitions change. This is useful during development
   // but should be disabled in production to prevent accidental data loss.
