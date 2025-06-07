@@ -12,6 +12,6 @@ export class Course {
   @Column({type: "boolean"})
   partTimeFriendly: boolean;
 
-  @Column()
+  @Column({type: "boolean"})
   fullTimeFriendly: boolean;
 }
