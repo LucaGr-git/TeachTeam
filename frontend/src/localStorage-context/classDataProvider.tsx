@@ -674,7 +674,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         }
 
         localStorage.setItem("classData", JSON.stringify(classRecords));
-
+        console.log("Dummy class data loaded");
         addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "Seems like a good fit, need interview to confirm");
         addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "after interview, John has my approval to tutor the class");        
         // !!! end loading dummy data

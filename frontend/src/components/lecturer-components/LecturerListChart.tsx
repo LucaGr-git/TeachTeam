@@ -228,8 +228,8 @@ const LecturerListChart = (
                 onClick={() => setVisibility(!visibility)} >
                     View/Hide 
             </Button> 
-
-            <div hidden={!visibility}>
+            {   visibility &&
+            <div>
                 
                 {(shortlistScoreArr.length != 0)?
                 // only display chart if there is at least one shortlisted applicant 
@@ -277,7 +277,7 @@ const LecturerListChart = (
                     Start shortlisting to see a visualization of their ranking</b></h1>}
 
                 
-            </div>
+            </div>}
         </>
         
     );
