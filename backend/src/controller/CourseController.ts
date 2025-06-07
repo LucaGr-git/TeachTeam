@@ -7,7 +7,7 @@ import { Course } from "src/entity/Course";
  * PetController handles all HTTP requests related to courses
  * Provides CRUD (Create, Read, Update, Delete) operations for course resources
  */
-export class PetController {
+export class CourseController {
   /** Repository instance for database operations on Course entity */
   private courseRepo = AppDataSource.getRepository(Course);
 
