@@ -2,9 +2,17 @@
 import { Request, Response } from 'express';
 import { User } from '../entity/User';
 import { AppDataSource } from '../data-source';
+import { Skill } from '../entity/Skill';
+import { Qualification } from 'src/entity/Qualification';
+import { Experience } from 'src/entity/Experience';
+
 
 export class UserController {
   private userRepo = AppDataSource.getRepository(User);
+  private skillRepo = AppDataSource.getRepository(Skill);
+  private qualificationRepo = AppDataSource.getRepository(Qualification);
+  private experienceRepo = AppDataSource.getRepository(Experience);
+
 
     /**
    * Creates a new user record
@@ -109,4 +117,120 @@ export class UserController {
     /** Return a 204 status on success */
     res.status(204).send();
   }
+
+  /**
+   * Retrieves all skills from a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns array of skills 
+   */
+  async getUserSkills(req: Request, res: Response) {
+    const { email } = req.params;
+    const user = await this.userRepo.findOne({ where: { email }, relations: ['skills'] });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user.skills);
+}
+
+  /**
+   * Retrieves all qualifications from a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns array of qualifications
+   */
+  async getUserQualifications(req: Request, res: Response) {
+    const { email } = req.params;
+    const user = await this.userRepo.findOne({ where: { email }, relations: ['qualifications'] });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user.qualifications);
+  }
+
+
+  /**
+   * Retrieves all experiences from a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns array of experiences
+   */
+  async getUserExperiences(req: Request, res: Response) {
+    const { email } = req.params;
+    const user = await this.userRepo.findOne({ where: { email }, relations: ['experiences'] });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user.experiences);
+  }
+
+  /**
+   * adds a skill to a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+
+  async addSkillToUser(req: Request, res: Response) {
+    const { email } = req.params;
+
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user){ 
+      return res.status(404).json({ error: 'User not found' })
+    };
+
+    const skill = this.skillRepo.create({ ...req.body, user });
+    const result = await this.skillRepo.save(skill);
+
+    return res.status(201).json(result);
+  }
+ 
+
+  /**
+   * adds a qualification to a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+  async addQualificationToUser(req: Request, res: Response) {
+    const { email } = req.params;
+
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user){ 
+      return res.status(404).json({ error: 'User not found' })
+    };
+
+    const qualification = this.qualificationRepo.create({ ...req.body, user });
+    const result = await this.qualificationRepo.save(qualification);
+
+    return res.status(201).json(result);
+  }
+
+    
+
+  /**
+   * adds an experience to a user in the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+  async addExperienceToUser(req: Request, res: Response) {
+    const { email } = req.params;
+
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    };
+
+    const experience = this.experienceRepo.create({ ...req.body, user });
+    const result = await this.experienceRepo.save(experience);
+
+    return res.status(201).json(result);
+  }
+
+ // todo delete experience, qualification , skill from user
+
+
+
+
 }
