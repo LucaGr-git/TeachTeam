@@ -1,4 +1,4 @@
-import { createContext, useEffect, useContext, ReactNode } from "react";
+import { createContext, useEffect, useContext, ReactNode, useCallback } from "react";
 
 export const MAX_NUM_SKILLS: number = 10;
 
@@ -67,7 +67,6 @@ export type ClassRecord = Record<string, ClassData>;
 const ClassDataContext = createContext<ClassDataProvision | undefined>(undefined);
 
 export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
-    // todo may need to wrap all functions in useCallback
     // lecturer functions
     const addLecturer = (courseCode: string, lecturerEmail: string): boolean => {
         const classRecords = getClassRecords();
@@ -430,7 +429,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
 
-    const addNote = (courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): boolean => {
+    const addNote = useCallback((courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): boolean => {
         const classRecords = getClassRecords();
         const currClass = classRecords[courseCode];
 
@@ -463,7 +462,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
         return false;
 
-    };
+    }, []);
 
     const deleteNote = (
         courseCode: string,

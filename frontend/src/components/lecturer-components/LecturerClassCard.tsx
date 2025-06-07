@@ -28,7 +28,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
   // get class record
   const classRecords = getClassRecords();
-  const lecturerCLass = classRecords[courseCode];
+  const lecturerClass = classRecords[courseCode];
 
   // get users record
   const users = getUsers();
@@ -36,7 +36,9 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   // get current user
   const currUser = getCurrentUser();
 
-  // todo fix conditional hook renders
+  // get the preferred availabilities
+  const [fullTimeFriendly, setFullTimeFriendly] = useState<boolean>(lecturerClass.fullTimefriendly);
+  const [partTimeFriendly, setPartTimeFriendly] = useState<boolean>(lecturerClass.partTimeFriendly);
 
   if (!currUser || !isAuthenticated || !isLecturer) {
     return (
@@ -47,8 +49,9 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   }
 
   
+
   // return error card if course code is wrong
-  if (!lecturerCLass) {
+  if (!lecturerClass) {
     return (
       <Section title="Error course code not found">
         <p className="text-destructive">Course code {courseCode} not found.</p>
@@ -58,7 +61,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
   const lecturerNames: string[] = [];
   // get the lecturers for the course
-  for (const lecturerEmail of lecturerCLass.lecturerEmails) {
+  for (const lecturerEmail of lecturerClass.lecturerEmails) {
 
     if (users[lecturerEmail]) {
       lecturerNames.push(users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName);
@@ -69,12 +72,12 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
   const addSkillTag = (skillTag: string): string => {
-    if (lecturerCLass.preferredSkills.length >= MAX_NUM_SKILLS) {
+    if (lecturerClass.preferredSkills.length >= MAX_NUM_SKILLS) {
       return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
 
     }
     // if the skill tag is not already in the userSkills array, add it
-    if (!lecturerCLass.preferredSkills.includes(skillTag)) {
+    if (!lecturerClass.preferredSkills.includes(skillTag)) {
       if (addPreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
@@ -95,7 +98,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   const removeSkillTag = (skillTag: string): string => {
  
     // if the skill tag is already in the userSkills array, remove it
-    if (lecturerCLass.preferredSkills.includes(skillTag)) {
+    if (lecturerClass.preferredSkills.includes(skillTag)) {
       if (removePreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
@@ -112,9 +115,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   }
 
   // functions for changing availability
-  // get the preferred availabilities
-  const [fullTimeFriendly, setFullTimeFriendly] = useState<boolean>(lecturerCLass.fullTimefriendly);
-  const [partTimeFriendly, setPartTimeFriendly] = useState<boolean>(lecturerCLass.partTimeFriendly);
+  
 
   // function to change the full time preferred availability
   const toggleFullTimeFriendly = () => {
@@ -131,7 +132,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   
   
   return (
-    <Section title={lecturerCLass.courseTitle}>
+    <Section title={lecturerClass.courseTitle}>
       <br></br>
       <div className="flex">
         <p className="mt-1">Course code: {courseCode}</p>
@@ -148,7 +149,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
       <section hidden={!viewCourseInfo}>
         <p>Preferred skills:</p>
-        <TagCustomDisplay tags={lecturerCLass.preferredSkills} addTag={addSkillTag} removeTag={removeSkillTag}></TagCustomDisplay>
+        <TagCustomDisplay tags={lecturerClass.preferredSkills} addTag={addSkillTag} removeTag={removeSkillTag}></TagCustomDisplay>
       </section>
       <section hidden={!viewCourseInfo}>
         <div className="flex flex-col gap-2">

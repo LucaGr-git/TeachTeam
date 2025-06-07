@@ -40,7 +40,12 @@ const PopupShortlist = ({
     const {getUserRecords} = useUserData();
     const {getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
+    // get user data  
+    const shortlistArray: ApplicantInfo[] = [];
 
+    // get user data
+    const [shortList, setShortlist] = useState<ApplicantInfo[]>(shortlistArray);
+    
 
 
     const classRecords: ClassRecord = getClassRecords();
@@ -71,8 +76,7 @@ const PopupShortlist = ({
         // initalize the shortlist
         initializeLecturerShortlist(courseCode, currEmail);
     }
-    // get user data  
-    const shortlistArray: ApplicantInfo[] = [];
+    
     
     if (lecturersShortlist){ // if the shortlist is empty/undefined it is not iteratable
         for (const tutor of lecturersShortlist) {
@@ -96,8 +100,7 @@ const PopupShortlist = ({
     }
     
 
-    // get user data
-    const [shortList, setShortlist] = useState<ApplicantInfo[]>(shortlistArray);
+    
     
     
     

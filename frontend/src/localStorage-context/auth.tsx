@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext, ReactNode } from "react";
+import { createContext, useState, useEffect, useContext, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
 
 // interface for user records details
@@ -31,6 +31,107 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // import router 
     const router = useRouter();
+
+    
+
+    // sign up function
+    const signup = useCallback((email: string, password: string, isLecturer: boolean, firstName: string, lastName: string): boolean => {
+        // get users record object
+        const users = getUsers();
+
+        // if user email exists process is cancelled
+        if (users[email]) {
+            return false; // Username already taken
+        }
+
+        // Add new user 
+        users[email] = { email, password, isLecturer, firstName, lastName };
+        // save to localStorage
+        saveUsers(users);
+
+        const userData = localStorage.getItem("userData");
+        const userRecords = userData ? JSON.parse(userData) : {}; 
+
+        userRecords[email] = {
+            email : email,
+            experience : [], 
+            skills :  [],
+            qualifications : [],
+        }
+
+        localStorage.setItem("userData", JSON.stringify(userRecords));
+        return true;
+    }, []);
+
+
+    // get current user
+    const getCurrentUser = (): User | null => {
+        // checks if the window is actually rendered
+        if (typeof window !== "undefined") {
+            // get's info of current user
+            const user = localStorage.getItem("currentUser");
+            return user ? JSON.parse(user) : null;
+        }
+        return null;
+    };
+
+    // logs in the current user in the localStorage
+    const setCurrentUser = useCallback((email: string) => {
+        const users = getUsers();
+
+        if (users[email]) {
+            const currUser = users[email];
+            localStorage.setItem("currentUser", JSON.stringify(currUser));
+        }
+    }, []);
+
+    // login function 
+    const login = useCallback((email: string, password: string): boolean => {
+        const users = getUsers();
+
+        if (users[email] == null) {return false;}
+        
+        // update hooks based on matching email pass
+        if (users[email].email && users[email].password === password) {
+            const user = users[email];
+
+            // sets current user to the matching record
+            setCurrentUser(email);
+
+            // returns true and updates auth details
+            setIsAuthenticated(true);
+            setIsLecturer(user.isLecturer);
+
+            return true;
+        } else {
+            // else return false
+            setIsAuthenticated(false);
+            setIsLecturer(false);
+            return false;
+        }
+    }, [setCurrentUser]);
+
+    //  function to logout
+    const logout = () => {
+        // remove localStorage data and update hooks
+        localStorage.removeItem("currentUser");
+        setIsAuthenticated(false);
+        setIsLecturer(false);
+    };
+
+    // returns user record
+    const getUsers = (): Record<string, User> => {
+        const users = localStorage.getItem("users");
+        return users ? JSON.parse(users) : {};
+    };
+
+    // save users record
+    const saveUsers = (users: Record<string, User>) => {
+        localStorage.setItem("users", JSON.stringify(users));
+    };
+
+    
+
 
     useEffect(() => {
         // Check authentication status on mount
@@ -132,102 +233,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         console.log(getUsers()); // ! send dummy data to console to see accounts
         // !!! end loading dummy data 
-    }, []); // todo resolve useffect exhaustive dependencies
-
-    // sign up function
-    const signup = (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string): boolean => {
-        // get users record object
-        const users = getUsers();
-
-        // if user email exists process is cancelled
-        if (users[email]) {
-            return false; // Username already taken
-        }
-
-        // Add new user 
-        users[email] = { email, password, isLecturer, firstName, lastName };
-        // save to localStorage
-        saveUsers(users);
-
-        const userData = localStorage.getItem("userData");
-        const userRecords = userData ? JSON.parse(userData) : {}; 
-
-        userRecords[email] = {
-            email : email,
-            experience : [], 
-            skills :  [],
-            qualifications : [],
-        }
-
-        localStorage.setItem("userData", JSON.stringify(userRecords));
-        return true;
-    };
-
-    // login function 
-    const login = (email: string, password: string): boolean => {
-        const users = getUsers();
-
-        if (users[email] == null) {return false;}
-        
-        // update hooks based on matching email pass
-        if (users[email].email && users[email].password === password) {
-            const user = users[email];
-
-            // sets current user to the matching record
-            setCurrentUser(email);
-
-            // returns true and updates auth details
-            setIsAuthenticated(true);
-            setIsLecturer(user.isLecturer);
-
-            return true;
-        } else {
-            // else return false
-            setIsAuthenticated(false);
-            setIsLecturer(false);
-            return false;
-        }
-    };
-
-    //  function to logout
-    const logout = () => {
-        // remove localStorage data and update hooks
-        localStorage.removeItem("currentUser");
-        setIsAuthenticated(false);
-        setIsLecturer(false);
-    };
-
-    // returns user record
-    const getUsers = (): Record<string, User> => {
-        const users = localStorage.getItem("users");
-        return users ? JSON.parse(users) : {};
-    };
-
-    // save users record
-    const saveUsers = (users: Record<string, User>) => {
-        localStorage.setItem("users", JSON.stringify(users));
-    };
-
-    // get current user
-    const getCurrentUser = (): User | null => {
-        // checks if the window is actually rendered
-        if (typeof window !== "undefined") {
-            // get's info of current user
-            const user = localStorage.getItem("currentUser");
-            return user ? JSON.parse(user) : null;
-        }
-        return null;
-    };
-
-    // logs in the current user in the localStorage
-    const setCurrentUser = (email: string) => {
-        const users = getUsers();
-
-        if (users[email]) {
-            const currUser = users[email];
-            localStorage.setItem("currentUser", JSON.stringify(currUser));
-        }
-    };
+    }, [login, router, signup]);
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser }}>

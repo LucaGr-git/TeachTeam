@@ -7,12 +7,11 @@ import TutorClassCard from "./TutorClassCard";
 
 const TutorJobList = () => {
 
-    // TODO fix condiitonal react hook rendering 
-  
-
     const  { isAuthenticated, getCurrentUser } = useAuth();
     // get current user
     const currUser = getCurrentUser();
+
+    const { getClassRecords } = useClassData();
     
     // return error card if not authenticated 
     if (!isAuthenticated || !currUser) {
@@ -26,7 +25,7 @@ const TutorJobList = () => {
     // get user email 
     const email = currUser.email;
 
-    const { getClassRecords } = useClassData();
+    
     // get class records
     const classRecords: ClassRecord = getClassRecords();
     // create a list of course codes for classes they are tutoring 

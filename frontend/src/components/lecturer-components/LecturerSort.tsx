@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { ApplicantInfo } from "./LecturerSearch";
 import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
@@ -17,20 +17,7 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
     const [sortByAtoZ, setSortByAtoZ] = useState(false);
     const [sortByZtoA, setSortByZtoA] = useState(false);
 
-    useEffect(() => {
-        // Updates the sort depending on which value is chosen 
-        if (sortByAvailability) {
-            sortResultsByAvailability();
-        } else if (sortByAtoZ) {
-            sortResultsByAtoZ();
-        } else if (sortByZtoA) {
-            sortResultsByZtoA();
-        }
-        else {
-            setFilteredResults(results);
-        }
-    }, [results])
-
+    
     const handleSortChange = (value: string) => {
         // Sets all sorts to false
         setSortByAvailability(false);
@@ -53,7 +40,7 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
         }
     }
 
-    const sortResultsByAvailability = () => {
+    const sortResultsByAvailability = useCallback(() => {
         const tempResults: ApplicantInfo[] = results;
         const sorted = [...tempResults].sort((a, b) => {
             const aFull = a.availability.toLowerCase() === "full time";
@@ -63,9 +50,9 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
             return aFull ? -1 : 1;
         });
         setFilteredResults(sorted);
-    }
+    }, [results, setFilteredResults])
 
-    const sortResultsByAtoZ = () => {
+    const sortResultsByAtoZ = useCallback(() => {
         const tempResults: ApplicantInfo[] = results;
         const sorted = [...tempResults].sort((a, b) => {
             //sorts each of the tutors' courses alphabetically
@@ -77,9 +64,9 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
         });
         
         setFilteredResults(sorted);
-    }
+    }, [results, setFilteredResults])
 
-    const sortResultsByZtoA = () => {
+    const sortResultsByZtoA = useCallback(() => {
         const tempResults: ApplicantInfo[] = results;
         const sorted = [...tempResults].sort((a, b) => {
             //sorts each of the tutors' courses alphabetically
@@ -91,7 +78,22 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
         });
         
         setFilteredResults(sorted);
-    }
+    }, [results, setFilteredResults])
+
+
+    useEffect(() => {
+        // Updates the sort depending on which value is chosen 
+        if (sortByAvailability) {
+            sortResultsByAvailability();
+        } else if (sortByAtoZ) {
+            sortResultsByAtoZ();
+        } else if (sortByZtoA) {
+            sortResultsByZtoA();
+        }
+        else {
+            setFilteredResults(results);
+        }
+    }, [results, setFilteredResults, sortByAvailability, sortByAtoZ, sortByZtoA, sortResultsByZtoA, sortResultsByAtoZ, sortResultsByAvailability]);
 
     return (
     <RadioGroup defaultValue="nosort" onValueChange={handleSortChange}>

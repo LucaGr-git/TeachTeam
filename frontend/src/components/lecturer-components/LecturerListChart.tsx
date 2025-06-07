@@ -43,23 +43,7 @@ const LecturerListChart = (
     // get current user
     const currUser = getCurrentUser();
 
-    if (!currUser || !isAuthenticated || !isLecturer) {
-    return (
-        <Section title="Error">
-            <p className="text-destructive"> User is not authenticated.</p>
-        </Section>
-    )
-    }
-
-
-    // return error card if course code is wrong
-    if (!lecturerClass) {
-        return (
-            <Section title="Error course code not found">
-                <p className="text-destructive">Course code {courseCode} not found.</p>
-            </Section>
-        )
-    }
+    
 
 
     // useState for the graph data array
@@ -74,14 +58,6 @@ const LecturerListChart = (
     const [limitApplicants, setLimitApplicants] = useState<boolean>(true);
 
 
-    // get a list of shortlisted tutors with their email + full name and rank
-    interface ShortlistedTutor {
-        email: string,
-        fullName: string,
-        rankingScore: number,
-    }
-    
-    // todo stop using useEffect and useStates conditionally 
     // useEffect for loading chart data on component mount
     useEffect(() => {
 
@@ -185,6 +161,36 @@ const LecturerListChart = (
 
         
     }, [classRecords, courseCode, users]);
+    
+
+    if (!currUser || !isAuthenticated || !isLecturer) {
+    return (
+        <Section title="Error">
+            <p className="text-destructive"> User is not authenticated.</p>
+        </Section>
+    )
+    }
+
+
+    // return error card if course code is wrong
+    if (!lecturerClass) {
+        return (
+            <Section title="Error course code not found">
+                <p className="text-destructive">Course code {courseCode} not found.</p>
+            </Section>
+        )
+    }
+
+
+    // get a list of shortlisted tutors with their email + full name and rank
+    interface ShortlistedTutor {
+        email: string,
+        fullName: string,
+        rankingScore: number,
+    }
+    
+
+    
 
     // config for chart
     const chartConfig = {

@@ -11,6 +11,9 @@ const TutorApplyList = () => {
     const [rerenderCounter, setrerenderCounter] = useState(0)
 
     const  { isAuthenticated, getCurrentUser } = useAuth();
+
+    const { getClassRecords, addApplication } = useClassData();
+    
     // get current user
     const currUser = getCurrentUser();
     
@@ -23,12 +26,11 @@ const TutorApplyList = () => {
         )
     }
 
-    //  TODO stop condiitonal react hook rendering 
 
     // get user email 
     const email = currUser.email;
 
-    const { getClassRecords, addApplication } = useClassData();
+    
     // get class records
     const classRecords: ClassRecord = getClassRecords();
     // create a list of course codes for classes they are not tutoring or have not already applied to 

@@ -41,16 +41,29 @@ const UserNavigation = () => {
     changeAvailability} = useUserData();
 
   // get the current user
-  const currentUser = getCurrentUser();
+  let currentUser = getCurrentUser();
   // get the user records
   const userRecords = getUserRecords();
   
-  // todo use setters in a useeffect on render to fix possiblity of null 
-  
-
+  // defaults if the user is not authenticated
   if (!isAuthenticated || !currentUser) {
-    return null;
+    currentUser = {
+      email: "",
+      password: "",
+      isLecturer: false,
+      firstName: "",
+      lastName: "",}
+    userRecords[currentUser.email] = {
+      email: currentUser.email,
+      skills: [],
+      qualifications: [],
+      fullTime: false,
+      experience: [],
+    };
+
   }
+
+  
 
   //get the current user skills
   const [userSkills, setUserSkills] = useState<string[]>(userRecords[currentUser.email].skills);
@@ -65,6 +78,10 @@ const UserNavigation = () => {
     year: 'numeric',
     month: 'long',
   };
+
+  if (!isAuthenticated || !currentUser) {
+    return null;
+  }
 
   
   
@@ -177,7 +194,7 @@ const UserNavigation = () => {
         // cannot use localstorage as removing can take too long 
         setUserQualifications(userQualifications.filter(
           (tag) => {
-            return (tag !== qualificationTag);``
+            return (tag !== qualificationTag);
           }));
 
         return "";

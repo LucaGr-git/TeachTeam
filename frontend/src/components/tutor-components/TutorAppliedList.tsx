@@ -14,6 +14,9 @@ const TutorJobList = () => {
     // get current user
     const currUser = getCurrentUser();
     
+
+    const { getClassRecords, rejectApplication } = useClassData();
+    
     // return error card if not authenticated 
     if (!isAuthenticated || !currUser) {
         return (
@@ -23,12 +26,11 @@ const TutorJobList = () => {
         )
     }
 
-    //TODO fix conditional react hook usage
 
     // get user email 
     const email = currUser.email;
 
-    const { getClassRecords, rejectApplication } = useClassData();
+    
     // get class records
     const classRecords: ClassRecord = getClassRecords();
     // create a list of course codes for classes they have applied for 
