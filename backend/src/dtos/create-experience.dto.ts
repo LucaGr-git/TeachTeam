@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsOptional,
   Length,
+  IsDateString,
 } from 'class-validator';
 
 export class CreateExperienceDTO {
@@ -19,10 +20,12 @@ export class CreateExperienceDTO {
   @IsString()
   @IsNotEmpty()
   @Length(1, 40)
+  @IsDateString()
   timeStarted: string;
 
   @IsString()
   @IsOptional()
   @Length(1, 40)
+  @IsDateString()
   timeFinished?: string;
 }
