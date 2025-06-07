@@ -5,22 +5,22 @@ import { Qualification } from './Qualification';
 
 @Entity()
 export class User {
-  @PrimaryColumn()
+  @PrimaryColumn({ type: "varchar", length: 40 })
   email: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   password: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   firstName: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   lastName: string;
 
-  @Column()
+  @Column({ type: "boolean" })
   isLecturer: boolean;
 
-  @Column()
+  @Column({ type: "boolean" })
   fullTime: boolean;
 
   @OneToMany(() => Experience, exp => exp.user)

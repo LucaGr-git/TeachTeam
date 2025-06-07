@@ -3,21 +3,21 @@ import { User } from './User';
 
 @Entity()
 export class Experience {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
   @ManyToOne(() => User, user => user.experiences)
   user: User;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   title: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   company: string;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   timeStarted: string;
 
-  @Column({ nullable: true })
+  @Column({ type: "varchar", length: 40, nullable: true })
   timeFinished: string;
 }

@@ -3,12 +3,12 @@ import { User } from './User';
 
 @Entity()
 export class Skill {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: "int" })
   id: number;
 
   @ManyToOne(() => User, user => user.skills)
   user: User;
 
-  @Column()
+  @Column({ type: "varchar", length: 40 })
   skill: string;
 }
