@@ -1,7 +1,16 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Profile } from "./entity/Profile";
-import { Pet } from "./entity/Pet";
+import { Course } from "./entity/Course";
+import { CourseLecturer } from "./entity/CourseLecturer";
+import { Experience } from "./entity/Experience";
+import { LecturerShortlist } from "./entity/LecturerShortlist";
+import { PreferredSkill } from "./entity/PreferredSkill";
+import { Qualification } from "./entity/Qualification";
+import { ShortlistedTutor } from "./entity/ShortlistedTutor";
+import { ShortlistNote } from "./entity/ShortlistNote";
+import { Skill } from "./entity/Skill";
+import { TutorApplication } from "./entity/TutorApplication";
+import { User } from "./entity/User";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -16,7 +25,7 @@ export const AppDataSource = new DataSource({
   // but should be disabled in production to prevent accidental data loss.
   synchronize: true,
   logging: true,
-  entities: [Profile, Pet],
+  entities: [Course, CourseLecturer, Experience, LecturerShortlist, PreferredSkill, Qualification, ShortlistedTutor, ShortlistNote, Skill, TutorApplication, User],
   migrations: [],
   subscribers: [],
 });
