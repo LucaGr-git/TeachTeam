@@ -4,7 +4,7 @@ import { Profile } from "../entity/Profile";
 import { Course } from "src/entity/Course";
 
 /**
- * PetController handles all HTTP requests related to courses
+ * CourseController handles all HTTP requests related to courses
  * Provides CRUD (Create, Read, Update, Delete) operations for course resources
  */
 export class CourseController {

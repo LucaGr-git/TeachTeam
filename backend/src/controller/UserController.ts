@@ -6,7 +6,10 @@ import { Skill } from '../entity/Skill';
 import { Qualification } from 'src/entity/Qualification';
 import { Experience } from 'src/entity/Experience';
 
-
+/**
+ * UserController handles all HTTP requests related to courses
+ * Provides CRUD (Create, Read, Update, Delete) operations for course resources
+ */
 export class UserController {
   private userRepo = AppDataSource.getRepository(User);
   private skillRepo = AppDataSource.getRepository(Skill);
@@ -229,6 +232,50 @@ export class UserController {
   }
 
  // todo delete experience, qualification , skill from user
+  /**
+   * adds an experience based on experience ID
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+  async deleteExperience(req: Request, res: Response) {
+    const { id } = req.params; // experience ID
+    const result = await this.experienceRepo.delete({ id: parseInt(id) });
+    if (!result.affected) {
+      return res.status(404).json({ error: 'Experience not found' });
+    }
+    return res.status(204).send();
+  }
+
+  /**
+   * adds an qualification based on qualification ID
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+  async deleteQualification(req: Request, res: Response) {
+    const { id } = req.params; // qualification ID
+    const result = await this.qualificationRepo.delete({ id: parseInt(id) });
+    if (!result.affected) {
+      return res.status(404).json({ error: 'Qualification not found' });
+    }
+    return res.status(204).send();
+  }
+
+  /**
+   * adds an skill based on skill ID
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if user not found
+   */
+  async deleteSkill(req: Request, res: Response) {
+    const { id } = req.params; // skill ID
+    const result = await this.skillRepo.delete({ id: parseInt(id) });
+    if (!result.affected) {
+      return res.status(404).json({ error: 'Skill not found' });
+    }
+    return res.status(204).send();
+  }
 
 
 
