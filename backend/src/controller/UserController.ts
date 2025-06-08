@@ -173,7 +173,6 @@ export class UserController {
    * @param res - Express response object
    * @returns 204 status on success or 404 if user not found
    */
-
   async addSkillToUser(req: Request, res: Response) {
     const { email } = req.params;
 
@@ -231,7 +230,6 @@ export class UserController {
     return res.status(201).json(result);
   }
 
- // todo delete experience, qualification , skill from user
   /**
    * adds an experience based on experience ID
    * @param req - Express request object
