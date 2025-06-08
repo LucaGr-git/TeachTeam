@@ -33,7 +33,7 @@ router.post('/:email/skill', (req, res) => controller.addSkillToUser);
 
 router.delete('/:email/skill/:skill', (req, res) => controller.deleteSkill);
 
-router.get('/:email/skills', controller.getUserSkills.bind(controller));
+router.get('/:email/skills', (req, res) => controller.getUserSkills);
 
 router.post('/:email/qualification', (req, res) => controller.addQualificationToUser);
 
