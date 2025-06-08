@@ -39,30 +39,29 @@ router.post("/courses/:courseCode/shortlistedTutors", (req, res) => controller.c
 
 router.delete("/courses/:courseCode/shortlistedTutors/:tutorEmail", (req, res) => controller.deleteShortlistedTutor(req, res));
 
-router.get(, (req, res) => controller.getShortlistNoteByID(req,res));
+router.get("/shortlistNotes/:noteId", (req, res) => controller.getShortlistNoteByID(req,res));
 
-router.post(, (req, res) => controller.createShortlistNote(req, res));
+router.post("/courses/:courseCode/shortlisted-tutors/:tutorEmail/notes", (req, res) => controller.createShortlistNote(req, res));
 
-router.put(, (req, res) => controller.updateShortlistNote(req, res));
+router.put("/shortlistNotes/:noteId", (req, res) => controller.updateShortlistNote(req, res));
 
-router.delete(, (req, res) => controller.deleteShortlistNote(req, res));
+router.delete("/shortlistNotes/:noteId", (req, res) => controller.deleteShortlistNote(req, res));
 
-router.get(, (req, res) => controller.getTutorEmailByCourseCodeAndLecEmail(req, res));
+router.get("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.getTutorEmailByCourseCodeAndLecEmail(req, res));
 
-router.post(, (req, res) => controller.createLecturerShortlist(req, res));
+router.post("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.createLecturerShortlist(req, res));
 
-router.put(, (req, res) => controller.updateLecturerShortlist(req, res));
+router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.updateLecturerShortlist(req, res));
 
-router.delete(, (req, res) => controller.deleteLecturerShortlist(req, res));
+router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.deleteLecturerShortlist(req, res));
 
-router.get(, (req, res) => controller.getSkillByCourseCode(req, res));
+router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.getSkillByCourseCode(req, res));
 
-router.get(, (req, res) => controller.createPreferredSkill(req, res));
+router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.createPreferredSkill(req, res));
 
-router.delete(, (req, res) => controller.deletePreferredSkill(req, res));
+router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => controller.deletePreferredSkill(req, res));
 
 
 // todo change course code functions to reference entity not jsut code where applicable
 // todo also pluralize e.g.  getShortlistedTutorByCourseCode --> getShortlistedTutorsByCourseCode
-// todo add all functions to routes
 export default router;
