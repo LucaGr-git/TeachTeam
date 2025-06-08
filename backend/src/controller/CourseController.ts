@@ -2,6 +2,12 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Profile } from "../entity/Profile";
 import { Course } from "src/entity/Course";
+import { CourseLecturer } from "src/entity/CourseLecturer";
+import { TutorApplication } from "src/entity/TutorApplication";
+import { ShortlistedTutor } from "src/entity/ShortlistedTutor";
+import { ShortlistNote } from "src/entity/ShortlistNote";
+import { LecturerShortlist } from "src/entity/LecturerShortlist";
+import { PreferredSkill } from "src/entity/PreferredSkill";
 
 /**
  * CourseController handles all HTTP requests related to courses
@@ -10,6 +16,12 @@ import { Course } from "src/entity/Course";
 export class CourseController {
   /** Repository instance for database operations on Course entity */
   private courseRepo = AppDataSource.getRepository(Course);
+  private courseLecturerRepo = AppDataSource.getRepository(CourseLecturer);
+  private tutorApplicationRepo = AppDataSource.getRepository(TutorApplication);
+  private shortlistedTutorRepo = AppDataSource.getRepository(ShortlistedTutor);
+  private shortlistNoteRepo = AppDataSource.getRepository(ShortlistNote);
+  private lecturerShortlistRepo = AppDataSource.getRepository(LecturerShortlist);
+  private preferredSkillRepo = AppDataSource.getRepository(PreferredSkill);
 
   /**
    * Retrieves all courses from the database
@@ -53,7 +65,7 @@ export class CourseController {
    * @returns JSON object of the created Course with 201 status
    */
   async createCourse(req: Request, res: Response) {
-    /** Create a new pet object from the request body */
+    /** Create a new course object from the request body */
     const course = this.courseRepo.create(req.body);
 
     /** Save the new course to the database */
@@ -116,4 +128,68 @@ export class CourseController {
 
     res.json({ message: "Course deleted" });
   }
+
+  /**
+   * Gets a lecturer in CourseLecturer by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the CourseLecturer or 404 if not found
+   */
+   async getLecturerByCourseCode(req: Request, res: Response) {
+    /** Retrieve the CourseLecturer from the database */
+    const courseLecturer = await this.courseLecturerRepo.findOneBy({
+      courseCode: req.params.courseCode,
+    });
+
+    /** Check if the course Lecturer exists, if not, return a 404 error */
+    if (!courseLecturer) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(courseLecturer);
+   }
+
+   /**
+    * Gets the course code by the Lecturer email in courseLecturer
+    * @param req - Express request oject containing lecturer email in params
+    * @param res - Express response object
+    * @return JSON object of the CourseLecturer or 404 if not found
+    */
+   async getCourseCodeByLecturer(req: Request, res: Response){
+    /** Retrieve the CourseLecturer from the database */
+    const courseLecturer = await this.courseLecturerRepo.findOneBy({
+        lecturerEmail: req.params.lecturerEmail,
+    });
+
+    /** Check if the course Lecturer exists, if not, return a 404 error */
+    if (!courseLecturer) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(courseLecturer);
+   }
+
+  /**
+   * Creates a new CourseLecturer record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created Course with 201 status
+   */
+  async createCourseLecturer(req: Request, res: Response) {
+    /** Create a new course lecturer object from the request body */
+    const courseLecturer = this.courseLecturerRepo.create(req.body);
+
+    /** Save the new course to the database */
+    try {
+      await this.courseLecturerRepo.save(courseLecturer);
+    } catch (error) {
+      return res.status(500).json({ message: "Error saving course lecturer", error });
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(courseLecturer);
+  }
 }
+
