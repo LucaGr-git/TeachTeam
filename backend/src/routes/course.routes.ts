@@ -33,7 +33,7 @@ router.delete("/applications/:tutorEmail/:courseCode", (req, res) => controller.
 
 router.get("/courses/:courseCode/shortlistedTutors", (req, res) => controller.getShortlistedTutorByCourseCode(req, res));
 
-router.get("/shortlisted-tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByShortlistedTutorEmail(req, res));
+router.get("/shortlistedTutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByShortlistedTutorEmail(req, res));
 
 router.post("/courses/:courseCode/shortlistedTutors", (req, res) => controller.createShortlistedTutor(req, res));
 
