@@ -39,4 +39,6 @@ router.delete('/users/:email/qualifications/:qualificationId', (req, res) => con
 
 router.get('/users/:email/qualifications', (req, res) => controller.getUserQualifications(req, res));
 
+// todo ada dto validation where necessary
+
 export default router;

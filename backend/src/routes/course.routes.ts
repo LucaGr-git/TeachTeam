@@ -64,4 +64,5 @@ router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => con
 
 // todo change course code functions to reference entity not jsut code where applicable
 // todo also pluralize e.g.  getShortlistedTutorByCourseCode --> getShortlistedTutorsByCourseCode
+// todo add dto validation where necessary
 export default router;
