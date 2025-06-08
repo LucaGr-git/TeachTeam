@@ -220,7 +220,7 @@ export class CourseController {
    * @param res - Express response object
    * @return JSON object of the TutorApplication or 404 if not found
    */
-   async getCourseCpdeByTutorApplication(req: Request, res: Response) {
+   async getCourseCodeByTutorApplication(req: Request, res: Response) {
     /** Retrieve the TutorApplication from the database */
     const tutorApplication = await this.tutorApplicationRepo.findOneBy({
       tutorEmail: req.params.tutorEmail,
@@ -278,6 +278,89 @@ export class CourseController {
   }
 
   // Shortlisted Tutor Entity functions
+  /**
+   * Gets a Shortlisted tutor in shortlist tutor by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object or 404 if not found
+   */
+   async getShortlistedTutorByCourseCode(req: Request, res: Response) {
+    /** Retrieve the TutorApplication from the database */
+    const shortlistedTutor = await this.shortlistedTutorRepo.findOneBy({
+      courseCode: req.params.courseCode,
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!shortlistedTutor) {
+      return res.status(404).json({ message: "Shortlisted tutor not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(shortlistedTutor);
+   }
+
+  /**
+   * Gets a Shortlisted tutor in shortlist tutor by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object or 404 if not found
+   */
+   async getCourseCodeByShortlistedTutorEmail(req: Request, res: Response) {
+    /** Retrieve the TutorApplication from the database */
+    const shortlistedTutor = await this.shortlistedTutorRepo.findOneBy({
+      tutorEmail: req.params.tutorEmail,
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!shortlistedTutor) {
+      return res.status(404).json({ message: "Shortlisted tutor not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(shortlistedTutor);
+   }
+
+  /**
+   * Creates a new shortlistedTutor record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created Course with 201 status
+   */
+  async createShortlistedTutor(req: Request, res: Response) {
+    /** Create a new course lecturer object from the request body */
+    const shortlistedTutor = this.shortlistedTutorRepo.create(req.body);
+
+    /** Save the new course to the database */
+    try {
+      await this.shortlistedTutorRepo.save(shortlistedTutor);
+    } catch (error) {
+      return res.status(500).json({ message: "Error saving shortlisted tutor", error });
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(shortlistedTutor);
+  }
+
+  /**
+   * Deletes a shortListedTutor record
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if tutorApplication not found
+   */
+  async deleteShortlistedTutor(req: Request, res: Response) {
+    const shortListedTutor = await this.shortlistedTutorRepo.findOneBy({
+       tutorEmail: req.params.tutorEmail,
+       courseCode: req.params.courseCode,
+    });
+
+    if (!shortListedTutor) {
+      return res.status(404).json({ message: "Shortlisted tutor not found" });
+    }
+
+    await this.tutorApplicationRepo.remove(shortListedTutor);
+
+    res.json({ message: "Shortlisted tutor deleted" });
+  }
 
 }
 
