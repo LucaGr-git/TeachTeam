@@ -362,5 +362,98 @@ export class CourseController {
     res.json({ message: "Shortlisted tutor deleted" });
   }
 
+  // Shortlist note entity functions
+  /**
+   * Gets a shortlist note by its ID
+   * @param req - Express request object containing ID in params
+   * @param res - Express response object
+   * @return JSON object or 404 if not found
+   */
+   async getShortlistNoteByID(req: Request, res: Response) {
+    /** Retrieve the shortlistNote from the database */
+    const shortlistNote = await this.shortlistNoteRepo.findOneBy({
+      id: parseInt(req.params.id),
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!shortlistNote) {
+      return res.status(404).json({ message: "ShortlistNote not found" });
+    }
+
+    /** Return the tutor application */
+    res.json(shortlistNote);
+   }
+
+  /**
+   * Creates a new shortlistNote record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created note with 201 status
+   */
+  async createShortlistNote(req: Request, res: Response) {
+    /** Create a new course note object from the request body */
+    const shortlistNote = this.shortlistNoteRepo.create(req.body);
+
+    /** Save the new course to the database */
+    try {
+      await this.shortlistNoteRepo.save(shortlistNote);
+    } catch (error) {
+      return res.status(500).json({ message: "Error saving shortlist note", error });
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(shortlistNote);
+  }
+
+  /**
+   * Updates an existing shortlistNote record
+   * @param req - Express request object containing course code in params and update data in body
+   * @param res - Express response object
+   * @returns JSON object of the updated pet or 404 if not found
+   */
+  async updateShortlistNote(req: Request, res: Response) {
+    let shortlistNote = await this.shortlistNoteRepo.findOneBy({
+      id: parseInt(req.params.id),
+    });
+
+    /** Check if the shortlist note exists, if not, return a 404 error */
+    if (!shortlistNote) {
+      return res.status(404).json({ message: "Shortlist note not found" });
+    }
+
+    /** Merge the existing note with the new data from the request body */
+    this.shortlistNoteRepo.merge(shortlistNote, req.body);
+
+    /** Save the updated note to the database */
+    try {
+      await this.shortlistNoteRepo.save(shortlistNote);
+    } catch (error) {
+      return res.status(500).json({ message: "Error updating shortlist note", error });
+    }
+
+    /** Return the updated pet */
+    res.json(shortlistNote);
+  }
+
+  /**
+   * Deletes a shortlist note record
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if tutorApplication not found
+   */
+  async deleteShortlistNote(req: Request, res: Response) {
+    const shortlistNote = await this.shortlistNoteRepo.findOneBy({
+       id: parseInt(req.params.id),
+    });
+
+    if (!shortlistNote) {
+      return res.status(404).json({ message: "Shortlist note not found" });
+    }
+
+    await this.shortlistNoteRepo.remove(shortlistNote);
+
+    res.json({ message: "Shortlist note deleted" });
+  }
+
 }
 
