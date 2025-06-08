@@ -4,39 +4,39 @@ import { CourseController } from "../controller/CourseController";
 const router = Router();
 const controller = new CourseController();
 
-router.get("/", controller.getAll.bind(controller));
+router.get("/", (req, res) => controller.getAll(req, res));
 
-router.get("/:courseCode", controller.getCourseByCode.bind(controller));
+router.get("/:courseCode", (req, res) => controller.getCourseByCode);
 
-router.post("/", controller.createCourse.bind(controller));
+router.post("/", (req, res) => controller.createCourse);
 
-router.put("/:courseCode", controller.updateCourse.bind(controller));
+router.put("/:courseCode", (req, res) => controller.updateCourse);
 
-router.delete("/:courseCode", controller.deleteCourse.bind(controller));
-
-
-router.get("/lecturer/:courseCode", controller.getLecturerByCourseCode.bind(controller));
-
-router.get("/courseCode/:lecturerEmail", controller.getCourseCodeByLecturer.bind(controller));
-
-router.post("/lecturer/", controller.createCourseLecturer.bind(controller));
+router.delete("/:courseCode", (req, res) => controller.deleteCourse);
 
 
-router.get("/application/:courseCode", controller.getTutorApplicationByCourseCode.bind(controller));
+router.get("/lecturer/:courseCode", (req, res) => controller.getLecturerByCourseCode);
 
-router.get("/application/email/:tutorEmail", controller.getCourseCodeByTutorApplication.bind(controller)); // todo ??????
+router.get("/courseCode/:lecturerEmail", (req, res) => controller.getCourseCodeByLecturer); // ? conflict
 
-router.post("/application", controller.createTutorApplication.bind(controller));
-
-router.delete("/application/:tutorEmail/:courseCode", controller.deleteTutorApplication.bind(controller));
+router.post("/lecturer/", (req, res) => controller.createCourseLecturer);
 
 
-router.get("/shortlistedTutor/:courseCode", controller.getShortlistedTutorByCourseCode.bind(controller));
+router.get("/application/:courseCode", (req, res) => controller.getTutorApplicationByCourseCode);
 
-router.get("/courseCode/:tutorEmail", controller.getCourseCodeByShortlistedTutorEmail.bind(controller));
+router.get("/application/email/:tutorEmail", (req, res) => controller.getCourseCodeByTutorApplication); // todo ???
 
-router.post("/shortlist", controller.createShortlistedTutor.bind(controller));
+router.post("/application", (req, res) => controller.createTutorApplication);
 
-router.delete("/shortlist/:tutorEmail/:courseCode", controller.deleteShortlistedTutor.bind(controller));
+router.delete("/application/:tutorEmail/:courseCode", (req, res) => controller.deleteTutorApplication);
+
+
+router.get("/shortlistedTutor/:courseCode", (req, res) => controller.getShortlistedTutorByCourseCode);
+
+router.get("/courseCode/:tutorEmail", (req, res) => controller.getCourseCodeByShortlistedTutorEmail); // ? confilct
+
+router.post("/shortlist", (req, res) => controller.createShortlistedTutor);
+
+router.delete("/shortlist/:tutorEmail/:courseCode", (req, res) => controller.deleteShortlistedTutor);
 
 export default router;
