@@ -1,5 +1,14 @@
 import { Router } from "express";
 import { CourseController } from "../controller/CourseController";
+import { validateDto } from "src/middlewares/validate";
+import { CreateCourseDTO } from "src/dtos/create-course.dto";
+import { CreateTutorApplicationDTO } from "src/dtos/create-tutorApplication.dto";
+import { CreateShortlistedTutorDTO } from "src/dtos/create-shortlistedTutor.dto";
+import { CreateShortlistNoteDTO } from "src/dtos/create-shortlistNote.dto";
+import { UpdateShortlistNoteDTO } from "src/dtos/update-shortlistNote.dto";
+import { CreateLecturerShortlistDTO } from "src/dtos/create-LecturerShortlist.dto";
+import { UpdateLecturerShortlistDTO } from "src/dtos/update-LecturerShortlist.dto";
+import { CreatePreferredSkillDTO } from "src/dtos/create-preferredSkill.dto";
 
 const router = Router();
 const controller = new CourseController();
@@ -8,7 +17,7 @@ router.get('/courses', (req, res) => controller.getAll(req, res));
 
 router.get("/courses/:courseCode", (req, res) => controller.getCourseByCode(req, res));
 
-router.post("/courses", (req, res) => controller.createCourse(req, res));
+router.post("/courses", validateDto(CreateCourseDTO), (req, res) => controller.createCourse(req, res));
 
 router.put("/courses/:courseCode", (req, res) => controller.updateCourse(req, res));
 
@@ -26,7 +35,7 @@ router.get("/courses/:courseCode/applications", (req, res) => controller.getTuto
 
 router.get("/applications/:tutorEmail/courses", (req, res) => controller.getCourseCodeByTutorApplication(req, res)); 
 
-router.post("/courses/:courseCode/applications", (req, res) => controller.createTutorApplication(req, res));
+router.post("/courses/:courseCode/applications", validateDto(CreateTutorApplicationDTO),(req, res) => controller.createTutorApplication(req, res));
 
 router.delete("/applications/:tutorEmail/:courseCode", (req, res) => controller.deleteTutorApplication(req, res));
 
@@ -35,29 +44,29 @@ router.get("/courses/:courseCode/shortlistedTutors", (req, res) => controller.ge
 
 router.get("/shortlistedTutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByShortlistedTutorEmail(req, res));
 
-router.post("/courses/:courseCode/shortlistedTutors", (req, res) => controller.createShortlistedTutor(req, res));
+router.post("/courses/:courseCode/shortlistedTutors", validateDto(CreateShortlistedTutorDTO),(req, res) => controller.createShortlistedTutor(req, res));
 
 router.delete("/courses/:courseCode/shortlistedTutors/:tutorEmail", (req, res) => controller.deleteShortlistedTutor(req, res));
 
 router.get("/shortlistNotes/:noteId", (req, res) => controller.getShortlistNoteByID(req,res));
 
-router.post("/courses/:courseCode/shortlisted-tutors/:tutorEmail/notes", (req, res) => controller.createShortlistNote(req, res));
+router.post("/courses/:courseCode/shortlisted-tutors/:tutorEmail/notes", validateDto(CreateShortlistNoteDTO),(req, res) => controller.createShortlistNote(req, res));
 
-router.put("/shortlistNotes/:noteId", (req, res) => controller.updateShortlistNote(req, res));
+router.put("/shortlistNotes/:noteId", validateDto(UpdateShortlistNoteDTO),(req, res) => controller.updateShortlistNote(req, res));
 
 router.delete("/shortlistNotes/:noteId", (req, res) => controller.deleteShortlistNote(req, res));
 
 router.get("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.getTutorEmailByCourseCodeAndLecEmail(req, res));
 
-router.post("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.createLecturerShortlist(req, res));
+router.post("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(CreateLecturerShortlistDTO),(req, res) => controller.createLecturerShortlist(req, res));
 
-router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.updateLecturerShortlist(req, res));
+router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(UpdateLecturerShortlistDTO),(req, res) => controller.updateLecturerShortlist(req, res));
 
 router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.deleteLecturerShortlist(req, res));
 
 router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.getSkillByCourseCode(req, res));
 
-router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.createPreferredSkill(req, res));
+router.get("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
 
 router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => controller.deletePreferredSkill(req, res));
 
