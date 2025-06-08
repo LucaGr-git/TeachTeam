@@ -17,7 +17,7 @@ router.get('/', controller.getAll.bind(controller));
 
 router.get('/:email', controller.getUserByEmail.bind(controller));
 
-router.post('/:email', controller.update.bind(controller));
+router.put('/:email', controller.update.bind(controller));
 
 router.delete('/:email', controller.delete.bind(controller));
 
