@@ -39,6 +39,28 @@ router.post("/courses/:courseCode/shortlistedTutors", (req, res) => controller.c
 
 router.delete("/courses/:courseCode/shortlistedTutors/:tutorEmail", (req, res) => controller.deleteShortlistedTutor(req, res));
 
+router.get(, (req, res) => controller.getShortlistNoteByID(req,res));
+
+router.post(, (req, res) => controller.createShortlistNote(req, res));
+
+router.put(, (req, res) => controller.updateShortlistNote(req, res));
+
+router.delete(, (req, res) => controller.deleteShortlistNote(req, res));
+
+router.get(, (req, res) => controller.getTutorEmailByCourseCodeAndLecEmail(req, res));
+
+router.post(, (req, res) => controller.createLecturerShortlist(req, res));
+
+router.put(, (req, res) => controller.updateLecturerShortlist(req, res));
+
+router.delete(, (req, res) => controller.deleteLecturerShortlist(req, res));
+
+router.get(, (req, res) => controller.getSkillByCourseCode(req, res));
+
+router.get(, (req, res) => controller.createPreferredSkill(req, res));
+
+router.delete(, (req, res) => controller.deletePreferredSkill(req, res));
+
 
 // todo change course code functions to reference entity not jsut code where applicable
 // todo also pluralize e.g.  getShortlistedTutorByCourseCode --> getShortlistedTutorsByCourseCode
