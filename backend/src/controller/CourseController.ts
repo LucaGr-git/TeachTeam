@@ -191,5 +191,93 @@ export class CourseController {
     /** Return the created course with a 201 status */
     res.status(201).json(courseLecturer);
   }
+
+  // Tutor application entity functions
+  /**
+   * Gets a tutor Application in TutorApplication by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the TutorApplication or 404 if not found
+   */
+   async getTutorApplicationByCourseCode(req: Request, res: Response) {
+    /** Retrieve the TutorApplication from the database */
+    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+      courseCode: req.params.courseCode,
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!tutorApplication) {
+      return res.status(404).json({ message: "Tutor application not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(tutorApplication);
+   }
+
+  /**
+   * Gets a tutor Application course code by tutor application email
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the TutorApplication or 404 if not found
+   */
+   async getCourseCpdeByTutorApplication(req: Request, res: Response) {
+    /** Retrieve the TutorApplication from the database */
+    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+      tutorEmail: req.params.tutorEmail,
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!tutorApplication) {
+      return res.status(404).json({ message: "Tutor application not found" });
+    }
+
+    /** Return the tutor application */
+    res.json(tutorApplication);
+   }
+
+  /**
+   * Creates a new tutorApplication record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created Course with 201 status
+   */
+  async createTutorApplication(req: Request, res: Response) {
+    /** Create a new course lecturer object from the request body */
+    const tutorApplication = this.tutorApplicationRepo.create(req.body);
+
+    /** Save the new course to the database */
+    try {
+      await this.tutorApplicationRepo.save(tutorApplication);
+    } catch (error) {
+      return res.status(500).json({ message: "Error saving tutor application", error });
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(tutorApplication);
+  }
+
+  /**
+   * Deletes a TutorApplication record
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if tutorApplication not found
+   */
+  async deleteTutorApplication(req: Request, res: Response) {
+    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+       tutorEmail: req.params.tutorEmail,
+       courseCode: req.params.courseCode,
+    });
+
+    if (!tutorApplication) {
+      return res.status(404).json({ message: "Tutor application not found" });
+    }
+
+    await this.tutorApplicationRepo.remove(tutorApplication);
+
+    res.json({ message: "Tutor application deleted" });
+  }
+
+  // Shortlisted Tutor Entity functions
+
 }
 
