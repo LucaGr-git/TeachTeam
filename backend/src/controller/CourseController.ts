@@ -73,7 +73,7 @@ export class CourseController {
    * @param res - Express response object
    * @returns JSON object of the updated pet or 404 if not found
    */
-  async update(req: Request, res: Response) {
+  async updateCourse(req: Request, res: Response) {
     let course = await this.courseRepo.findOneBy({
       courseCode: req.params.courseCode,
     });
@@ -103,7 +103,7 @@ export class CourseController {
    * @param res - Express response object
    * @returns 204 status on success or 404 if pet not found
    */
-  async delete(req: Request, res: Response) {
+  async deleteCourse(req: Request, res: Response) {
     const course = await this.courseRepo.findOneBy({
       courseCode: req.params.courseCode,
     });
