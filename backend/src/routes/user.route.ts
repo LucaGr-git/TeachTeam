@@ -11,34 +11,34 @@ import { UserController } from '../controller/UserController'
 const router = Router();
 const controller = new UserController();
   
-router.post('/', (req, res) => controller.createUser);
+router.post('/', (req, res) => controller.createUser(req, res));
 
-router.get('/', (req, res) => controller.getAll);
+router.get('/', (req, res) => controller.getAll(req, res));
 
-router.get('/:email', (req, res) => controller.getUserByEmail);
+router.get('/:email', (req, res) => controller.getUserByEmail(req, res));
 
-router.put('/:email', (req, res) => controller.update);
+router.put('/:email', (req, res) => controller.update(req, res));
 
-router.delete('/:email', (req, res) => controller.delete);
+router.delete('/:email', (req, res) => controller.delete(req, res));
 
-router.get('/:email/profile', (req, res) => controller.getUserByEmail);
+router.get('/:email/user', (req, res) => controller.getUserByEmail(req, res));
 
-router.post('/:email/experience', (req, res) => controller.addExperienceToUser);
+router.post('/:email/experience', (req, res) => controller.addExperienceToUser(req, res));
 
-router.delete('/:email/experience/:experienceId', (req, res) => controller.deleteExperience);
+router.delete('/:email/experience/:experienceId', (req, res) => controller.deleteExperience(req, res));
 
-router.get('/:email/experiences', (req, res) => controller.getUserExperiences);
+router.get('/:email/experiences', (req, res) => controller.getUserExperiences(req, res));
 
-router.post('/:email/skill', (req, res) => controller.addSkillToUser);
+router.post('/:email/skill', (req, res) => controller.addSkillToUser(req, res));
 
-router.delete('/:email/skill/:skill', (req, res) => controller.deleteSkill);
+router.delete('/:email/skill/:skill', (req, res) => controller.deleteSkill(req, res));
 
-router.get('/:email/skills', (req, res) => controller.getUserSkills);
+router.get('/:email/skills', (req, res) => controller.getUserSkills(req, res));
 
-router.post('/:email/qualification', (req, res) => controller.addQualificationToUser);
+router.post('/:email/qualification', (req, res) => controller.addQualificationToUser(req, res));
 
-router.delete('/:email/qualification/:qualification', (req, res) => controller.deleteQualification);
+router.delete('/:email/qualification/:qualification', (req, res) => controller.deleteQualification(req, res));
 
-router.get('/:email/qualifications', (req, res) => controller.getUserQualifications);
+router.get('/:email/qualifications', (req, res) => controller.getUserQualifications(req, res));
 
 export default router;
