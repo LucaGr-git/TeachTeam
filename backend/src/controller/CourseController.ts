@@ -455,5 +455,151 @@ export class CourseController {
     res.json({ message: "Shortlist note deleted" });
   }
 
+// LecturerShortlist Entity functions
+
+/**
+ * Gets a LecturerShortlist by course code and lecturer email
+ * @param req - Express request object containing courseCode and lecturerEmail in params
+ * @param res - Express response object
+ * @return JSON object or 404 if not found
+ */
+async getTutorEmailByCourseCodeAndLecEmail(req: Request, res: Response) {
+  const lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
+    courseCode: req.params.courseCode,
+    lecturerEmail: req.params.lecturerEmail,
+  });
+
+  if (!lecturerShortlist) {
+    return res.status(404).json({ message: "Lecturer shortlist not found" });
+  }
+
+  res.json(lecturerShortlist);
+}
+
+/**
+ * Creates a new LecturerShortlist record
+ * @param req - Express request object containing data in body
+ * @param res - Express response object
+ * @returns JSON object of the created record with 201 status
+ */
+async createLecturerShortlist(req: Request, res: Response) {
+  const lecturerShortlist = this.lecturerShortlistRepo.create(req.body);
+
+  try {
+    await this.lecturerShortlistRepo.save(lecturerShortlist);
+  } catch (error) {
+    return res.status(500).json({ message: "Error saving lecturer shortlist", error });
+  }
+
+  res.status(201).json(lecturerShortlist);
+}
+
+/**
+ * Updates an existing LecturerShortlist record
+ * @param req - Express request object containing courseCode and lecturerEmail in params, and update data in body
+ * @param res - Express response object
+ * @returns JSON object of the updated record or 404 if not found
+ */
+async updateLecturerShortlist(req: Request, res: Response) {
+  let lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
+    courseCode: req.params.courseCode,
+    lecturerEmail: req.params.lecturerEmail,
+  });
+
+  if (!lecturerShortlist) {
+    return res.status(404).json({ message: "Lecturer shortlist not found" });
+  }
+
+  this.lecturerShortlistRepo.merge(lecturerShortlist, req.body);
+
+  try {
+    await this.lecturerShortlistRepo.save(lecturerShortlist);
+  } catch (error) {
+    return res.status(500).json({ message: "Error updating lecturer shortlist", error });
+  }
+
+  res.json(lecturerShortlist);
+}
+
+/**
+ * Deletes a LecturerShortlist record
+ * @param req - Express request object containing courseCode and lecturerEmail in params
+ * @param res - Express response object
+ * @returns 204 status on success or 404 if not found
+ */
+async deleteLecturerShortlist(req: Request, res: Response) {
+  const lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
+    courseCode: req.params.courseCode,
+    lecturerEmail: req.params.lecturerEmail,
+  });
+
+  if (!lecturerShortlist) {
+    return res.status(404).json({ message: "Lecturer shortlist not found" });
+  }
+
+  await this.lecturerShortlistRepo.remove(lecturerShortlist);
+
+  res.json({ message: "Lecturer shortlist deleted" });
+}
+
+// Preferred skill functions
+
+/**
+ * Gets all PreferredSkills by course code
+ * @param req - Express request object containing courseCode in params
+ * @param res - Express response object
+ * @return JSON array of preferred skills or 404 if none found
+ */
+async getSkillByCourseCode(req: Request, res: Response) {
+  const preferredSkills = await this.preferredSkillRepo.findBy({
+    courseCode: req.params.courseCode,
+  });
+
+  if (!preferredSkills || preferredSkills.length === 0) {
+    return res.status(404).json({ message: "No preferred skills found for this course code" });
+  }
+
+  res.json(preferredSkills);
+}
+
+/**
+ * Creates a new PreferredSkill record
+ * @param req - Express request object containing preferred skill data in body
+ * @param res - Express response object
+ * @returns JSON object of the created preferred skill with 201 status
+ */
+async createPreferredSkill(req: Request, res: Response) {
+  const preferredSkill = this.preferredSkillRepo.create(req.body);
+
+  try {
+    await this.preferredSkillRepo.save(preferredSkill);
+  } catch (error) {
+    return res.status(500).json({ message: "Error saving preferred skill", error });
+  }
+
+  res.status(201).json(preferredSkill);
+}
+
+/**
+ * Deletes a PreferredSkill record
+ * @param req - Express request object containing courseCode and skill in params
+ * @param res - Express response object
+ * @returns 204 status on success or 404 if not found
+ */
+async deletePreferredSkill(req: Request, res: Response) {
+  const preferredSkill = await this.preferredSkillRepo.findOneBy({
+    courseCode: req.params.courseCode,
+    skill: req.params.skill,
+  });
+
+  if (!preferredSkill) {
+    return res.status(404).json({ message: "Preferred skill not found" });
+  }
+
+  await this.preferredSkillRepo.remove(preferredSkill);
+
+  res.json({ message: "Preferred skill deleted" });
+}
+
 }
 
