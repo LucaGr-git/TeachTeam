@@ -13,7 +13,7 @@ const controller = new UserController();
   
 router.post('/users', (req, res) => controller.createUser(req, res));
 
-router.get('/users', (req, res) => controller.getAll(req, res));3
+router.get('/users', (req, res) => controller.getAll(req, res));
 
 router.get('/users/:email', (req, res) => controller.getUserByEmail(req, res));
 
