@@ -21,8 +21,8 @@ import { useRouter } from 'next/router';
 
 interface LoginSignUpTabProps {
     // functions for log in + signup
-    handleLogin: (email: string, password: string) => boolean;
-    handleSignup: (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string) => boolean;
+    handleLogin: (email: string, password: string) => Promise<boolean>;
+    handleSignup: (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string) => Promise<boolean>;
     // zod validation 
     emailValidation?:       z.ZodString;
     passwordValidation?:    z.ZodString;
@@ -86,7 +86,7 @@ const LoginSignUpTab = (
 
 
     // form handlers
-    const onSubmitSignUp = (
+    const onSubmitSignUp = async (
         values: {
             email: string;
             password: string;
@@ -102,16 +102,16 @@ const LoginSignUpTab = (
         }
 
 
-        const SignedUp = handleSignup(values.email, values.password, isLecturer, values.firstName, values.lastName);
+        const SignedUp = await handleSignup(values.email, values.password, isLecturer, values.firstName, values.lastName);
 
-        if (!SignedUp){
+        if (SignedUp == false){
             // error when signup is attempt sign upw
             signUpForm.setError("email", 
                 { message: "That email already has an account"});
             
         }
         else { 
-            // when signup is successful auto logs in 
+            // // when signup is successful auto logs in 
             const loggedIn = handleLogin(values.email, values.password);
             
             // zod error when log in fails
@@ -136,9 +136,9 @@ const LoginSignUpTab = (
         email: string;
         password: string;
     }) => {
-
+        // TODO: delete manual wait after we do full API 
         const loginPromise = new Promise<void>(async (resolve, reject) => {
-            const loggedIn = handleLogin(values.email, values.password);
+            const loggedIn = await handleLogin(values.email, values.password);
             
             await waitFunction();
             if (loggedIn) {

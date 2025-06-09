@@ -1,9 +1,9 @@
 import React from "react";
-import { useAuth, User } from "@/localStorage-context/auth";
+import { useAuth, LocalStorageUser } from "@/localStorage-context/auth";
 
 const ProfileGreeter = () => {
     const {getCurrentUser} = useAuth();
-    const userData: User | null= getCurrentUser();
+    const userData: LocalStorageUser | null= getCurrentUser();
 
     const getGreeting = () => {
         const hour: number = new Date().getHours();
