@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { CourseController } from "../controller/CourseController";
-import { validateDto } from "src/middlewares/validate";
-import { CreateCourseDTO } from "src/dtos/create-course.dto";
-import { CreateTutorApplicationDTO } from "src/dtos/create-tutorApplication.dto";
-import { CreateShortlistedTutorDTO } from "src/dtos/create-shortlistedTutor.dto";
-import { CreateShortlistNoteDTO } from "src/dtos/create-shortlistNote.dto";
-import { UpdateShortlistNoteDTO } from "src/dtos/update-shortlistNote.dto";
-import { CreateLecturerShortlistDTO } from "src/dtos/create-LecturerShortlist.dto";
-import { UpdateLecturerShortlistDTO } from "src/dtos/update-LecturerShortlist.dto";
-import { CreatePreferredSkillDTO } from "src/dtos/create-preferredSkill.dto";
+import { validateDto } from "../middlewares/validate";
+import { CreateCourseDTO } from "../dtos/create-course.dto";
+import { CreateTutorApplicationDTO } from "../dtos/create-tutorApplication.dto";
+import { CreateShortlistedTutorDTO } from "../dtos/create-shortlistedTutor.dto";
+import { CreateShortlistNoteDTO } from "../dtos/create-shortlistNote.dto";
+import { UpdateShortlistNoteDTO } from "../dtos/update-shortlistNote.dto";
+import { CreateLecturerShortlistDTO } from "../dtos/create-LecturerShortlist.dto";
+import { UpdateLecturerShortlistDTO } from "../dtos/update-LecturerShortlist.dto";
+import { CreatePreferredSkillDTO } from "../dtos/create-preferredSkill.dto";
 
 const router = Router();
 const controller = new CourseController();

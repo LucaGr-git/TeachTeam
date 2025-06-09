@@ -3,8 +3,8 @@ import { Request, Response } from 'express';
 import { User } from '../entity/User';
 import { AppDataSource } from '../data-source';
 import { Skill } from '../entity/Skill';
-import { Qualification } from 'src/entity/Qualification';
-import { Experience } from 'src/entity/Experience';
+import { Qualification } from '../entity/Qualification';
+import { Experience } from '../entity/Experience';
 
 /**
  * UserController handles all HTTP requests related to courses

@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
 import { Profile } from "../entity/Profile";
-import { Course } from "src/entity/Course";
-import { CourseLecturer } from "src/entity/CourseLecturer";
-import { TutorApplication } from "src/entity/TutorApplication";
-import { ShortlistedTutor } from "src/entity/ShortlistedTutor";
-import { ShortlistNote } from "src/entity/ShortlistNote";
-import { LecturerShortlist } from "src/entity/LecturerShortlist";
-import { PreferredSkill } from "src/entity/PreferredSkill";
+import { Course } from "../entity/Course";
+import { CourseLecturer } from "../entity/CourseLecturer";
+import { TutorApplication } from "../entity/TutorApplication";
+import { ShortlistedTutor } from "../entity/ShortlistedTutor";
+import { ShortlistNote } from "../entity/ShortlistNote";
+import { LecturerShortlist } from "../entity/LecturerShortlist";
+import { PreferredSkill } from "../entity/PreferredSkill";
 
 /**
  * CourseController handles all HTTP requests related to courses

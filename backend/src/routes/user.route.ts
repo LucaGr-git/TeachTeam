@@ -3,15 +3,15 @@ import { PetController } from "../controller/PetController";
 import { validateDto } from "../middlewares/validate";
 import { CreatePetDTO } from "../exampledtos/create-pet.dto";
 import { UpdatePetDTO } from "../exampledtos/update-pet.dto";
-import { CourseController } from "src/controller/CourseController";
+import { CourseController } from "../controller/CourseController";
 
 
 import { UserController } from '../controller/UserController'
-import { CreateUserDTO } from "src/dtos/create-user.dto";
-import { UpdateUserDTO } from "src/dtos/update-user.dto";
-import { CreateExperienceDTO } from "src/dtos/create-experience.dto";
-import { CreateSkillDTO } from "src/dtos/create-skill.dto";
-import { CreateQualificationDTO } from "src/dtos/create-qualification.dto";
+import { CreateUserDTO } from "../dtos/create-user.dto";
+import { UpdateUserDTO } from "../dtos/update-user.dto";
+import { CreateExperienceDTO } from "../dtos/create-experience.dto";
+import { CreateSkillDTO } from "../dtos/create-skill.dto";
+import { CreateQualificationDTO } from "../dtos/create-qualification.dto";
 
 const router = Router();
 const controller = new UserController();
