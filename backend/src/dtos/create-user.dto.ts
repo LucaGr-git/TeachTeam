@@ -1,4 +1,4 @@
-import { IsBoolean, IsEmail, IsString, Length } from "class-validator";
+import { IsBoolean, IsEmail, IsString, Length, IsNotEmpty } from "class-validator";
 
 
 
@@ -22,4 +22,9 @@ export class CreateUserDTO {
   
   @IsBoolean() 
   fullTime: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  dateJoined: string;
+
 }

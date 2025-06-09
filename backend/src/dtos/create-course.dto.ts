@@ -20,7 +20,4 @@ export class CreateCourseDTO {
     @IsNotEmpty()
     fullTimeFriendly: boolean;
 
-    @IsString()
-    @IsNotEmpty()
-    dateJoined: string;
 }
