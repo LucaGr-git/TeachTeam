@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL = "/api"; // Change if needed
+const API_BASE_URL = "http://localhost:3001/api";
+
 
 import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill } from "../types/types";
 export const courseService = {

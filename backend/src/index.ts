@@ -13,8 +13,8 @@ app.use(cors());
 app.use(express.json());
 app.use("/api/pet", petRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/course", courseRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api", courseRoutes);
+app.use("/api", userRoutes);
 
 
 AppDataSource.initialize()

@@ -8,13 +8,13 @@ export default function Home() {
 
   useEffect(() => {
     fetchPet();
-  });
+  }, []);
 
   const fetchPet = async () => {
     try {
       let user: User = {
-        email: "example@example.com",
-        password: "password123",
+        email: "example@gmail.com",
+        password: "skibidy",
         firstName: "John",
         lastName: "Doe",
         isLecturer: false,
