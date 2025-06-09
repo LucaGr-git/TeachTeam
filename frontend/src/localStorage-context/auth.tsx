@@ -1,8 +1,10 @@
 import { createContext, useState, useEffect, useContext, ReactNode, useCallback } from "react";
 import { useRouter } from "next/router";
+import { User } from "@/types/types";
+import { userService } from "@/services/api";
 
 // interface for user records details
-export interface User {
+export interface LocalStorageUser {
     email: string;
     password: string;
     isLecturer: boolean;
@@ -14,13 +16,38 @@ export interface User {
 export interface Authentication {
     isAuthenticated: boolean,
     isLecturer: boolean
-    login: (email: string, password: string) => boolean;
+    login: (email: string, password: string) => Promise<boolean>;
     logout: () => void;
-    signup: (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string) => boolean;
-    getUsers: () => Record<string, User>;
-    saveUsers : (users: Record<string, User>) => void;
-    getCurrentUser: () => User | null;
+    signup: (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string) => Promise<boolean>;
+    getUsers: () => Record<string, LocalStorageUser>;
+    saveUsers : (users: Record<string, LocalStorageUser>) => void;
+    getCurrentUser: () => LocalStorageUser | null;
 }
+
+  const createUser = async (user: User) => {
+    try {
+      const data = await userService.createUser(user);
+      return data;
+    } catch (error) {
+      console.error("Error creating user:", error);
+      return null;
+    }
+  }
+
+  const fetchUser = async (email: string) => {
+    try {
+      const data = await userService.getUserByEmail(email);
+      return data;
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+        // This is expected during signup
+        return null;
+        }
+
+        console.error("Unexpected error fetching user:", error);
+        return null;   
+     }
+  };
 
 // Create context
 const AuthContext = createContext<Authentication | undefined>(undefined);
@@ -32,40 +59,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // import router 
     const router = useRouter();
 
-    
-
     // sign up function
-    const signup = useCallback((email: string, password: string, isLecturer: boolean, firstName: string, lastName: string): boolean => {
-        // get users record object
-        const users = getUsers();
-
-        // if user email exists process is cancelled
-        if (users[email]) {
-            return false; // Username already taken
+    const signup = useCallback(async(email: string, password: string, isLecturer: boolean, firstName: string, lastName: string): Promise<boolean> => {
+        // Check if user already exists
+        try {
+            const fetchedUser = await fetchUser(email);
+            if (fetchedUser) {
+                console.warn("User already exists:", email);
+                return false;
+            }
+        }
+        catch {
+            
         }
 
-        // Add new user 
-        users[email] = { email, password, isLecturer, firstName, lastName };
-        // save to localStorage
-        saveUsers(users);
-
-        const userData = localStorage.getItem("userData");
-        const userRecords = userData ? JSON.parse(userData) : {}; 
-
-        userRecords[email] = {
-            email : email,
-            experience : [], 
-            skills :  [],
-            qualifications : [],
+        const user: User = {
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+            isLecturer: isLecturer,
+            fullTime: false,
+            dateJoined: new Date().toISOString(),
         }
 
-        localStorage.setItem("userData", JSON.stringify(userRecords));
-        return true;
+        try {
+            await createUser(user);
+            return true;
+        } catch (error) {
+            console.error("User creation failed:", error);
+            return false;
+        }
     }, []);
 
 
     // get current user
-    const getCurrentUser = (): User | null => {
+    const getCurrentUser = (): LocalStorageUser | null => {
         // checks if the window is actually rendered
         if (typeof window !== "undefined") {
             // get's info of current user
@@ -76,37 +105,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // logs in the current user in the localStorage
-    const setCurrentUser = useCallback((email: string) => {
-        const users = getUsers();
+    const setCurrentUser = useCallback(async(email: string) => {
+        let fetchedUser = null;
+        try {
+            fetchedUser = await fetchUser(email);
+            if (!fetchedUser) {
+                return;
+            }
+        }
+        catch {
+            
+        }
 
-        if (users[email]) {
-            const currUser = users[email];
-            localStorage.setItem("currentUser", JSON.stringify(currUser));
+        if (fetchedUser) {
+            localStorage.setItem("currentUser", JSON.stringify(fetchedUser));
         }
     }, []);
 
     // login function 
-    const login = useCallback((email: string, password: string): boolean => {
-        const users = getUsers();
-
-        if (users[email] == null) {return false;}
+    const login = useCallback(async(email: string, password: string): Promise<boolean> => {
+        let fetchedUser;
+        try {
+            fetchedUser = await fetchUser(email);
+            if (!fetchedUser) {
+                return false
+            }
+        }
+        catch {
+            
+        }
+        if (fetchedUser == null) {return false;}
         
         // update hooks based on matching email pass
-        if (users[email].email && users[email].password === password) {
-            const user = users[email];
+        if (fetchedUser.email && fetchedUser.password === password) {
 
             // sets current user to the matching record
             setCurrentUser(email);
 
             // returns true and updates auth details
             setIsAuthenticated(true);
-            setIsLecturer(user.isLecturer);
-
+            setIsLecturer(fetchedUser.isLecturer);
+            console.log("Authentication true");
             return true;
         } else {
             // else return false
             setIsAuthenticated(false);
             setIsLecturer(false);
+            console.log("Authetication false");
             return false;
         }
     }, [setCurrentUser]);
@@ -120,13 +165,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // returns user record
-    const getUsers = (): Record<string, User> => {
+    const getUsers = (): Record<string, LocalStorageUser> => {
         const users = localStorage.getItem("users");
         return users ? JSON.parse(users) : {};
     };
 
     // save users record
-    const saveUsers = (users: Record<string, User>) => {
+    const saveUsers = (users: Record<string, LocalStorageUser>) => {
         localStorage.setItem("users", JSON.stringify(users));
     };
 
@@ -135,9 +180,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     useEffect(() => {
         // Check authentication status on mount
-        const checkAuth = () => {
+        const checkAuth = async() => {
             // gets current user localStorage key
-            const currUser: User | null = getCurrentUser();
+            const currUser: LocalStorageUser | null = getCurrentUser();
 
             // if there is no key false is returned
             if (currUser == null){ 
@@ -147,91 +192,91 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
             // sets authentication 
-            const loggedIn = login(currUser.email, currUser.password);
+            const loggedIn = await login(currUser.email, currUser.password);
             // if log in is successful user is pushed to dashboard
             if (loggedIn){router.push("/dashboard");}
         };
 
         checkAuth(); // Run the check on mount
 
-        // !!! loading dummy data 
-        signup(
-            "example123@gmail.com", 
-            "password123", 
-            false, 
-            "John", 
-            "Doe");
-        signup(
-            "lecturer123@gmail.com",
-            "password123",
-            true, 
-            "Mary",
-            "Jane");
-        signup(
-            "trent@student.rmit.edu.au",
-            "password123",
-            false,
-            "Trent",
-            "Butter",
-        );
-        signup(
-            "tommy@student.rmit.edu.au",
-            "password123",
-            false,
-            "Tommy",
-            "Nguyen"
-        );
-        signup(
-            "matt@rmit.edu.au",
-            "password123",
-            true,
-            "Matt", 
-            "Hayward"
-        );
-        signup(
-            "alysha@student.rmit.edu.au",
-            "password123",
-            false,
-            "Alysha",
-            "Khan",
-        )
-        signup(
-            "luca@student.rmit.edu.au",
-            "password123",
-            false,
-            "Luca",
-            "Grosso"
-        )
-        signup(
-            "brad@student.rmit.edu.au",
-            "password123",
-            false,
-            "Brad",
-            "Sea"
-        )
-        signup(
-            "jeffrey@student.rmit.edu.au",
-            "password123",
-            false,
-            "Jeffrey",
-            "James"
-        )
-        signup(
-            "rupert@student.rmit.edu.au",
-            "password123",
-            false,
-            "Rupert",
-            "Smith"
-        )
-        signup(
-            "nathaniel@rmit.edu.au",
-            "password123",
-            true,
-            "Nathaniel",
-            "Jordan"
-        )
+        // // !!! loading dummy data 
+        // signup(
+        //     "example123@gmail.com", 
+        //     "password123", 
+        //     false, 
+        //     "John", 
+        //     "Doe");
+        // signup(
+        //     "lecturer123@gmail.com",
+        //     "password123",
+        //     true, 
+        //     "Mary",
+        //     "Jane");
+        // signup(
+        //     "trent@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Trent",
+        //     "Butter",
+        // );
+        // signup(
+        //     "tommy@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Tommy",
+        //     "Nguyen"
+        // );
+        // signup(
+        //     "matt@rmit.edu.au",
+        //     "password123",
+        //     true,
+        //     "Matt", 
+        //     "Hayward"
+        // );
+        // signup(
+        //     "alysha@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Alysha",
+        //     "Khan",
+        // )
+        // signup(
+        //     "luca@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Luca",
+        //     "Grosso"
+        // )
+        // signup(
+        //     "brad@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Brad",
+        //     "Sea"
+        // )
+        // signup(
+        //     "jeffrey@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Jeffrey",
+        //     "James"
+        // )
+        // signup(
+        //     "rupert@student.rmit.edu.au",
+        //     "password123",
+        //     false,
+        //     "Rupert",
+        //     "Smith"
+        // )
+        // signup(
+        //     "nathaniel@rmit.edu.au",
+        //     "password123",
+        //     true,
+        //     "Nathaniel",
+        //     "Jordan"
+        // )
 
-        console.log(getUsers()); // ! send dummy data to console to see accounts
+        // console.log(getUsers()); // ! send dummy data to console to see accounts
         // !!! end loading dummy data 
     }, []);
 
