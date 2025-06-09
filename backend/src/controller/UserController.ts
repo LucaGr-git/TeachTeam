@@ -24,6 +24,12 @@ export class UserController {
    * @returns JSON object of the created user with 201 status
    */
   async createUser(req: Request, res: Response) {
+    /** Checks if the user with that email has already been made */
+    const existingUser = await this.userRepo.findOneBy({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User with this email already exists" });
+    }
+
     /** Create a new user object from the request body */
     const user = this.userRepo.create(req.body);
 
