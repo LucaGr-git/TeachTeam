@@ -2,8 +2,7 @@ import axios from "axios";
 
 const API_BASE_URL = "/api"; // Change if needed
 
-import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill } from "../types/types";
-import { LecturerShortList } from "@/localStorage-context/classDataProvider";
+import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill } from "../types/types";
 export const courseService = {
 
   getAllCourses: async (): Promise<Course[]> => {
@@ -107,12 +106,12 @@ export const courseService = {
     await axios.delete(`${API_BASE_URL}/shortlistNotes/${noteId}`);
   },
 
-  getTutorEmailsByCourseAndLecturer: async (courseCode: string, lecturerEmail: string): Promise<LecturerShortList[]> => {
+  getTutorEmailsByCourseAndLecturer: async (courseCode: string, lecturerEmail: string): Promise<LecturerShortlist[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`);
     return data;
   },
 
-  createLecturerShortlist: async (courseCode: string, lecturerEmail: string, shortlist: LecturerShortList): Promise<void> => {
+  createLecturerShortlist: async (courseCode: string, lecturerEmail: string, shortlist: LecturerShortlist): Promise<void> => {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`, shortlist);
   },
 
@@ -120,7 +119,7 @@ export const courseService = {
         lecturerEmail: string;
         tutorEmail: string;
         rank: number;
-    }): Promise<LecturerShortList> => {
+    }): Promise<LecturerShortlist> => {
     const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`, shortlist);
     return data;
   },
@@ -141,4 +140,74 @@ export const courseService = {
   deletePreferredSkill: async (courseCode: string, skillId: string): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/courses/${courseCode}/preferredSkills/${skillId}`);
   },
+};
+
+export const userService = {
+getAllUsers: async (): Promise<User[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/users`);
+    return data;
+  },
+
+  getUserByEmail: async (email: string): Promise<User> => {
+    const { data } = await axios.get(`${API_BASE_URL}/users/${email}`);
+    return data;
+  },
+
+  createUser: async (user: User): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/users`, user);
+  },
+
+  updateUser: async (email: string, updatedData: Partial<User>): Promise<User> => {
+    const { data } = await axios.put(`${API_BASE_URL}/users/${email}`, updatedData);
+    return data;
+  },
+
+  deleteUser: async (email: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/users/${email}`);
+  },
+
+  // Experiences
+  getUserExperiences: async (email: string): Promise<Experience[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/users/${email}/experiences`);
+    return data;
+  },
+
+  addExperienceToUser: async (email: string, experience: Experience): Promise<Experience> => {
+    const { data } = await axios.post(`${API_BASE_URL}/users/${email}/experiences`, experience);
+    return data;
+  },
+
+  deleteExperience: async (email: string, experienceId: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/users/${email}/experiences/${experienceId}`);
+  },
+
+  // Skills
+  getUserSkills: async (email: string): Promise<Skill[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/users/${email}/skills`);
+    return data;
+  },
+
+  addSkillToUser: async (email: string, skill: Skill): Promise<Skill> => {
+    const { data } = await axios.post(`${API_BASE_URL}/users/${email}/skills`, skill);
+    return data;
+  },
+
+  deleteSkill: async (email: string, skillId: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/users/${email}/skills/${skillId}`);
+  },
+
+  // Qualifications
+  getUserQualifications: async (email: string): Promise<Qualification[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/users/${email}/qualifications`);
+    return data;
+  },
+
+  addQualificationToUser: async (email: string, qualification: Qualification): Promise<Qualification> => {
+    const { data } = await axios.post(`${API_BASE_URL}/users/${email}/qualifications`, qualification);
+    return data;
+  },
+
+  deleteQualification: async (email: string, qualificationId: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/users/${email}/qualifications/${qualificationId}`);
+  }
 };
