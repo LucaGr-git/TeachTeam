@@ -6,26 +6,6 @@ import { User } from "@/types/types";
 
 export default function Home() {
 
-  useEffect(() => {
-    fetchPet();
-  }, []);
-
-  const fetchPet = async () => {
-    try {
-      let user: User = {
-        email: "example@gmail.com",
-        password: "skibidy",
-        firstName: "John",
-        lastName: "Doe",
-        isLecturer: false,
-        fullTime: true,
-        dateJoined: new Date().toISOString(),
-      }
-      const data = await userService.createUser(user);
-    } catch (error) {
-      console.error("Error fetching pet:", error);
-    }
-  }
 
   return (
     <>
