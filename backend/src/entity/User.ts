@@ -23,6 +23,9 @@ export class User {
   @Column({ type: "boolean" })
   fullTime: boolean;
 
+  @Column({type: "varchar", length: 40})
+  dateJoined: string;
+
   @OneToMany(() => Experience, exp => exp.user)
   experiences: Experience[];
 
