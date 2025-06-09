@@ -12,6 +12,7 @@ export const MAX_CHAR_EXPERIENCES : number = 35;
 
 // interface for what users of the hook will be able to use
 export interface UserDataProvision {
+    // TODO: 10/06/2025 change all functions to DB functions
     addUserSkill: (skill: string, email: string) => boolean;
     removeUserSkill: (skill: string, email: string) => boolean;
     addUserExperience: (experience: experienceData, email: string) => boolean;
