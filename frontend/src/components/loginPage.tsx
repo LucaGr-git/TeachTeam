@@ -14,7 +14,7 @@ const LoginPage = (): ReactElement => {
     const { login, signup} = useAuth();
 
     // handlers for login and singup
-    const handleLogin = (email: string, password: string) : boolean => {
+    const handleLogin = (email: string, password: string) : Promise<boolean> => {
         // emails are not case sensitive
         email = email.toLowerCase();
         return login(email, password);
@@ -22,7 +22,7 @@ const LoginPage = (): ReactElement => {
 
     const handleSignup = (
         email: string, password: string, isLecturer: boolean, 
-        firstName: string, lastName: string) : boolean => {
+        firstName: string, lastName: string) : Promise<boolean> => {
         // emails are not case sensitive
         email = email.toLowerCase();
 
