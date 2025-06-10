@@ -12,13 +12,14 @@ import {
   MAX_NUM_SKILLS, 
   MAX_CHAR_EXPERIENCES, 
   MAX_CHAR_QUALIFICATIONS, 
-  experienceData} from "@/database-context-providers/userDataProvider";
+  localStorageExperienceData} from "@/database-context-providers/userDataProvider";
 import TagCustomDisplay from "./general-components/TagCustomizableDisplay";
 import { z } from "zod";
 import PopupProfile from "./PopupProfile";
 import ExperienceCard from "./general-components/ExperienceCard";
 import { Label } from "@radix-ui/react-label";
 import TagDisplay from "./general-components/TagDisplay";
+import { Experience } from "@/types/types";
 
 
 const UserNavigation = () => {
@@ -27,8 +28,6 @@ const UserNavigation = () => {
 
   //Button popup useState for profile popup
   const [profilePopup, toggleProfilePopup] = useState(false);
-
-  
 
   const { getCurrentUser, isAuthenticated } = useAuth();
   const { 
@@ -42,6 +41,7 @@ const UserNavigation = () => {
     getUser,
     getUserSkills,
     getUserQualifications,
+    getUserExperiences,
   } = useUserData();
 
   // get the current user
@@ -92,6 +92,8 @@ const UserNavigation = () => {
   // get the current user qualifications
   const [userQualifications, setUserQualifications] = useState<string[]>([]);
 
+  const [userExperiences, setUserExperiences] = useState<Experience[]>([]);
+
   useEffect(() => {
     const fetchQualifications = async () => {
       try {
@@ -107,6 +109,17 @@ const UserNavigation = () => {
   }, [currentUser.email]);
 
 
+  const fetchExperiences = async () => {
+    try {
+      const experiences = await getUserExperiences(currentUser.email);
+      setUserExperiences(experiences);
+    }
+    catch (error){
+      console.warn("Error fetching or setting experiences");
+    }
+  }
+
+
   // get the current user availability
   const [userAvailability, setUserAvailability] = useState<boolean>(userRecords[currentUser.email].fullTime);
 
@@ -120,10 +133,10 @@ const UserNavigation = () => {
   }
 
   //function to toggle user availability
-  const toggleUserAvailability = () => {
+  const toggleUserAvailability = async() => {
     
     // update the user availability in the database
-    if (changeAvailability(!userAvailability, currentUser.email)) {
+    if (await changeAvailability(!userAvailability, currentUser.email)) {
       setUserAvailability(!userAvailability);
     }
     else {
@@ -157,9 +170,10 @@ const UserNavigation = () => {
   }
 
   //function to remove experience from profile
-  const removeExperienceCard = (experience:experienceData) => {
+  const removeExperienceCard = async (experience: Experience) => {
+    // Check if the user has already created that experience
     if(userExperiences.includes(experience)) {
-      if (removeUserExperience(experience, currentUser.email)) {
+      if (await removeUserExperience(experience, currentUser.email)) {
         setRerenderCounter(rerenderCounter + 1);
         return ""
       }
@@ -245,7 +259,7 @@ const UserNavigation = () => {
   }
 
   // get array of current user experiences
-  const userExperiences: experienceData[] = userRecords[currentUser.email].experience;
+  fetchExperiences();
 
   return (
     <nav className="nav">
