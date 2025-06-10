@@ -69,7 +69,7 @@ export interface TutorApplication {
 
 export interface CourseLecturer {
     courseCode: string;
-    tuthorEmail: string;
+    lectuerEmail: string;
 }
 
 export interface CourseTutor{
