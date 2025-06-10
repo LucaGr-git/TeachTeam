@@ -227,17 +227,13 @@ const UserNavigation = () => {
 
     // if the qualification tag exists remove it
     if (userQualifications.includes(qualificationTag)) {
-    	if (removeUserQualification(qualificationTag, currentUser.email)){
-
-        // update the userQualification array
-        // cannot use localstorage as removing can take too long 
-        setUserQualifications(userQualifications.filter(
-          (tag) => {
-            return (tag !== qualificationTag);
-          }));
-
+      const removedQualification = await removeUserSkill(qualificationTag, currentUser.email);
+    	if (removedQualification){
+        // update the userQualifications array
+        const updatedQualfications = await getUserQualifications(currentUser.email);
+        const qualificationNames = updatedQualfications.map(qualfication => qualfication.qualification); // extract qualification name strings
+        setUserSkills(qualificationNames);
         return "";
-        
       }
       else {
         return `The qualification ${qualificationTag} does not exist`
