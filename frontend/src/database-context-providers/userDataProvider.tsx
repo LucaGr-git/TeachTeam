@@ -19,12 +19,13 @@ export interface UserDataProvision {
     removeUserSkill: (skill: string, email: string) => Promise<boolean>;
     addUserExperience: (experience: experienceData, email: string) => boolean;
     removeUserExperience: (experience: experienceData, email: string) => boolean;
-    addUserQualification: (newQualification: string, email: string) => boolean;
+    addUserQualification: (newQualification: string, email: string) => Promise<boolean>;
     removeUserQualification: (qualification: string, email: string) => boolean;
     changeAvailability: (fullTime: boolean, email: string) => boolean;
     getUserRecords: () => UserRecord ;
     getUser: (email: string) => Promise<User>;
     getUserSkills: (email: string) => Promise<Skill[]>;
+    getUserQualifications: (email: string) => Promise<Qualification[]>;
     saveUserRecords: (userRecords: UserRecord) => void;
     // TODO: Rewire how get and save user records work.
     
@@ -68,7 +69,20 @@ const createSkill = async (email: string, skill: NewSkill) => {
     }
 }
 
-const createQualification = async (emai)
+const createQualification = async (email: string, qualification: Qualification) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for skill creation:", email);
+            return null;
+        }
+        const qualificationData = await userService.addQualificationToUser(user.email, qualification);
+        return qualificationData;
+    } catch (error) {
+        console.error("Error creating skill for user:", error);
+        return null;
+    }
+}
 
 const fetchUserSkills = async (email: string) => {
     try {
@@ -378,25 +392,42 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         // check whether record actually exists
         if (!userRecord){return false;}
 
-        // if (currUserRecord) { // check whether record actually exists
+        // check whether record actually exists
         if (userRecord) {
             // Ensure quualifications array exists before operating on it
-            if (!currUserRecord.qualifications) {
-                currUserRecord.qualifications = [];
+            const userQualifications = await fetchUserQualifications(userRecord.email);
+            if (!userQualifications) {
+                console.warn("User doesn't have a valid collection of qualifications");
+                return false;
             }
 
             // maximum of MAX_NUM_QUALIFICATIONS qualifications allowed
-            if (currUserRecord.qualifications.length + 1 > MAX_NUM_QUALIFICATIONS){
+            if (userQualifications.length + 1 > MAX_NUM_QUALIFICATIONS){
                 console.warn(`Maximum of ${MAX_NUM_QUALIFICATIONS} qualifications allowed per user.`);
                 return false;
             }
 
             // push the qualification into the record 
-            currUserRecord.qualifications.push(newQualification);
+            // currUserRecord.qualifications.push(newQualification);
+
             
             // Update localStorage with new qualification
-            saveUserRecords(userRecords);
-            return true;
+            // saveUserRecords(userRecords);
+            // push the qualification into the record 
+            const newQualificationToAdd: Qualification = {
+                email: email,
+                qualification: newQualification,
+            };
+
+            // Attept to create a qualification entry
+            const addedQualification = await createQualification(email, newQualificationToAdd);
+            if (addedQualification){
+                return true;
+            }
+            else {
+                console.warn("Error creating skill entry in the DB");
+                return false;
+            }
         }
         else {
             // if there is no record with that email show error 
@@ -490,6 +521,15 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return [];
     }
 
+    const getUserQualifications = async (email: string): Promise<Qualification[]> => {
+        const userQualifications = await fetchUserQualifications(email);
+
+        if (userQualifications){
+            return userQualifications;
+        }
+        return [];
+    }
+
     // save a list of user records 
     const saveUserRecords = (userRecords: UserRecord) => {
         localStorage.setItem("userData", JSON.stringify(userRecords));
@@ -499,7 +539,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, getUserQualifications, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>
