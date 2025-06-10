@@ -23,7 +23,9 @@ export interface UserDataProvision {
     removeUserQualification: (qualification: string, email: string) => boolean;
     changeAvailability: (fullTime: boolean, email: string) => boolean;
     getUserRecords: () => UserRecord ;
+    getUser: (email: string) => Promise<User|null>;
     saveUserRecords: (userRecords: UserRecord) => void;
+    // TODO: Rewire how get and save user records work.
     
 }
 
@@ -434,6 +436,14 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         const userData = localStorage.getItem("userData");
         return userData ? JSON.parse(userData) : {}; // return null object if there is no records
     };
+
+    const getUser = async(email: string): Promise<User | null> => {
+        const userInfo = await fetchUser(email);
+        if (userInfo){
+            return userInfo;
+        }
+        else return null;
+    }
     // save a list of user records 
     const saveUserRecords = (userRecords: UserRecord) => {
         localStorage.setItem("userData", JSON.stringify(userRecords));
@@ -443,7 +453,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>

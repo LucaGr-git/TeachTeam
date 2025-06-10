@@ -10,7 +10,7 @@ import { Form, FormControl,
 // props needed to display the tags
 interface TagCustomDisplay {
     tags: string[];
-    addTag: (tag: string) => string; // return a string error message
+    addTag: (tag: string) => Promise<string>; // return a string error message
     removeTag: (tag: string) => string; // return a string errror message
     placeholder?: string;
     fullWidth?: boolean; // boolean for whether tags should be full line
@@ -44,9 +44,9 @@ const TagCustomDisplay = (
     })
 
     // form handler
-    const inputFormSubmit = (values: {input: string;}) => {
+    const inputFormSubmit = async (values: {input: string;}) => {
 
-        const errorMsg = addTag(values.input);
+        const errorMsg = await addTag(values.input);
         // if there is an error, set zod error message
         if (errorMsg !== "") {
             inputForm.setError("input", {message: errorMsg});

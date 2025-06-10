@@ -64,7 +64,7 @@ const UserNavigation = () => {
   }
 
   
-
+  // TODO: gonna have chance these useStates values be based off the database
   //get the current user skills
   const [userSkills, setUserSkills] = useState<string[]>(userRecords[currentUser.email].skills);
   // manual rerender useState
@@ -102,11 +102,11 @@ const UserNavigation = () => {
 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const addSkillTag = (skillTag: string): string => {
+  const addSkillTag = async (skillTag: string): Promise<string> => {
 
     // if the skill tag is not already in the userSkills array, add it
     if (!userSkills.includes(skillTag)) {
-    	if (addUserSkill(skillTag, currentUser.email)) {
+    	if (await addUserSkill(skillTag, currentUser.email) == true) {
         // update the userSkills array
         setUserSkills([...userSkills, skillTag]);
         return "";
@@ -164,7 +164,7 @@ const UserNavigation = () => {
   
   // function to add a qualification tag
   // if an error occurs a string is returned to reperesent it 
-  const addQualificationTag = (qualificationsTag: string): string => {
+  const addQualificationTag = async (qualificationsTag: string): Promise<string> => {
     // if the qualification tag is not already in the userQualifications array, add it
     if (!userQualifications.includes(qualificationsTag)) {
     	if (addUserQualification(qualificationsTag, currentUser.email)) {
