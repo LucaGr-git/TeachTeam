@@ -101,10 +101,6 @@ const UserNavigation = () => {
     return null;
   }
 
-  
-  
-
-
   //function to toggle user availability
   const toggleUserAvailability = () => {
     
@@ -160,19 +156,18 @@ const UserNavigation = () => {
 
   // function to remove a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const removeSkillTag = (skillTag: string) => {
+  const removeSkillTag = async(skillTag: string) => {
 
     // if the skill tag exists remove it
     if (userSkills.includes(skillTag)) {
-    	if (removeUserSkill(skillTag, currentUser.email)){
-
+      const removedSkill = await removeUserSkill(skillTag, currentUser.email);
+    	if (removedSkill){
         // update the userSkills array
         // cannot use localstorage as removing can take too long 
-        setUserSkills(userSkills.filter(
-          (tag) => {
-            return (tag !== skillTag);
-          }));
-          return "";
+        const updatedSkills = await getUserSkills(currentUser.email);
+        const skillNames = updatedSkills.map(skill => skill.skill); // extract skill name strings
+        setUserSkills(skillNames);
+        return "";
       }
       else {
         return "There was an error removing your skill (it doesn't exist?)";
@@ -205,7 +200,7 @@ const UserNavigation = () => {
 
   // function to remove a qualification tag
   // if an error occurs a string is returned to reperesent it 
-  const removeQualificationTag = (qualificationTag: string) => {
+  const removeQualificationTag = async (qualificationTag: string): Promise<string> => {
 
     // if the qualification tag exists remove it
     if (userQualifications.includes(qualificationTag)) {

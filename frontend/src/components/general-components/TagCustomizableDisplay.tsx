@@ -11,7 +11,7 @@ import { Form, FormControl,
 interface TagCustomDisplay {
     tags: string[];
     addTag: (tag: string) => Promise<string>; // return a string error message
-    removeTag: (tag: string) => string; // return a string errror message
+    removeTag: (tag: string) => Promise<string>; // return a string errror message
     placeholder?: string;
     fullWidth?: boolean; // boolean for whether tags should be full line
     inputValidation?: z.ZodString;
@@ -58,8 +58,8 @@ const TagCustomDisplay = (
     }
 
     // remove tag handler
-    const removeTagHandler = (tag: string) => {
-        const errorMsg = removeTag(tag);
+    const removeTagHandler = async(tag: string) => {
+        const errorMsg = await removeTag(tag);
 
         // if there is an error, set zod error message
         if (errorMsg !== "") {
