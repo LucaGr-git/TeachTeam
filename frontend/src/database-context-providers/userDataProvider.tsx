@@ -23,7 +23,8 @@ export interface UserDataProvision {
     removeUserQualification: (qualification: string, email: string) => boolean;
     changeAvailability: (fullTime: boolean, email: string) => boolean;
     getUserRecords: () => UserRecord ;
-    getUser: (email: string) => Promise<User|null>;
+    getUser: (email: string) => Promise<User>;
+    getUserSkills: (email: string) => Promise<Skill[]>;
     saveUserRecords: (userRecords: UserRecord) => void;
     // TODO: Rewire how get and save user records work.
     
@@ -437,13 +438,21 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return userData ? JSON.parse(userData) : {}; // return null object if there is no records
     };
 
-    const getUser = async(email: string): Promise<User | null> => {
-        const userInfo = await fetchUser(email);
-        if (userInfo){
-            return userInfo;
+    const getUser = async (email: string): Promise<User> => {
+    const userInfo = await fetchUser(email);
+    return userInfo ?? { email, firstName: "", lastName: "", password: "", isLecturer: false, fullTime: false, dateJoined: "" };
+    };
+    
+    // Returns the array of Skills that are associated with the user
+    const getUserSkills = async (email: string): Promise<Skill[]> => {
+        const userSkills = await fetchUserSkills(email);
+
+        if (userSkills){
+            return userSkills;
         }
-        else return null;
+        return [];
     }
+
     // save a list of user records 
     const saveUserRecords = (userRecords: UserRecord) => {
         localStorage.setItem("userData", JSON.stringify(userRecords));
@@ -453,7 +462,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>
