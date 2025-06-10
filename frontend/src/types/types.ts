@@ -16,7 +16,7 @@ export interface User {
 }
 
 export interface Experience {
-    ID: number;
+    ID?: number;
     email: string;
     title: string;
     company: string;
@@ -36,7 +36,7 @@ export interface NewSkill {
 }
 
 export interface Qualification {
-    ID: number;
+    ID?: number;
     email: string;
     qualification: string;
 }
