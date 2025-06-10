@@ -41,6 +41,7 @@ const UserNavigation = () => {
     changeAvailability,
     getUser,
     getUserSkills,
+    getUserQualifications,
   } = useUserData();
 
   // get the current user
@@ -87,8 +88,25 @@ const UserNavigation = () => {
 
   // manual rerender useState
   const [rerenderCounter, setRerenderCounter] = useState<number>(0);
+
   // get the current user qualifications
-  const [userQualifications, setUserQualifications] = useState<string[]>(userRecords[currentUser.email].qualifications);
+  const [userQualifications, setUserQualifications] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchQualifications = async () => {
+      try {
+        const qualifications = await getUserQualifications(currentUser.email);
+        const qualificationNames = qualifications.map(qualificationObj => qualificationObj.qualification);
+        setUserSkills(qualificationNames);
+      } catch (error) {
+        console.error("Failed to fetch user qualifications:", error);
+      }
+    };
+
+    fetchQualifications();
+  }, [currentUser.email]);
+
+
   // get the current user availability
   const [userAvailability, setUserAvailability] = useState<boolean>(userRecords[currentUser.email].fullTime);
 
@@ -183,9 +201,14 @@ const UserNavigation = () => {
   const addQualificationTag = async (qualificationsTag: string): Promise<string> => {
     // if the qualification tag is not already in the userQualifications array, add it
     if (!userQualifications.includes(qualificationsTag)) {
-    	if (addUserQualification(qualificationsTag, currentUser.email)) {
+      const addedQualification = await addUserQualification(qualificationsTag, currentUser.email);
+    	if (addedQualification) {
         // update the userQualifications array
-        setUserQualifications([...userQualifications, qualificationsTag]);
+        // setUserQualifications([...userQualifications, qualificationsTag]);
+        // Re-fetch updated skills from DB
+        const updatedQualfications = await getUserQualifications(currentUser.email);
+        const qualificationNames = updatedQualfications.map(qualification => qualification.qualification); // extract skill name strings
+        setUserQualifications(qualificationNames);
         return "";
       }
       else {
