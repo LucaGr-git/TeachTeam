@@ -1,23 +1,25 @@
+import { courseService } from "@/services/api";
+import { CourseLecturer } from "@/types/types";
 import { createContext, useEffect, useContext, ReactNode, useCallback } from "react";
 
 export const MAX_NUM_SKILLS: number = 10;
 
 // Interface for what users of the hook will be able to use
 export interface ClassDataProvision {
-    addLecturer: (courseCode: string, lecturer: string) => boolean;
+    addLecturer: (courseCode: string, lecturer: string) =>  Promise<boolean>;
     removeLecturer: (courseCode: string, lecturer: string) => boolean;
 
     acceptApplication: (courseCode: string, tutor: string) => boolean;
     rejectApplication: (courseCode: string, tutor: string) => boolean;
     addApplication: (courseCode: string, tutorEmail: string) => boolean;
 
-    addToShortlist: (courseCode: string, tutorEmail: string) => boolean;
+    addToShortlist: (courseCode: string, tutorEmail: string) => Promise<boolean>;
     removeFromShortlist: (courseCode: string, tutorEmail: string) => boolean;
 
     changeCourseTitle: (courseCode: string, newTitle: string) => boolean;
 
-    addPreferredSkill: (courseCode: string, skill: string) => boolean;
-    removePreferredSkill: (courseCode: string, skill: string) => boolean;
+    addPreferredSkill: (courseCode: string, skill: string) => Promise<boolean>;
+    removePreferredSkill: (courseCode: string, skill: string) => Promise<boolean>;
 
     initializeLecturerShortlist: (courseCode: string, lecturerEmail: string) => boolean;
     orderLecturerShortList: (courseCode: string, tutorEmail: string, lecturerEmail: string, position: number) => boolean;
@@ -63,29 +65,97 @@ export interface ClassData {
 
 export type ClassRecord = Record<string, ClassData>;
 
+
+
+const createLecturer = async (courseCode: string, email: string) => {
+    try {
+        const data = await courseService.createCourseLecturer(courseCode,  {lecturerEmail: email, courseCode: courseCode});
+        return data;
+    } catch (error) {
+        console.error("Error creating course lecturer:", error);
+        return null;
+    }
+};
+
+const fetchLecturer = async (CourseCode: string) => {
+    try {
+        const data = await courseService.getLecturerByCourseCode(CourseCode);
+         return data;
+    } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+            return null;
+        }
+
+        console.error("Unexpected error fetching user:", error);
+        return null;   
+     }
+};
+
+const createShortlistedTutor = async (courseCode: string, email: string) => {
+    try {
+        const data = await courseService.createShortlistedTutor(courseCode,  {tutorEmail: email, courseCode: courseCode});
+        return data;
+    } catch (error) {
+        console.error("Error creating tutor lecturer:", error);
+        return null;
+    }
+}
+
+const createPreferredSkill = async (courseCode: string, email: string) => {
+    try {
+        const data = await courseService.createPreferredSkill(courseCode,  {skill: email, courseCode: courseCode});
+        return data;
+    } catch (error) {
+        console.error("Error creating preferred skill", error);
+        return null;
+    }
+}
+
+const fetchPreferredSkills = async (courseCode: string) => {
+    try {
+        const experienceData = await courseService.getPreferredSkills(courseCode);
+        return experienceData;
+    }
+    catch (error) {
+        console.error("Error getting preferred skills");
+        return null;
+    }
+}
+
+const removePreferredSkill = async (courseCode: string, skill: string) => {
+    try {
+        const userSkills = await fetchPreferredSkills(courseCode);
+        if (userSkills) {
+            // Try to find a Skill object that matches the skill string
+            const matchingSkill = userSkills.find(s => s.skill === skill);
+
+            if (matchingSkill) {
+                await courseService.deletePreferredSkill(courseCode, matchingSkill.skill)
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen skill");
+    }
+}
+
+
+
 // Create context
 const ClassDataContext = createContext<ClassDataProvision | undefined>(undefined);
 
 export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     // lecturer functions
-    const addLecturer = (courseCode: string, lecturerEmail: string): boolean => {
-        const classRecords = getClassRecords();
-        const currClass = classRecords[courseCode];
+    const addLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
+        
+        const lecturer = await createLecturer(courseCode, lecturerEmail)
 
-        if (!currClass) {
-            console.warn(`There is no class with course code ${courseCode}`);
+        if (!lecturer) {
+            console.warn(`There is no class with course code ${courseCode} or lecturer with email ${lecturerEmail}`);
             return false;
         }
         
-        if (!currClass.lecturerEmails.includes(lecturerEmail)) {
-            // add lecturer
-            currClass.lecturerEmails.push(lecturerEmail);
-            saveClassRecords(classRecords);
-            return true;
-        }
-        // If that lecturer is already lecturing send an error to console
-        console.warn(`Lecturer ${lecturerEmail} is already lecturing class with course code ${courseCode}`);
-        return false;
+        return true;
     };
 
     const removeLecturer = (courseCode: string, lecturerEmail: string): boolean => {
@@ -250,36 +320,16 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const addToShortlist = (courseCode: string, tutorEmail: string): boolean => {
-        const classRecords = getClassRecords();
-        
-        const currClass = classRecords[courseCode];
+    const addToShortlist = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+
+        const shortListedTutor = await createShortlistedTutor(courseCode, tutorEmail);
         
         // if the courseCode doesn't exist send an error
-        if (!currClass) {
-            console.warn(`There is no class with course code ${courseCode}`);
+        if (!shortListedTutor) {
+            console.warn(`There is no class with course code ${courseCode} or tutor with email ${tutorEmail}`);
             return false;
         }
     
-        // Check if tutor has already been added to shortlist
-        if (currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
-            console.warn(`Tutor with email ${tutorEmail} has already been shortlisted to ${courseCode}`);
-            return false;
-        }
-        // check if tutor has applied
-        if (!currClass.tutorsApplied.includes(tutorEmail)) {
-            console.warn(`Tutor with email ${tutorEmail} has not applied to ${courseCode}`);
-            return false;
-        }
-
-        // filter out in all instances of that tutor in all lecturerShortLists
-        for (const lecturerEmail in currClass.lecturerShortlist){
-            currClass.lecturerShortlist[lecturerEmail].push(tutorEmail)
-        }
-        // Add the tutor's email to the tutorsApplied list and save to localStorage
-        currClass.tutorsShortlist.push({tutorEmail: tutorEmail, notes: []});
-        saveClassRecords(classRecords);
-        
         return true;
     };
 
@@ -299,34 +349,30 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const addPreferredSkill = (courseCode: string, newSkill: string): boolean => {
-        const classRecords = getClassRecords();
-        const currClass = classRecords[courseCode];
+    const addPreferredSkill = async (courseCode: string, newSkill: string): Promise<boolean> => {
+        
+        
+        // todo maximum of MAX_NUM_SKILLS skills allowed
+        // if (currClass.preferredSkills.length + 1 > MAX_NUM_SKILLS){
+        //     console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
+        //     return false;
+        //}
 
-        if (!currClass) {
+        const addedSkill = await createPreferredSkill(courseCode, newSkill);
+
+        if (!addedSkill) {
             // if there is no class with that code an error is returned 
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
 
-        // Ensure skills array exists before operating on it
-        if (!currClass.preferredSkills) {
-            currClass.preferredSkills = [];
-        }
-        // maximum of MAX_NUM_SKILLS skills allowed
-        if (currClass.preferredSkills.length + 1 > MAX_NUM_SKILLS){
-            console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
-            return false;
-        }
-        // push the skill into the record 
-        currClass.preferredSkills.push(newSkill);
+
         
-        // Update localStorage with new skill
-        saveClassRecords(classRecords);
+
         return true;
     };
 
-    const removePreferredSkill = (courseCode: string, skill: string): boolean => {
+    const removePreferredSkill = async (courseCode: string, skill: string): Promise<boolean> => {
         const classRecords: ClassRecord = getClassRecords();
 
         if (!classRecords){return false;}
