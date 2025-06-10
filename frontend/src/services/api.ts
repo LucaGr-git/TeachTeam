@@ -3,7 +3,7 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:3001/api";
 
 
-import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill } from "../types/types";
+import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill, CourseTutor } from "../types/types";
 export const courseService = {
 
   getAllCourses: async (): Promise<Course[]> => {
@@ -47,12 +47,26 @@ export const courseService = {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/lecturers`, lecturer);
   },
 
+  getTutorrByCourseCode: async (courseCode: string): Promise<CourseTutor[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/tutors`);
+    return data;
+  },
+
+  getCoursesByTutorEmail: async (tutorEmail: string): Promise<Course[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/tutors/${tutorEmail}/courses`);
+    return data;
+  },
+
+  createCourseTutor: async (courseCode: string, tutor: CourseTutor): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/courses/${courseCode}/tutors`, tutor);
+  },
+
   getTutorApplicationsByCourseCode: async (courseCode: string): Promise<TutorApplication[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/applications`);
     return data;
   },
 
-  getCoursesByTutorEmail: async (tutorEmail: string): Promise<Course[]> => {
+  getCoursesByTutorApplicationEmail: async (tutorEmail: string): Promise<Course[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/applications/${tutorEmail}/courses`);
     return data;
   },

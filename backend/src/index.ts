@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3001;
 import petRoutes from "./routes/pet.routes";
 import profileRoutes from "./routes/profile.routes";
 import courseRoutes from "./routes/course.routes";
-import userRoutes from "./routes/user.route";
+import userRoutes from "./routes/user.routes";
 
 app.use(cors());
 app.use(express.json());

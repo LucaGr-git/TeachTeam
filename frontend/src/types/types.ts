@@ -72,6 +72,11 @@ export interface CourseLecturer {
     tuthorEmail: string;
 }
 
+export interface CourseTutor{
+    courseCode: string;
+    tuthorEmail: string;
+}
+
 export interface PreferredSkill {
     courseCode: string;
     skill: string;
