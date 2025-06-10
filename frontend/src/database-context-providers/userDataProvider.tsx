@@ -17,8 +17,8 @@ export interface UserDataProvision {
     // TODO: 10/06/2025 change all functions to DB functions
     addUserSkill: (skill: string, email: string) => Promise<boolean>;
     removeUserSkill: (skill: string, email: string) => Promise<boolean>;
-    addUserExperience: (experience: experienceData, email: string) => boolean;
-    removeUserExperience: (experience: experienceData, email: string) => boolean;
+    addUserExperience: (experience: Experience, email: string) => Promise<boolean>;
+    removeUserExperience: (experience: Experience, email: string) => boolean;
     addUserQualification: (newQualification: string, email: string) => Promise<boolean>;
     removeUserQualification: (qualification: string, email: string) => Promise<boolean>;
     changeAvailability: (fullTime: boolean, email: string) => boolean;
@@ -26,13 +26,14 @@ export interface UserDataProvision {
     getUser: (email: string) => Promise<User>;
     getUserSkills: (email: string) => Promise<Skill[]>;
     getUserQualifications: (email: string) => Promise<Qualification[]>;
+    getUserExperiences: (email: string) => Promise<Experience[]>;
     saveUserRecords: (userRecords: UserRecord) => void;
     // TODO: Rewire how get and save user records work.
     
 }
 
 // experience details
-export interface experienceData {
+export interface localStorageExperienceData {
     title: string;
     company: string;
     timeStarted: string; // this is an ISO string
@@ -54,7 +55,7 @@ try {
     }
 };
 
-const createSkill = async (email: string, skill: NewSkill) => {
+const createSkill = async (email: string, skill: Skill) => {
     try {
         const userWithSkill = await fetchUser(email);
         if (!userWithSkill) {
@@ -84,6 +85,21 @@ const createQualification = async (email: string, qualification: Qualification) 
     }
 }
 
+const createExperience = async (email: string, experience: Experience) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for experience creation:", email);
+            return null;
+        }
+        const experienceData = await userService.addExperienceToUser(email, experience);
+        return experienceData;
+    } catch (error) {
+        console.error("Error creating experience for user:", error);
+        return null;
+    }
+}
+
 const fetchUserSkills = async (email: string) => {
     try {
         const userSkillList = await fetchUser(email);
@@ -104,14 +120,30 @@ const fetchUserQualifications = async (email: string) => {
     try {
         const user = await fetchUser(email);
         if (!user) {
-            console.warn("User not found for qualification creation:", email);
+            console.warn("User not found for qualifications:", email);
             return null;
         }
         const qualificationData = await userService.getUserQualifications(user.email);
         return qualificationData;
     }
     catch (error) {
-        console.error("Error get getting user skills");
+        console.error("Error getting user qualifications");
+        return null;
+    }
+}
+
+const fetchUserExperiences = async (email: string) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for experiences:", email);
+            return null;
+        }
+        const experienceData = await userService.getUserExperiences(user.email);
+        return experienceData;
+    }
+    catch (error) {
+        console.error("Error getting user experiences");
         return null;
     }
 }
@@ -150,11 +182,28 @@ const removeQualification = async (email: string, id: number) => {
     }
 }
 
+const removeExperience = async (email: string, id: number) => {
+    try {
+        const userExperiences = await fetchUserExperiences(email);
+        if (userExperiences) {
+            // Try to find an experience object that matches the experience id
+            const matchingExperience = userExperiences.find(s => s.ID === id);
+
+            if (matchingExperience) {
+                const userExperienceToDelete = await userService.deleteExperience(matchingExperience?.email, matchingExperience?.ID!);
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen qualification");
+    }
+}
+
 
 // interface for user's data details
 export interface UserData {
     email: string; // ? unsure whether the key should be reused as a data member
-    experience: experienceData[]; 
+    experience: localStorageExperienceData[]; 
     skills: string[];
     qualifications: string[];
     fullTime: boolean;
@@ -171,9 +220,6 @@ const UserDataContext = createContext<UserDataProvision | undefined>(undefined);
 
 
 export const UserDataProvider = ({ children }: { children: ReactNode }) => {
-
-    
-
     useEffect(() => {   
         // !!! load dummy data 
 
@@ -296,7 +342,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // experience functions
-    const addUserExperience = (experience: experienceData, email: string): boolean => {
+    const addUserExperience = async(experience: Experience, email: string): Promise<boolean> => {
 
         // check length of company and title
         if (experience.company.length > MAX_CHAR_EXPERIENCES){
@@ -309,32 +355,38 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
                 `is ${MAX_CHAR_EXPERIENCES} characters.`);
             return false;
         }
-
-        const userRecords: UserRecord = getUserRecords();
-
-        if (!userRecords){return false;}
         
-        const currUserRecord = userRecords[email];
+        const userRecord = await fetchUser(email);
 
-        if (currUserRecord) { // check whether record actually exists
-
+        // check whether record actually exists
+        if (!userRecord){return false;}
+        
+        if (userRecord) { 
             // Ensure experience array exists before operating on it
-            if (!currUserRecord.experience) {
-                currUserRecord.experience = [];
+            // Fetch the experiences array for that user from the DB (it will be empty if they have no experiences yet)
+            const userExperiences = await fetchUserExperiences(userRecord.email);
+
+            // Ensure skills array exists before operating on it
+            if (!userExperiences) {
+                console.warn('Cannot find Experiences array in the database')
+                return false;
             }
 
             // maximum of MAX_NUM_EXPERIENCES experiences allowed
-            if (currUserRecord.experience.length + 1 > MAX_NUM_EXPERIENCES){
+            if (userExperiences.length + 1 > MAX_NUM_EXPERIENCES){
                 console.warn(`Maximum of ${MAX_NUM_EXPERIENCES} experiences allowed per user.`);
                 return false;
             }
 
-            // push the experience into the record 
-            currUserRecord.experience.push(experience);
-            
-            // Update localStorage with new experience
-            saveUserRecords(userRecords);
-            return true;
+
+            const addedExperience = await createExperience(email, experience);
+            if (addedExperience){
+                return true;
+            }
+            else {
+                console.warn("Error creating experience entry in the DB");
+                return false;
+            }
         }
         else {
             // if there is no record with that email show error 
@@ -344,7 +396,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     };
 
-    const removeUserExperience = (experience: experienceData, email: string): boolean => {
+    const removeUserExperience = (experience: localStorageExperienceData, email: string): boolean => {
         const userRecords: UserRecord = getUserRecords();
 
         if (!userRecords){return false;}
@@ -544,6 +596,15 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return [];
     }
 
+    const getUserExperiences = async (email: string): Promise<Experience[]> => {
+        const userExperiences = await fetchUserExperiences(email);
+
+        if (userExperiences){
+            return userExperiences;
+        }
+        return [];
+    }
+
     // save a list of user records 
     const saveUserRecords = (userRecords: UserRecord) => {
         localStorage.setItem("userData", JSON.stringify(userRecords));
@@ -553,7 +614,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, getUserQualifications, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, getUserQualifications, getUserExperiences, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>
