@@ -20,7 +20,7 @@ export interface UserDataProvision {
     addUserExperience: (experience: experienceData, email: string) => boolean;
     removeUserExperience: (experience: experienceData, email: string) => boolean;
     addUserQualification: (newQualification: string, email: string) => Promise<boolean>;
-    removeUserQualification: (qualification: string, email: string) => boolean;
+    removeUserQualification: (qualification: string, email: string) => Promise<boolean>;
     changeAvailability: (fullTime: boolean, email: string) => boolean;
     getUserRecords: () => UserRecord ;
     getUser: (email: string) => Promise<User>;
@@ -130,6 +130,23 @@ const removeSkill = async (email: string, id: number) => {
     }
     catch(error) {
         console.error("Error removing chosen skill");
+    }
+}
+
+const removeQualification = async (email: string, id: number) => {
+    try {
+        const userQualifications = await fetchUserQualifications(email);
+        if (userQualifications) {
+            // Try to find a Qualification object that matches the qualification string
+            const matchingQualification = userQualifications.find(s => s.ID === id);
+
+            if (matchingQualification) {
+                const userQualificationToDelete = await userService.deleteQualification(matchingQualification?.email, matchingQualification?.ID!);
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen qualification");
     }
 }
 
@@ -436,44 +453,41 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
         return false;
     };
-    const removeUserQualification = (qualification: string, email: string): boolean => {
-        const userRecords: UserRecord = getUserRecords();
+    const removeUserQualification = async(qualification: string, email: string): Promise<boolean> => {
+        try {
+            const currUserRecord = await getUser(email);
+            if (currUserRecord) { // check whether record actually exists
+                // Ensure qualifications array exists before operating on it
+                const currUserQualifications = await fetchUserQualifications(currUserRecord.email); 
+                if (!currUserQualifications || currUserQualifications.length == 0) {
+                    console.warn(`User with email ${email} has no qualifications to remove`);
+                    return false;
+                }
 
-        if (!userRecords){return false;}
-        
-        const currUserRecord = userRecords[email];
-        if (currUserRecord) { // check whether record actually exists
+                // Database conversion
+                // Try to find a qualificaion object that matches the qualification string
+                const matchingQualification = currUserQualifications.find(s => s.qualification.trim() === qualification);
 
-            // Ensure qualifications array exists before operating on it
-            if (!currUserRecord.qualifications) {
-                console.warn(`User with email ${email} has no qualifications to remove`);
-                return false;
+                if (!matchingQualification) {
+                    console.warn(`User with email ${email} has no qualification called '${qualification}' to remove.`);
+                    return false;
+                }
+
+                // Calls backend delete function using the Skill ID
+                await removeQualification(matchingQualification.email, matchingQualification.ID!);
+                return true;
             }
-            
-            // get old length of qualifications array
-            const oldLength = currUserRecord.qualifications.length;
-
-            // filter out all qualifications that match
-            currUserRecord.qualifications = currUserRecord.qualifications.filter((recordedQualification) => {
-                return (recordedQualification.trim() !== qualification.trim());
-            });
-
-            // if the length stays the same show an error that no qualification matched
-            if (oldLength == currUserRecord.qualifications.length){
-                console.warn(`User with email ${email} has no qualifications called ${qualification} to remove`)
-                return false;
+            else {
+                // if there is no record with that email show error 
+                console.warn(`User with email ${email} not found.`);
             }
 
-            // Update localStorage with new qualifications array
-            saveUserRecords(userRecords);
-            return true;
+            return false;
         }
-        else {
-            // if there is no record with that email show error 
-            console.warn(`User with email ${email} not found.`);
+        catch(error) {
+            console.error(`Error removing qualification '${qualification}' for ${email}:`, error);
+            return false;
         }
-
-        return false;
     };
 
     const changeAvailability = (fullTime: boolean, email: string): boolean => {
