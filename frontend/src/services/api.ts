@@ -188,7 +188,6 @@ getAllUsers: async (): Promise<User[]> => {
   },
 
   addExperienceToUser: async (email: string, experience: Experience): Promise<Experience> => {
-    console.log(experience.id + ": id. " + experience.title + ": title. " + experience.company + ": company. " + experience.timeStarted + ": timeStarted. " + experience.timeFinished + ": timefinished. " + experience.userEmail + ": email.");
     const { data } = await axios.post(`${API_BASE_URL}/users/${email}/experiences`, experience);
     return data;
   },
@@ -209,7 +208,6 @@ getAllUsers: async (): Promise<User[]> => {
   },
 
   deleteSkill: async (email: string, skillId: number): Promise<void> => {
-    console.log("AXOIS SKILL ID BEFORE GOING TO BACKEND " + skillId);
     await axios.delete(`${API_BASE_URL}/users/${email}/skills/${skillId}`);
   },
 
