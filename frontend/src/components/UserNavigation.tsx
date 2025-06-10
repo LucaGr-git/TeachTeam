@@ -4,7 +4,7 @@ import ProfileGreeter from "./general-components/ProfileGreeter";
 import PopupExperience from "./PopupExperience";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/database-context-providers/auth";
 import { 
   useUserData, 
@@ -38,7 +38,10 @@ const UserNavigation = () => {
     addUserQualification, 
     removeUserQualification,
     removeUserExperience, 
-    changeAvailability} = useUserData();
+    changeAvailability,
+    getUser,
+    getUserSkills,
+  } = useUserData();
 
   // get the current user
   let currentUser = getCurrentUser();
@@ -66,7 +69,22 @@ const UserNavigation = () => {
   
   // TODO: gonna have chance these useStates values be based off the database
   //get the current user skills
-  const [userSkills, setUserSkills] = useState<string[]>(userRecords[currentUser.email].skills);
+  const [userSkills, setUserSkills] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchSkills = async () => {
+      try {
+        const skills = await getUserSkills(currentUser.email);
+        const skillNames = skills.map(skillObj => skillObj.skill);
+        setUserSkills(skillNames);
+      } catch (error) {
+        console.error("Failed to fetch user skills:", error);
+      }
+    };
+
+    fetchSkills();
+  }, [currentUser.email]);
+
   // manual rerender useState
   const [rerenderCounter, setRerenderCounter] = useState<number>(0);
   // get the current user qualifications
@@ -106,9 +124,12 @@ const UserNavigation = () => {
 
     // if the skill tag is not already in the userSkills array, add it
     if (!userSkills.includes(skillTag)) {
-    	if (await addUserSkill(skillTag, currentUser.email) == true) {
-        // update the userSkills array
-        setUserSkills([...userSkills, skillTag]);
+      const addedSkill = await addUserSkill(skillTag, currentUser.email);
+    	if ( addedSkill == true) {
+        // Re-fetch updated skills from DB
+        const updatedSkills = await getUserSkills(currentUser.email);
+        const skillNames = updatedSkills.map(skill => skill.skill); // extract skill name strings
+        setUserSkills(skillNames);
         return "";
       }
       else {
