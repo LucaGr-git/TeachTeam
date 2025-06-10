@@ -47,7 +47,7 @@ export const courseService = {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/lecturers`, lecturer);
   },
 
-  getTutorrByCourseCode: async (courseCode: string): Promise<CourseTutor[]> => {
+  getTutorByCourseCode: async (courseCode: string): Promise<CourseTutor[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/tutors`);
     return data;
   },
