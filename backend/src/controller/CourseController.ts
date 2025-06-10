@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source";
 import { Profile } from "../entity/Profile";
 import { Course } from "../entity/Course";
 import { CourseLecturer } from "../entity/CourseLecturer";
+import { CourseTutor } from "../entity/CourseTutor";
 import { TutorApplication } from "../entity/TutorApplication";
 import { ShortlistedTutor } from "../entity/ShortlistedTutor";
 import { ShortlistNote } from "../entity/ShortlistNote";
@@ -17,6 +18,7 @@ export class CourseController {
   /** Repository instance for database operations on Course entity */
   private courseRepo = AppDataSource.getRepository(Course);
   private courseLecturerRepo = AppDataSource.getRepository(CourseLecturer);
+  private courseTutorRepo = AppDataSource.getRepository(CourseTutor);
   private tutorApplicationRepo = AppDataSource.getRepository(TutorApplication);
   private shortlistedTutorRepo = AppDataSource.getRepository(ShortlistedTutor);
   private shortlistNoteRepo = AppDataSource.getRepository(ShortlistNote);
@@ -191,6 +193,71 @@ export class CourseController {
     /** Return the created course with a 201 status */
     res.status(201).json(courseLecturer);
   }
+
+  /**
+   * Creates a new CourseTutor record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created Course with 201 status
+   */
+  async createCourseTutor(req: Request, res: Response) {
+    /** Create a new course tutor object from the request body */
+    const courseTutor = this.courseTutorRepo.create(req.body);
+
+    /** Save the new course to the database */
+    try {
+      await this.courseTutorRepo.save(courseTutor);
+    } catch (error) {
+      return res.status(500).json({ message: "Error saving course lecturer", error });
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(courseTutor);
+  }
+
+  /**
+    * Gets the course code by the Tutor email in courseTutor
+    * @param req - Express request object containing lecturer email in params
+    * @param res - Express response object
+    * @return JSON object of the CourseTutor or 404 if not found
+    */
+  async getCourseCodeByTutor(req: Request, res: Response){
+    /** Retrieve the CourseTutor from the database */
+    const courseTutor = await this.courseTutorRepo.findOneBy({
+        tutorEmail: req.params.lecturerEmail,
+    });
+
+    /** Check if the course Lecturer exists, if not, return a 404 error */
+    if (!courseTutor) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course tutor */
+    res.json(courseTutor);
+  }
+
+
+  /**
+   * Gets a lecturer in CourseTutor by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the CourseTutor or 404 if not found
+   */
+  async getTutorByCourseCode(req: Request, res: Response) {
+    /** Retrieve the CourseTutor from the database */
+    const courseTutor = await this.courseTutorRepo.findOneBy({
+      courseCode: req.params.courseCode,
+    });
+
+    /** Check if the course Tutor exists, if not, return a 404 error */
+    if (!courseTutor) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(courseTutor);
+   }
+
 
   // Tutor application entity functions
   /**

@@ -9,6 +9,8 @@ import { UpdateShortlistNoteDTO } from "../dtos/update-shortlistNote.dto";
 import { CreateLecturerShortlistDTO } from "../dtos/create-LecturerShortlist.dto";
 import { UpdateLecturerShortlistDTO } from "../dtos/update-LecturerShortlist.dto";
 import { CreatePreferredSkillDTO } from "../dtos/create-preferredSkill.dto";
+import { CreateCourseTutorDTO } from "../dtos/create-courseTutor.dto";
+import { CreateCourseLecturerDTO } from "../dtos/create-courseLecturer.dto";
 
 const router = Router();
 const controller = new CourseController();
@@ -28,8 +30,13 @@ router.get("/courses/:courseCode/lecturers", (req, res) => controller.getLecture
 
 router.get("/lecturers/:lecturerEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
 
-router.post("/courses/:courseCode/lecturers", (req, res) => controller.createCourseLecturer(req, res));
+router.post("/courses/:courseCode/lecturers", validateDto(CreateCourseLecturerDTO), (req, res) => controller.createCourseLecturer(req, res));
 
+router.get("/courses/:courseCode/tutors", (req, res) => controller.getLecturerByCourseCode(req, res));
+
+router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
+
+router.post("/courses/:courseCode/tutors", validateDto(CreateCourseTutorDTO), (req, res) => controller.createCourseLecturer(req, res));
 
 router.get("/courses/:courseCode/applications", (req, res) => controller.getTutorApplicationByCourseCode(req, res));
 
