@@ -1,7 +1,7 @@
 "use client"
 import React, { ReactElement } from 'react';
 import  LoginSignUpTab  from "./loginSignUpTab"
-import { useAuth } from "../localStorage-context/auth";
+import { useAuth } from "../database-context-providers/auth";
 import { z } from "zod"
 import { Tabs, TabsList, TabsTrigger} from './ui/tabs';
 import InfoTab from './general-components/infoTab';

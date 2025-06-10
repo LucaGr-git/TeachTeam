@@ -1,6 +1,6 @@
 import React from "react";
-import { useClassData } from "@/localStorage-context/classDataProvider";
-import { useAuth } from "@/localStorage-context/auth";
+import { useClassData } from "@/database-context-providers/classDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TagDisplay from "../general-components/TagDisplay";
 

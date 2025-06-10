@@ -1,7 +1,7 @@
 import React from "react";
 
 import  { Button } from "../ui/button";
-import { useAuth } from "../../localStorage-context/auth";
+import { useAuth } from "../../database-context-providers/auth";
 import { useRouter } from "next/router";
 import Image from "next/image";
 

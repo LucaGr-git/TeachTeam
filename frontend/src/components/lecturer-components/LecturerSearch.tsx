@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { useClassData, ClassRecord } from "@/localStorage-context/classDataProvider";
-import { useAuth } from "@/localStorage-context/auth";
-import { UserRecord, useUserData, experienceData } from "@/localStorage-context/userDataProvider";
+import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
+import { UserRecord, useUserData, experienceData } from "@/database-context-providers/userDataProvider";
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";

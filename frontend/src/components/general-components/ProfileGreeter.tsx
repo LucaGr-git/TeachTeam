@@ -1,5 +1,5 @@
 import React from "react";
-import { useAuth, LocalStorageUser } from "@/localStorage-context/auth";
+import { useAuth, LocalStorageUser } from "@/database-context-providers/auth";
 
 const ProfileGreeter = () => {
     const {getCurrentUser} = useAuth();
@@ -23,7 +23,7 @@ const ProfileGreeter = () => {
     return (
 
         <h2>
-            {getGreeting() + ", "}
+            {"Welcome, "}
             {userData.firstName}
         </h2>
     )

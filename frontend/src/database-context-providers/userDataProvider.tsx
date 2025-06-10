@@ -1,4 +1,6 @@
 import { createContext, useEffect, useContext, ReactNode } from "react";
+import { Qualification, Skill, Experience, User, NewSkill } from "@/types/types";
+import { userService } from "@/services/api";
 
 // const values for maximum number of skills, qualifications and experiences
 export const MAX_NUM_SKILLS : number = 10;
@@ -13,7 +15,7 @@ export const MAX_CHAR_EXPERIENCES : number = 35;
 // interface for what users of the hook will be able to use
 export interface UserDataProvision {
     // TODO: 10/06/2025 change all functions to DB functions
-    addUserSkill: (skill: string, email: string) => boolean;
+    addUserSkill: (skill: string, email: string) => Promise<boolean>;
     removeUserSkill: (skill: string, email: string) => boolean;
     addUserExperience: (experience: experienceData, email: string) => boolean;
     removeUserExperience: (experience: experienceData, email: string) => boolean;
@@ -32,6 +34,53 @@ export interface experienceData {
     timeStarted: string; // this is an ISO string
     timeFinished?: string; // this is an ISO string
 }
+
+const fetchUser = async (email: string) => {
+try {
+    const data = await userService.getUserByEmail(email);
+    return data;
+} catch (error: any) {
+    if (error.response && error.response.status === 404) {
+    // This is expected during signup
+    return null;
+    }
+
+    console.error("Unexpected error fetching user:", error);
+    return null;   
+    }
+};
+
+const createSkill = async (email: string, skill: NewSkill) => {
+    try {
+        const userWithSkill = await fetchUser(email);
+        if (!userWithSkill) {
+            console.warn("User not found for skill creation:", email);
+            return null;
+        }
+        const skillData = await userService.addSkillToUser(userWithSkill.email, skill);
+        return skillData;
+    } catch (error) {
+        console.error("Error creating skill for user:", error);
+        return null;
+    }
+}
+
+const fetchUserSkills = async (email: string) => {
+    try {
+        const userSkillList = await fetchUser(email);
+        if (!userSkillList) {
+            console.warn("User not found for skill creation:", email);
+            return null;
+        }
+        const skillData = await userService.getUserSkills(userSkillList.email);
+        return skillData;
+    }
+    catch (error) {
+        console.error("Error get getting user skills");
+        return null;
+    }
+}
+
 
 // interface for user's data details
 export interface UserData {
@@ -90,35 +139,46 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
 
     // skill functions
-    const addUserSkill = (newSkill: string, email: string): boolean => {
+    const addUserSkill = async (newSkill: string, email: string): Promise<boolean> => {
         // check length of skill
         if (newSkill.length > MAX_CHAR_SKILLS){
             console.warn(`Skill ${newSkill} is too long. Maximum length is ${MAX_CHAR_SKILLS} characters.`);
             return false;
         }
 
-        const userRecords: UserRecord = getUserRecords();
+        const userRecord = await fetchUser(email);
 
-        if (!userRecords){return false;}
+        // check whether record actually exists
+        if (!userRecord){return false;}
         
-        const currUserRecord = userRecords[email];
-        if (currUserRecord) { // check whether record actually exists
+        if (userRecord) { 
+            // Fetch the skills array for that user from the DB (it will be empty if they have no skills yet)
+            const userSkills = await fetchUserSkills(userRecord.email);
 
             // Ensure skills array exists before operating on it
-            if (!currUserRecord.skills) {
-                currUserRecord.skills = [];
+            if (!userSkills) {
+                console.warn('Cannot find Skills array in the database')
+                return false;
             }
             // maximum of MAX_NUM_SKILLS skills allowed
-            if (currUserRecord.skills.length + 1 > MAX_NUM_SKILLS){
+            if (userSkills.length + 1 > MAX_NUM_SKILLS){
                 console.warn(`Maximum of ${MAX_NUM_SKILLS} skills allowed per user.`);
                 return false;
             }
             // push the skill into the record 
-            currUserRecord.skills.push(newSkill);
-            
-            // Update localStorage with new skill
-            saveUserRecords(userRecords);
-            return true;
+            const newSkillToAdd: Skill = {
+                email: email,
+                skill: newSkill,
+            };
+
+            const addedSkill = await createSkill(email ,newSkillToAdd);
+            if (addedSkill){
+                return true;
+            }
+            else {
+                console.warn("Error creating skill entry in the DB");
+                return false;
+            }
         }
         else {
             // if there is no record with that email show error 

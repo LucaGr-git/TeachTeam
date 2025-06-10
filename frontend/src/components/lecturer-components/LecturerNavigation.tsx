@@ -1,8 +1,8 @@
 import React from "react";
 import NavList from "../general-components/NavList";
 import ProfileGreeter from "../general-components/ProfileGreeter";
-import { useAuth } from "@/localStorage-context/auth";
-import { useClassData, ClassRecord} from "@/localStorage-context/classDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
+import { useClassData, ClassRecord} from "@/database-context-providers/classDataProvider";
 import TagDisplay from "../general-components/TagDisplay";
 
 

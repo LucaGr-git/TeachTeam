@@ -1,8 +1,8 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import { AuthProvider } from "../localStorage-context/auth";
-import { UserDataProvider } from "@/localStorage-context/userDataProvider";
-import { ClassDataProvider } from "@/localStorage-context/classDataProvider";
+import { AuthProvider } from "../database-context-providers/auth";
+import { UserDataProvider } from "@/database-context-providers/userDataProvider";
+import { ClassDataProvider } from "@/database-context-providers/classDataProvider";
 import { Toaster } from "sonner";
 
 export default function App({ Component, pageProps }: AppProps) {

@@ -7,8 +7,8 @@ import { Switch } from "./ui/switch";
 import { Form, FormControl, 
     FormField, FormItem, FormMessage, } from "@/components/ui/form";
 import { Input } from "./ui/input"; 
-import { useUserData, MAX_NUM_EXPERIENCES } from "@/localStorage-context/userDataProvider";   
-import { useAuth } from "@/localStorage-context/auth";
+import { useUserData, MAX_NUM_EXPERIENCES } from "@/database-context-providers/userDataProvider";   
+import { useAuth } from "@/database-context-providers/auth";
 
 interface PopupExperienceProps {
     // Props for popup

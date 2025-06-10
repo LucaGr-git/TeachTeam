@@ -1,5 +1,5 @@
 // import the auth.tsx for authentication
-import { useAuth } from "../localStorage-context/auth";
+import { useAuth } from "../database-context-providers/auth";
 
 
 import React from "react"

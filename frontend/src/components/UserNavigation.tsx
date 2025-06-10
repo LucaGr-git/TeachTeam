@@ -5,14 +5,14 @@ import PopupExperience from "./PopupExperience";
 import { Button } from "./ui/button";
 import { Switch } from "./ui/switch";
 import { useState } from "react";
-import { useAuth } from "@/localStorage-context/auth";
+import { useAuth } from "@/database-context-providers/auth";
 import { 
   useUserData, 
   MAX_NUM_QUALIFICATIONS, 
   MAX_NUM_SKILLS, 
   MAX_CHAR_EXPERIENCES, 
   MAX_CHAR_QUALIFICATIONS, 
-  experienceData} from "@/localStorage-context/userDataProvider";
+  experienceData} from "@/database-context-providers/userDataProvider";
 import TagCustomDisplay from "./general-components/TagCustomizableDisplay";
 import { z } from "zod";
 import PopupProfile from "./PopupProfile";

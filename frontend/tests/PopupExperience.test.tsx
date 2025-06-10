@@ -1,8 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PopupExperience from "@/components/PopupExperience";
-import { useUserData } from "@/localStorage-context/userDataProvider";
-import { useAuth } from "@/localStorage-context/auth";
+import { useUserData } from "@/database-context-providers/userDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
 import { act } from  "react"
 
 // Mock the hooks

@@ -1,8 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import PopupExperience from "@/components/PopupExperience";
-import { useClassData } from "@/localStorage-context/classDataProvider";
-import { useAuth } from "@/localStorage-context/auth";
+import { useClassData } from "@/database-context-providers/classDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
 import { act } from  "react"
 import LecturerAddNote from "@/components/lecturer-components/LecturerAddNote";
 

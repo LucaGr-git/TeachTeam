@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
-import { useClassData, LecturerShortList} from "@/localStorage-context/classDataProvider";
-import { useAuth } from "@/localStorage-context/auth";
+import { useClassData, LecturerShortList} from "@/database-context-providers/classDataProvider";
+import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import { Switch } from "../ui/switch";
 import { Button } from "../ui/button";

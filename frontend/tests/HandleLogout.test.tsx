@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Header from "@/components/general-components/Header";
-import { useAuth } from "@/localStorage-context/auth";
+import { useAuth } from "@/database-context-providers/auth";
 import { useRouter } from "next/router";
 
 // Mock the hooks

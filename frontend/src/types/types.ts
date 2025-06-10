@@ -25,7 +25,12 @@ export interface Experience {
 }
 
 export interface Skill {
-    ID: number;
+    ID?: number;
+    email: string;
+    skill: string;
+}
+
+export interface NewSkill {
     email: string;
     skill: string;
 }
