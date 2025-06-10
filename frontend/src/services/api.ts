@@ -112,7 +112,7 @@ export const courseService = {
         tutorEmail: string;
         message: string;
         date: string;
-    }): Promise<any> => {
+    }): Promise<ShortlistNote> => {
     const { data } = await axios.put(`${API_BASE_URL}/shortlistNotes/${noteId}`, note);
     return data;
   },
