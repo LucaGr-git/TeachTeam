@@ -23,8 +23,16 @@ import { Experience } from "@/types/types";
 
 
 const UserNavigation = () => {
+  // manual rerender useState
+  const [rerenderCounter, setRerenderCounter] = useState<number>(0);
+
   // Button popup useState for experience form popup
   const [buttonPopup, toggleButtonPopup] = useState(false);
+
+  useEffect(() => {
+    setRerenderCounter(rerenderCounter + 1);
+    fetchExperiences();
+  }, [toggleButtonPopup]);
 
   //Button popup useState for profile popup
   const [profilePopup, toggleProfilePopup] = useState(false);
@@ -47,7 +55,7 @@ const UserNavigation = () => {
   // get the current user
   let currentUser = getCurrentUser();
   // get the user records
-  const userRecords = getUserRecords();
+  // const userRecords = getUserRecords();
   
   // defaults if the user is not authenticated
   if (!isAuthenticated || !currentUser) {
@@ -57,13 +65,13 @@ const UserNavigation = () => {
       isLecturer: false,
       firstName: "",
       lastName: "",}
-    userRecords[currentUser.email] = {
-      email: currentUser.email,
-      skills: [],
-      qualifications: [],
-      fullTime: false,
-      experience: [],
-    };
+    // userRecords[currentUser.email] = {
+    //   email: currentUser.email,
+    //   skills: [],
+    //   qualifications: [],
+    //   fullTime: false,
+    //   experience: [],
+    // };
 
   }
 
@@ -86,9 +94,6 @@ const UserNavigation = () => {
     fetchSkills();
   }, [currentUser.email]);
 
-  // manual rerender useState
-  const [rerenderCounter, setRerenderCounter] = useState<number>(0);
-
   // get the current user qualifications
   const [userQualifications, setUserQualifications] = useState<string[]>([]);
 
@@ -99,7 +104,7 @@ const UserNavigation = () => {
       try {
         const qualifications = await getUserQualifications(currentUser.email);
         const qualificationNames = qualifications.map(qualificationObj => qualificationObj.qualification);
-        setUserSkills(qualificationNames);
+        setUserQualifications(qualificationNames);
       } catch (error) {
         console.error("Failed to fetch user qualifications:", error);
       }
@@ -121,7 +126,7 @@ const UserNavigation = () => {
 
 
   // get the current user availability
-  const [userAvailability, setUserAvailability] = useState<boolean>(userRecords[currentUser.email].fullTime);
+  const [userAvailability, setUserAvailability] = useState<boolean>(false);
 
   const monthYearFormats: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -134,7 +139,7 @@ const UserNavigation = () => {
 
   //function to toggle user availability
   const toggleUserAvailability = async() => {
-    
+    // const user = await getUser(currentUser.email);
     // update the user availability in the database
     if (await changeAvailability(!userAvailability, currentUser.email)) {
       setUserAvailability(!userAvailability);
@@ -174,6 +179,10 @@ const UserNavigation = () => {
     // Check if the user has already created that experience
     if(userExperiences.includes(experience)) {
       if (await removeUserExperience(experience, currentUser.email)) {
+        const currExperiences = await getUserExperiences(currentUser.email);
+        if (currExperiences) {
+          setUserExperiences(currExperiences);
+        }
         setRerenderCounter(rerenderCounter + 1);
         return ""
       }
@@ -193,6 +202,8 @@ const UserNavigation = () => {
     // if the skill tag exists remove it
     if (userSkills.includes(skillTag)) {
       const removedSkill = await removeUserSkill(skillTag, currentUser.email);
+      console.log(currentUser.email);
+      console.log(removedSkill + " checking removedSkill bool");
     	if (removedSkill){
         // update the userSkills array
         // cannot use localstorage as removing can take too long 
@@ -241,12 +252,12 @@ const UserNavigation = () => {
 
     // if the qualification tag exists remove it
     if (userQualifications.includes(qualificationTag)) {
-      const removedQualification = await removeUserSkill(qualificationTag, currentUser.email);
+      const removedQualification = await removeUserQualification(qualificationTag, currentUser.email);
     	if (removedQualification){
         // update the userQualifications array
         const updatedQualfications = await getUserQualifications(currentUser.email);
         const qualificationNames = updatedQualfications.map(qualfication => qualfication.qualification); // extract qualification name strings
-        setUserSkills(qualificationNames);
+        setUserQualifications(qualificationNames);
         return "";
       }
       else {
@@ -259,7 +270,9 @@ const UserNavigation = () => {
   }
 
   // get array of current user experiences
-  fetchExperiences();
+  useEffect(() => {
+    fetchExperiences();
+  },[])
 
   return (
     <nav className="nav">
@@ -274,6 +287,7 @@ const UserNavigation = () => {
           <PopupExperience 
             buttonPopup={buttonPopup} 
             setTrigger={toggleButtonPopup}
+            onExperienceAdded={fetchExperiences}
             titleValidation={z.string().min(1, {message: "Required"}).max(MAX_CHAR_EXPERIENCES,
               `Maximum experience title length of ${MAX_CHAR_EXPERIENCES} characters`).trim()}
 
@@ -294,9 +308,9 @@ const UserNavigation = () => {
         <div hidden={profilePopup}>
         {
           userExperiences.map(
-           (experience, index) => {
+           (experience) => {
             return (
-              <ExperienceCard experience = {experience} removeExperience={removeExperienceCard} key={index}>
+              <ExperienceCard experience = {experience} removeExperience={removeExperienceCard} key={experience.id}>
                 <h1> Title: {experience.title}</h1>
                 <h1> Start Date: {new Date (experience.timeStarted).toLocaleString('en-US', monthYearFormats)}</h1>
                 {(experience.timeFinished)? 

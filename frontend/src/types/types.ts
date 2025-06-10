@@ -16,8 +16,8 @@ export interface User {
 }
 
 export interface Experience {
-    ID?: number;
-    email: string;
+    id?: number;
+    userEmail: string;
     title: string;
     company: string;
     timeStarted: string;
@@ -25,19 +25,14 @@ export interface Experience {
 }
 
 export interface Skill {
-    ID?: number;
-    email: string;
-    skill: string;
-}
-
-export interface NewSkill {
-    email: string;
+    id?: number;
+    userEmail: string;
     skill: string;
 }
 
 export interface Qualification {
-    ID?: number;
-    email: string;
+    id?: number;
+    userEmail: string;
     qualification: string;
 }
 

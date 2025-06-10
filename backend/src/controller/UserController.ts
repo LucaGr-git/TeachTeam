@@ -139,7 +139,13 @@ export class UserController {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.skills);
+    // res.json(user.skills);
+      const skills = user.skills.map(skill => ({
+        id: skill.id,
+        skill: skill.skill,
+        userEmail: email, // safe optional chaining
+      }));
+      res.json(skills);
 }
 
   /**
@@ -154,7 +160,14 @@ export class UserController {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.qualifications);
+    // res.json(user.qualifications);
+    const qualifications = user.qualifications.map(qualification => ({
+    id: qualification.id,
+    qualification: qualification.qualification,
+    userEmail: email,
+    }));
+    res.json(qualifications);
+
   }
 
 
@@ -171,6 +184,15 @@ export class UserController {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(user.experiences);
+    // const experiences = user.experiences.map(experience => ({
+    // id: experience.id,
+    // title: experience.title,
+    // company: experience.company,
+    // timeStarted: experience.timeStarted,
+    // timeFinished: experience.timeFinished,
+    // userEmail: email,
+    // }));
+    // res.json(experiences);
   }
 
   /**
@@ -243,8 +265,8 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteExperience(req: Request, res: Response) {
-    const { id } = req.params; // experience ID
-    const result = await this.experienceRepo.delete({ id: parseInt(id) });
+    const { experienceId } = req.params; // experience ID
+    const result = await this.experienceRepo.delete({ id: parseInt(experienceId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Experience not found' });
     }
@@ -258,8 +280,8 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteQualification(req: Request, res: Response) {
-    const { id } = req.params; // qualification ID
-    const result = await this.qualificationRepo.delete({ id: parseInt(id) });
+    const { qualificationId } = req.params; // qualification ID
+    const result = await this.qualificationRepo.delete({ id: parseInt(qualificationId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Qualification not found' });
     }
@@ -273,8 +295,9 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteSkill(req: Request, res: Response) {
-    const { id } = req.params; // skill ID
-    const result = await this.skillRepo.delete({ id: parseInt(id) });
+    const { skillId } = req.params; // skill ID
+    console.log(skillId);
+    const result = await this.skillRepo.delete({ id: parseInt(skillId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Skill not found' });
     }

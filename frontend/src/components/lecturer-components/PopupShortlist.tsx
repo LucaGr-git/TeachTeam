@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, experienceData } from "@/database-context-providers/userDataProvider";
+import { UserRecord, useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 import NavList from "../general-components/NavList";
@@ -24,7 +24,7 @@ interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: experienceData[];
+    experience: localStorageExperienceData[];
     shortListed: boolean;
     email: string;
 }

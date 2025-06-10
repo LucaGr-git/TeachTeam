@@ -76,7 +76,7 @@ const TagCustomDisplay = (
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={() => removeTagHandler(tag)} // Click to remove the tag
+                    onClick={async() => await removeTagHandler(tag)} // Click to remove the tag
                     >
                     {tag}
                     </Button>

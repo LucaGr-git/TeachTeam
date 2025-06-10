@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, experienceData } from "@/database-context-providers/userDataProvider";
+import { UserRecord, useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";
@@ -13,7 +13,7 @@ export interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: experienceData[];
+    experience: localStorageExperienceData[];
     email: string;
 }
 
