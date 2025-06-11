@@ -44,7 +44,7 @@ export interface LecturerShortlist {
 }
 
 export interface ShortlistNote {
-    ID: number;
+    id?: number;
     courseCode: string;
     lecturerEmail: string;
     tutorEmail: string;

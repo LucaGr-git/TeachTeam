@@ -15,7 +15,21 @@ import { CreateCourseLecturerDTO } from "../dtos/create-courseLecturer.dto";
 const router = Router();
 const controller = new CourseController();
 
-router.get('/courses', (req, res) => controller.getAll(req, res));
+router.get('/courses', (req, res) => controller.getAllCourses(req, res));
+
+router.get('/courseLecturers', (req, res) => controller.getAllCourseLecturers(req, res));
+
+router.get('/tutorApplications', (req, res) => controller.getAllTutorApplications(req, res));
+
+router.get('/courseTutors', (req, res) => controller.getAllCourseTutors(req, res));
+
+router.get('/shortlistedTutors', (req, res) => controller.getAllShortlistedTutors(req, res));
+
+router.get('/shortlistNotes', (req, res) => controller.getAllShortlistNotes(req, res));
+
+router.get('/lecturerShortlists', (req, res) => controller.getAllLecturerShortlists(req, res));
+
+router.get('/preferredSkills', (req, res) => controller.getAllPreferredSkills(req, res));
 
 router.get("/courses/:courseCode", (req, res) => controller.getCourseByCode(req, res));
 

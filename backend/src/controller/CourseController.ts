@@ -31,13 +31,82 @@ export class CourseController {
    * @param res - Express response object
    * @returns JSON array of all courses
    */
-  async getAll(req: Request, res: Response) {
+  async getAllCourses(req: Request, res: Response) {
     /** Retrieve all courses from the database */
     const courses = await this.courseRepo.find();
 
-    /** Return the pets */
+    /** Return the courses */
     res.json(courses);
   }
+
+  /**
+   * Retrieves all course lecturers from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all courses
+   */
+  async getAllCourseLecturers(req: Request, res: Response) {
+    /** Retrieve all courseLecturer from the database */
+    const courseLecturers = await this.courseLecturerRepo.find();
+
+    /** Return the course lecturers */
+    res.json(courseLecturers);
+  }
+
+  /**
+   * Retrieves all TutorApplications from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all TutorApplications
+   */
+  async getAllTutorApplications(req: Request, res: Response) {
+    /** Retrieve all TutorApplications from the database */
+    const tutorApplications = await this.tutorApplicationRepo.find();
+
+    /** Return the TutorApplications */
+    res.json(tutorApplications);
+  }
+
+  
+
+  /**
+   * Retrieves all CourseTutors from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all CourseTutors
+   */
+  async getAllCourseTutors(req: Request, res: Response) {
+    /** Retrieve all CourseTutors from the database */
+    const courseTutors = await this.courseTutorRepo.find();
+
+    /** Return the CourseTutors */
+    res.json(courseTutors);
+  }
+
+// Shortlisted Tutors
+async getAllShortlistedTutors(req: Request, res: Response) {
+  const shortlistedTutors = await this.shortlistedTutorRepo.find();
+  res.json(shortlistedTutors);
+}
+
+// Shortlist Notes
+async getAllShortlistNotes(req: Request, res: Response) {
+  const shortlistNotes = await this.shortlistNoteRepo.find();
+  res.json(shortlistNotes);
+}
+
+// Lecturer Shortlist
+async getAllLecturerShortlists(req: Request, res: Response) {
+  const lecturerShortlists = await this.lecturerShortlistRepo.find();
+  res.json(lecturerShortlists);
+}
+
+// Preferred Skills
+async getAllPreferredSkills(req: Request, res: Response) {
+  const preferredSkills = await this.preferredSkillRepo.find();
+  res.json(preferredSkills);
+}
+
 
   /**
    * Retrieves a single course by its course code

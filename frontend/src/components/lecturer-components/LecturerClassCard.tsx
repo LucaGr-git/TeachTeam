@@ -78,7 +78,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
     }
     // if the skill tag is not already in the userSkills array, add it
     if (!lecturerClass.preferredSkills.includes(skillTag)) {
-      if (addPreferredSkill(courseCode, skillTag)) {
+      if (await addPreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
         return "";
@@ -99,7 +99,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
  
     // if the skill tag is already in the userSkills array, remove it
     if (lecturerClass.preferredSkills.includes(skillTag)) {
-      if (removePreferredSkill(courseCode, skillTag)) {
+      if (await removePreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
         return "";

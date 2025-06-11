@@ -7,32 +7,32 @@ export const MAX_NUM_SKILLS: number = 10;
 // Interface for what users of the hook will be able to use
 export interface ClassDataProvision {
     addLecturer: (courseCode: string, lecturer: string) =>  Promise<boolean>;
-    removeLecturer: (courseCode: string, lecturer: string) => boolean;
+    removeLecturer: (courseCode: string, lecturer: string) => Promise<boolean>;
 
-    acceptApplication: (courseCode: string, tutor: string) => boolean;
-    rejectApplication: (courseCode: string, tutor: string) => boolean;
-    addApplication: (courseCode: string, tutorEmail: string) => boolean;
+    acceptApplication: (courseCode: string, tutor: string) => Promise<boolean>;
+    rejectApplication: (courseCode: string, tutor: string) => Promise<boolean>;
+    addApplication: (courseCode: string, tutorEmail: string) => Promise<boolean>;
 
     addToShortlist: (courseCode: string, tutorEmail: string) => Promise<boolean>;
-    removeFromShortlist: (courseCode: string, tutorEmail: string) => boolean;
+    removeFromShortlist: (courseCode: string, tutorEmail: string) => Promise<boolean>;
 
-    changeCourseTitle: (courseCode: string, newTitle: string) => boolean;
+    changeCourseTitle: (courseCode: string, newTitle: string) => Promise<boolean>;
 
     addPreferredSkill: (courseCode: string, skill: string) => Promise<boolean>;
     removePreferredSkill: (courseCode: string, skill: string) => Promise<boolean>;
 
-    initializeLecturerShortlist: (courseCode: string, lecturerEmail: string) => boolean;
-    orderLecturerShortList: (courseCode: string, tutorEmail: string, lecturerEmail: string, position: number) => boolean;
+    initializeLecturerShortlist: (courseCode: string, lecturerEmail: string) => Promise<boolean>;
+    orderLecturerShortList: (courseCode: string, tutorEmail: string, lecturerEmail: string, position: number) => Promise<boolean>;
 
-    addNote: (courseCode: string, tutorEmail: string, lecturerEmail: string, message: string) => boolean;
-    deleteNote: (courseCode: string, tutorEmail: string, lecturerEmail: string, message: string) => boolean;
+    addNote: (courseCode: string, tutorEmail: string, lecturerEmail: string, message: string) => Promise<boolean>;
+    deleteNote: (courseCode: string, tutorEmail: string, lecturerEmail: string, message: string) => Promise<boolean>;
 
-    getTutorNotes: (courseCode: string, tutorEmail: string) => ShortlistNote[];
+    getTutorNotes: (courseCode: string, tutorEmail: string) => Promise<ShortlistNote[]>;
 
-    changeAvailability: (courseCode: string, fullTime: boolean, partTime: boolean) => boolean;
+    changeAvailability: (courseCode: string, fullTime: boolean, partTime: boolean) => Promise<boolean>;
 
-    getClassRecords: () => ClassRecord;
-    saveClassRecords: (classRecords: ClassRecord) => void;
+    getClassRecords: () => Promise<ClassRecord>;
+    saveClassRecords: (classRecords: ClassRecord) => Promise<void>;
 }
 
 export type LecturerShortList = Record<string, string[]>;
@@ -65,7 +65,206 @@ export interface ClassData {
 
 export type ClassRecord = Record<string, ClassData>;
 
+//TODO: for instead of manually make every component fit into new entity calls, hydrate entities to fit the existing ClassData
+// interface, then dehydrate specific function.
 
+const getClassRecords = async (): Promise<ClassRecord> => {
+    try {
+    const [
+        courses,
+        courseLecturers,
+        courseTutors,
+        tutorApplications,
+        shortlistedTutors,
+        lecturerShortlists,
+        preferredSkills,
+        shortlistNotes
+    ] = await Promise.all([
+        courseService.getAllCourses(),              // Course[]
+        courseService.getAllCourseLecturers(),      // CourseLecturer[]
+        courseService.getAllCourseTutors(),         // CourseTutor[]
+        courseService.getAllTutorApplications(),    // TutorApplication[]
+        courseService.getAllShortlistedTutors(),    // ShortlistedTutor[]
+        courseService.getAllLecturerShortlists(),   // LecturerShortlist[]
+        courseService.getAllPreferredSkills(),      // PreferredSkill[]
+        courseService.getAllShortlistNotes(),       // ShortlistNote[]
+    ]);
+    const classRecords: ClassRecord = {};
+
+    for (const course of courses) {
+      const courseCode = course.courseCode;
+
+      const lecturers = courseLecturers
+        .filter(l => l.courseCode === courseCode)
+        .map(l => l.lecturerEmail);
+
+      const tutors = courseTutors
+        .filter(t => t.courseCode === courseCode)
+        .map(t => t.tutorEmail);
+
+      const applications = tutorApplications
+        .filter(a => a.courseCode === courseCode)
+        .map(a => a.tutorEmail);
+
+      const shortlisted = shortlistedTutors
+        .filter(s => s.courseCode === courseCode)
+        .map(s => s.tutorEmail);
+
+      const shortlistNoteMap: Record<string, ShortlistNote[]> = {};
+      for (const note of shortlistNotes) {
+        if (note.courseCode === courseCode) {
+          if (!shortlistNoteMap[note.tutorEmail]) {
+            shortlistNoteMap[note.tutorEmail] = [];
+          }
+          shortlistNoteMap[note.tutorEmail].push({
+            lecturerEmail: note.lecturerEmail,
+            message: note.message,
+            date: note.date,
+          });
+        }
+      }
+
+      const lecturerShortlistMap: LecturerShortList = {};
+      for (const row of lecturerShortlists) {
+        if (row.courseCode === courseCode) {
+          if (!lecturerShortlistMap[row.lecturerEmail]) {
+            lecturerShortlistMap[row.lecturerEmail] = [];
+          }
+          lecturerShortlistMap[row.lecturerEmail][row.rank] = row.tutorEmail;
+        }
+      }
+
+      const preferredSkillList = preferredSkills
+        .filter(s => s.courseCode === courseCode)
+        .map(s => s.skill);
+
+      classRecords[courseCode] = {
+        courseCode: course.courseCode,
+        courseTitle: course.courseTitle,
+        lecturerEmails: lecturers,
+        tutorEmails: tutors,
+        tutorsApplied: applications,
+        tutorsShortlist: shortlisted.map(tutorEmail => ({
+          tutorEmail,
+          notes: shortlistNoteMap[tutorEmail] || []
+        })),
+        preferredSkills: preferredSkillList,
+        fullTimefriendly: course.fullTimeFriendly,
+        partTimeFriendly: course.partTimeFriendly,
+        lecturerShortlist: lecturerShortlistMap,
+      };
+    }
+    return classRecords;
+  } catch (err) {
+    console.error("Error hydrating class records:", err);
+    return {};
+  }
+}
+
+export const saveClassRecords = async (classRecords: ClassRecord): Promise<void> => {
+  for (const courseCode in classRecords) {
+    const record = classRecords[courseCode];
+    try {
+      // Update or create the course
+      await courseService.updateCourse(courseCode, {
+        courseTitle: record.courseTitle,
+        partTimeFriendly: record.partTimeFriendly,
+        fullTimeFriendly: record.fullTimefriendly,
+      });
+
+      // Delete and recreate CourseLecturers
+      await courseService.deleteCourse(courseCode); // assuming it clears lecturers too
+      await courseService.createCourse({ // recreate course so we can re-add lecturers
+        courseCode,
+        courseTitle: record.courseTitle,
+        partTimeFriendly: record.partTimeFriendly,
+        fullTimeFriendly: record.fullTimefriendly,
+      });
+      for (const lecturerEmail of record.lecturerEmails) {
+        await courseService.createCourseLecturer(courseCode, { courseCode, lecturerEmail });
+      }
+
+      // Course Tutors
+      for (const tutorEmail of record.tutorEmails) {
+        await courseService.createCourseTutor(courseCode, { courseCode, tutorEmail });
+      }
+
+      // Tutor Applications
+      for (const tutorEmail of record.tutorsApplied) {
+        await courseService.createTutorApplication(courseCode, { courseCode, tutorEmail });
+      }
+
+      // Shortlisted Tutors
+      for (const shortlistEntry of record.tutorsShortlist) {
+        await courseService.createShortlistedTutor(courseCode, {
+          courseCode,
+          tutorEmail: shortlistEntry.tutorEmail,
+        });
+
+        for (const note of shortlistEntry.notes) {
+          await courseService.createShortlistNote(
+            courseCode,
+            shortlistEntry.tutorEmail,
+            {    
+              courseCode,
+              tutorEmail: shortlistEntry.tutorEmail,
+              lecturerEmail: note.lecturerEmail,
+              message: note.message,
+              date: note.date,
+            }
+          );
+        }
+      }
+
+      // Preferred Skills
+      for (const skill of record.preferredSkills) {
+        await courseService.createPreferredSkill(courseCode, {
+          courseCode,
+          skill,
+        });
+      }
+
+      // Lecturer Shortlist
+      for (const [lecturerEmail, rankedList] of Object.entries(record.lecturerShortlist)) {
+        for (let rank = 0; rank < rankedList.length; rank++) {
+          const tutorEmail = rankedList[rank];
+          if (tutorEmail) {
+            await courseService.createLecturerShortlist(courseCode, lecturerEmail, {
+              courseCode,
+              lecturerEmail,
+              tutorEmail,
+              rank,
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.error(`Error dehydrating course ${courseCode}:`, err);
+    }
+  }
+};
+
+
+
+const fetchAllCourses = async () => {
+    try {
+        const data = await courseService.getAllCourses();
+        return data;
+    }
+    catch (error) {
+        console.error("Error fetching all courses from DB in 'fetchAllCourses' function in classDataProvider");
+    }
+}
+
+const fetchCourse = async (courseCode: string) => {
+    try {
+        const data = await courseService.getCourseByCode(courseCode);
+        return data;
+    }
+    catch (error){
+        console.error("Error fetching " + courseCode + " from the DB in 'fetchCourse' function in classDataProvider");
+    }
+}
 
 const createLecturer = async (courseCode: string, email: string) => {
     try {
@@ -158,8 +357,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const removeLecturer = (courseCode: string, lecturerEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const removeLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         if (!currClass) {
@@ -190,8 +389,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // application methods
-    const acceptApplication = (courseCode: string, tutorEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const acceptApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         
         const currClass = classRecords[courseCode];
 
@@ -207,7 +406,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             return (tutor !== tutorEmail);
         });
 
-        const reject: boolean =  rejectApplication(courseCode, tutorEmail);
+        const reject: boolean =  await rejectApplication(courseCode, tutorEmail);
 
         if (!reject){
             console.warn(`Tutor ${tutorEmail} does not teach class with course code ${courseCode}`);
@@ -223,8 +422,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const rejectApplication = (courseCode: string, tutorEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const rejectApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
 
         const currClass = classRecords[courseCode];
 
@@ -259,8 +458,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const addApplication = (courseCode: string, tutorEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const addApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         
         const currClass = classRecords[courseCode];
         
@@ -283,8 +482,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const removeFromShortlist = (courseCode: string, tutorEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const removeFromShortlist = async(courseCode: string, tutorEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
 
         const currClass = classRecords[courseCode];
 
@@ -334,8 +533,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     
-    const changeCourseTitle = (courseCode: string, newTitle: string): boolean => {
-        const classRecords = getClassRecords();
+    const changeCourseTitle = async (courseCode: string, newTitle: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         if (!currClass) {
@@ -373,7 +572,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const removePreferredSkill = async (courseCode: string, skill: string): Promise<boolean> => {
-        const classRecords: ClassRecord = getClassRecords();
+        const classRecords: ClassRecord = await getClassRecords();
 
         if (!classRecords){return false;}
         
@@ -412,8 +611,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     };
 
-    const initializeLecturerShortlist =  (courseCode: string, lecturerEmail: string): boolean => {
-        const classRecords = getClassRecords();
+    const initializeLecturerShortlist =  async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         if (!currClass) {
@@ -431,8 +630,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     };
 
-    const orderLecturerShortList = (courseCode: string, tutorEmail: string, lecturerEmail: string, position: number):  boolean => {
-        const classRecords = getClassRecords();
+    const orderLecturerShortList = async(courseCode: string, tutorEmail: string, lecturerEmail: string, position: number):  Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         // initialize array if not done so already
@@ -475,8 +674,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     }
 
-    const addNote = useCallback((courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): boolean => {
-        const classRecords = getClassRecords();
+    const addNote = useCallback (async(courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         // error checking
@@ -510,13 +709,13 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
     }, []);
 
-    const deleteNote = (
+    const deleteNote = async (
         courseCode: string,
         tutorEmail: string,
         lecturerEmail: string,
         message: string
-      ): boolean => {
-        const classRecords = getClassRecords();
+      ): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
       
         // error checking
@@ -551,11 +750,11 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // returns an empty array if there is an error or simply no notes to display
-    const getTutorNotes = (
+    const getTutorNotes = async (
         courseCode: string,
         tutorEmail: string
-      ): ShortlistNote[] => {
-        const classRecords = getClassRecords();
+      ): Promise<ShortlistNote[]> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
       
         // Error checking
@@ -579,8 +778,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
       
 
-    const changeAvailability = (courseCode: string, fullTime: boolean, partTime: boolean): boolean => {
-        const classRecords = getClassRecords();
+    const changeAvailability = async (courseCode: string, fullTime: boolean, partTime: boolean): Promise<boolean> => {
+        const classRecords = await getClassRecords();
         const currClass = classRecords[courseCode];
 
         if (!currClass) {
@@ -597,134 +796,130 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const getClassRecords = (): ClassRecord => {
-        const classData = localStorage.getItem("classData");
-        return classData ? JSON.parse(classData) : {};
-    };
 
-    const saveClassRecords = (classRecords: ClassRecord) => {
-        localStorage.setItem("classData", JSON.stringify(classRecords));
-    };
+    // const saveClassRecords = (classRecords: ClassRecord) => {
+    //     localStorage.setItem("classData", JSON.stringify(classRecords));
+    // };
 
-    useEffect(() => {
+    // useEffect(() => {
         // !!! Load dummy data
-        let shortlist: LecturerShortList = {};
-        shortlist["lecturer123@gmail.com"] = ["example123@gmail.com", "luca@student.rmit.edu.au", "brad@student.rmit.edu.au"];
-        const classRecords: ClassRecord = getClassRecords();
-        classRecords["COSC2804"] = {
-            courseCode: "COSC2804",
-            courseTitle: "Introduction to Programming",
-            lecturerEmails: ["lecturer123@gmail.com"],
-            tutorEmails: [],
-            tutorsApplied: ["luca@student.rmit.edu.au", "example123@gmail.com", "brad@student.rmit.edu.au"],
-            tutorsShortlist: [
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "luca@student.rmit.edu.au", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["JavaScript", "Python"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        };
-        shortlist = {};
-        shortlist["lecturer123@gmail.com"] = [
-            "jeffrey@student.rmit.edu.au",
-            "trent@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "luca@student.rmit.edu.au"
-          ];
-        shortlist["nathaniel@rmit.edu.au"] = [
-            "luca@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "jeffrey@student.rmit.edu.au",
-            "trent@student.rmit.edu.au"
-        ];
-        shortlist["matt@rmit.edu.au"] = [
-            "trent@student.rmit.edu.au",
-            "brad@student.rmit.edu.au",
-            "luca@student.rmit.edu.au",
-            "jeffrey@student.rmit.edu.au",
-            "example123@gmail.com"
-          ];
-        classRecords["COSC2801"] = {
-            courseCode: "COSC2801",
-            courseTitle: "Java Programming Bootcamp",
-            lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au", "matt@rmit.edu.au"],
-            tutorEmails: [],
-            tutorsApplied: ["example123@gmail.com", "luca@student.rmit.edu.au", "trent@student.rmit.edu.au", "brad@student.rmit.edu.au", "jeffrey@student.rmit.edu.au"],
-            tutorsShortlist: [
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "luca@student.rmit.edu.au", notes: []},
-                {tutorEmail: "trent@student.rmit.edu.au", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []},
-                {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["Java"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
-        shortlist = {};
-        classRecords["COSC2803"] = {
-            courseCode: "COSC2803",
-            courseTitle: "Java Programming Studio",
-            lecturerEmails: ["lecturer123@gmail.com"],
-            tutorEmails: [],
-            tutorsApplied: ["tommy@student.rmit.edu.au"],
-            tutorsShortlist: [],
-            preferredSkills: ["Java", "MCPP", "LC3"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
-        shortlist["lecturer123@gmail.com"] = [
-            "jeffrey@student.rmit.edu.au",
-            "alysha@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "rupert@student.rmit.edu.au"
-          ];
-        shortlist["nathaniel@rmit.edu.au"] = [
-        "jeffrey@student.rmit.edu.au",
-        "alysha@student.rmit.edu.au",
-        "brad@student.rmit.edu.au",
-        "example123@gmail.com",
-        "rupert@student.rmit.edu.au"
-        ];
-        classRecords["COSC2274"] = {
-            courseCode: "COSC2274",
-            courseTitle: "Software Requirements Engineering",
-            lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au"],
-            tutorEmails: [],
-            tutorsApplied: [
-                "jeffrey@student.rmit.edu.au",
-                "alysha@student.rmit.edu.au",
-                "example123@gmail.com",
-                "brad@student.rmit.edu.au",
-                "rupert@student.rmit.edu.au"
-              ],
-            tutorsShortlist: [
-                {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []},
-                {tutorEmail: "alysha@student.rmit.edu.au", notes: []},
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []},
-                {tutorEmail: "rupert@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["Python"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
+        // let shortlist: LecturerShortList = {};
+        // shortlist["lecturer123@gmail.com"] = ["example123@gmail.com", "luca@student.rmit.edu.au", "brad@student.rmit.edu.au"];
+        // const classRecords: ClassRecord = getClassRecords();
+        // classRecords["COSC2804"] = {
+        //     courseCode: "COSC2804",
+        //     courseTitle: "Introduction to Programming",
+        //     lecturerEmails: ["lecturer123@gmail.com"],
+        //     tutorEmails: [],
+        //     tutorsApplied: ["luca@student.rmit.edu.au", "example123@gmail.com", "brad@student.rmit.edu.au"],
+        //     tutorsShortlist: [
+        //         {tutorEmail: "example123@gmail.com", notes: []},
+        //         {tutorEmail: "luca@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "brad@student.rmit.edu.au", notes: []}
+        //     ],
+        //     preferredSkills: ["JavaScript", "Python"],
+        //     partTimeFriendly: true,
+        //     fullTimefriendly: false,
+        //     lecturerShortlist: shortlist,
+        // };
+        // shortlist = {};
+        // shortlist["lecturer123@gmail.com"] = [
+        //     "jeffrey@student.rmit.edu.au",
+        //     "trent@student.rmit.edu.au",
+        //     "example123@gmail.com",
+        //     "brad@student.rmit.edu.au",
+        //     "luca@student.rmit.edu.au"
+        //   ];
+        // shortlist["nathaniel@rmit.edu.au"] = [
+        //     "luca@student.rmit.edu.au",
+        //     "example123@gmail.com",
+        //     "brad@student.rmit.edu.au",
+        //     "jeffrey@student.rmit.edu.au",
+        //     "trent@student.rmit.edu.au"
+        // ];
+        // shortlist["matt@rmit.edu.au"] = [
+        //     "trent@student.rmit.edu.au",
+        //     "brad@student.rmit.edu.au",
+        //     "luca@student.rmit.edu.au",
+        //     "jeffrey@student.rmit.edu.au",
+        //     "example123@gmail.com"
+        //   ];
+        // classRecords["COSC2801"] = {
+        //     courseCode: "COSC2801",
+        //     courseTitle: "Java Programming Bootcamp",
+        //     lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au", "matt@rmit.edu.au"],
+        //     tutorEmails: [],
+        //     tutorsApplied: ["example123@gmail.com", "luca@student.rmit.edu.au", "trent@student.rmit.edu.au", "brad@student.rmit.edu.au", "jeffrey@student.rmit.edu.au"],
+        //     tutorsShortlist: [
+        //         {tutorEmail: "example123@gmail.com", notes: []},
+        //         {tutorEmail: "luca@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "trent@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "brad@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []}
+        //     ],
+        //     preferredSkills: ["Java"],
+        //     partTimeFriendly: true,
+        //     fullTimefriendly: false,
+        //     lecturerShortlist: shortlist,
+        // }
+        // shortlist = {};
+        // classRecords["COSC2803"] = {
+        //     courseCode: "COSC2803",
+        //     courseTitle: "Java Programming Studio",
+        //     lecturerEmails: ["lecturer123@gmail.com"],
+        //     tutorEmails: [],
+        //     tutorsApplied: ["tommy@student.rmit.edu.au"],
+        //     tutorsShortlist: [],
+        //     preferredSkills: ["Java", "MCPP", "LC3"],
+        //     partTimeFriendly: true,
+        //     fullTimefriendly: false,
+        //     lecturerShortlist: shortlist,
+        // }
+        // shortlist["lecturer123@gmail.com"] = [
+        //     "jeffrey@student.rmit.edu.au",
+        //     "alysha@student.rmit.edu.au",
+        //     "example123@gmail.com",
+        //     "brad@student.rmit.edu.au",
+        //     "rupert@student.rmit.edu.au"
+        //   ];
+        // shortlist["nathaniel@rmit.edu.au"] = [
+        // "jeffrey@student.rmit.edu.au",
+        // "alysha@student.rmit.edu.au",
+        // "brad@student.rmit.edu.au",
+        // "example123@gmail.com",
+        // "rupert@student.rmit.edu.au"
+        // ];
+        // classRecords["COSC2274"] = {
+        //     courseCode: "COSC2274",
+        //     courseTitle: "Software Requirements Engineering",
+        //     lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au"],
+        //     tutorEmails: [],
+        //     tutorsApplied: [
+        //         "jeffrey@student.rmit.edu.au",
+        //         "alysha@student.rmit.edu.au",
+        //         "example123@gmail.com",
+        //         "brad@student.rmit.edu.au",
+        //         "rupert@student.rmit.edu.au"
+        //       ],
+        //     tutorsShortlist: [
+        //         {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "alysha@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "example123@gmail.com", notes: []},
+        //         {tutorEmail: "brad@student.rmit.edu.au", notes: []},
+        //         {tutorEmail: "rupert@student.rmit.edu.au", notes: []}
+        //     ],
+        //     preferredSkills: ["Python"],
+        //     partTimeFriendly: true,
+        //     fullTimefriendly: false,
+        //     lecturerShortlist: shortlist,
+        // }
 
-        localStorage.setItem("classData", JSON.stringify(classRecords));
-        console.log("Dummy class data loaded");
-        addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "Seems like a good fit, need interview to confirm");
-        addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "after interview, John has my approval to tutor the class");        
-        // !!! end loading dummy data
-    }, [addNote]);
+    //     localStorage.setItem("classData", JSON.stringify(classRecords));
+    //     console.log("Dummy class data loaded");
+    //     addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "Seems like a good fit, need interview to confirm");
+    //     addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "after interview, John has my approval to tutor the class");        
+    //     // !!! end loading dummy data
+    // }, [addNote]);
 
     return (
         <ClassDataContext.Provider
