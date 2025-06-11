@@ -84,13 +84,15 @@ if (!classRecords) {
     }
     // if the skill tag is not already in the userSkills array, add it
     if (!lecturerClass.preferredSkills.includes(skillTag)) {
-      if (await addPreferredSkill(courseCode, skillTag)) {
+      const checkAddPreferredSkill = await addPreferredSkill(courseCode, skillTag);
+      console.log (checkAddPreferredSkill);
+      if (checkAddPreferredSkill == true) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
         return "";
       }
       else {
-        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
+        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed!`;
       }
     }
     // if tag exists show error
@@ -105,6 +107,7 @@ if (!classRecords) {
  
     // if the skill tag is already in the userSkills array, remove it
     if (lecturerClass.preferredSkills.includes(skillTag)) {
+      
       if (await removePreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);

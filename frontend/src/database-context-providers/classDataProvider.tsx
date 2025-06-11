@@ -281,7 +281,7 @@ const fetchPreferredSkills = async (courseCode: string) => {
     }
 }
 
-const removePreferredSkill = async (courseCode: string, skill: string) => {
+const removePrefSkill = async (courseCode: string, skill: string) => {
     try {
         const userSkills = await fetchPreferredSkills(courseCode);
         if (userSkills) {
@@ -350,10 +350,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     const [version, setVersion] = useState(0);
 
     const refreshRecords= () => {
-        setVersion(v => v +1);
-    }
-
-    useEffect(() => {
         const fetchRecords = async () => {
         const data = await getClassRecords(); // fetch and compose your ClassRecord object
         setClassRecords(data);
@@ -361,7 +357,11 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         };
 
         fetchRecords();
-    }, [version]);
+    }
+
+    useEffect (() => {
+        refreshRecords();
+    }, [])
 
     const saveClassRecords = async (classRecords: ClassRecord): Promise<void> => {
     for (const courseCode in classRecords) {
@@ -530,8 +530,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const rejectApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-
         const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
@@ -609,39 +607,30 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const removeFromShortlist = async(courseCode: string, tutorEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-
-        const currClass = classRecords[courseCode];
+        const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
             // if there is no class with that code an error is returned 
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
+        
+        // Checking if the tutor is in shortlist
+        const shortlistedTutors = await fetchShortlistedTutor();
 
-        const oldLength : number = currClass.tutorsApplied.length;
-
-        // filter out matching emails from short list
-        currClass.tutorsShortlist = currClass.tutorsShortlist.filter((tutorData) => {
-            return tutorData.tutorEmail !== tutorEmail;
-        });
-
-        // if no elements were filtered send an error message
-        if (oldLength === currClass.tutorsShortlist.length){
-            console.warn(`Tutor ${tutorEmail} is not shortlisted in class ${courseCode}`);
-            return false;
+        // Gonna check if the email and courseCode match
+        if (shortlistedTutors) {
+            const matchingTutor = shortlistedTutors.find(app => app.tutorEmail === tutorEmail && app.courseCode === courseCode);
+            if (matchingTutor) {
+                await removeShortlistedTutor(courseCode, tutorEmail);
+            }
+            else {
+                console.warn(`Tutor ${tutorEmail} is not shortlisted in class ${courseCode}`);
+                return false;
+            }
         }
 
-        // filter out in all instances of that tutor in all lecturerShortLists
-        for (const lecturerEmail in currClass.lecturerShortlist){
-            currClass.lecturerShortlist[lecturerEmail] = currClass.lecturerShortlist[lecturerEmail].filter((tutor) => {
-                return tutor !== tutorEmail;
-            });
-        }
-
-
-
-        saveClassRecords(classRecords);
+        refreshRecords();
         return true;
     };
 
@@ -654,86 +643,60 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             console.warn(`There is no class with course code ${courseCode} or tutor with email ${tutorEmail}`);
             return false;
         }
-    
+        
+        refreshRecords();
         return true;
     };
 
-    
+    // TODO: REMOVE DEFUCT FUNCTION
     const changeCourseTitle = async (courseCode: string, newTitle: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
+        // const classRecords = await getClassRecords();
+        // const currClass = classRecords[courseCode];
 
-        if (!currClass) {
-            // if there is no class with that code an error is returned 
-            console.warn(`There is no class with course code ${courseCode}`);
-            return false;
-        }
+        // if (!currClass) {
+        //     // if there is no class with that code an error is returned 
+        //     console.warn(`There is no class with course code ${courseCode}`);
+        //     return false;
+        // }
 
-        currClass.courseTitle = newTitle;
-        saveClassRecords(classRecords);
+        // currClass.courseTitle = newTitle;
+        // saveClassRecords(classRecords);
         return true;
     };
 
     const addPreferredSkill = async (courseCode: string, newSkill: string): Promise<boolean> => {
         
-        
+        const preferredSkills = await fetchPreferredSkills(courseCode);
+        console.log(preferredSkills);
         // todo maximum of MAX_NUM_SKILLS skills allowed
-        // if (currClass.preferredSkills.length + 1 > MAX_NUM_SKILLS){
-        //     console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
-        //     return false;
-        //}
-
-        const addedSkill = await createPreferredSkill(courseCode, newSkill);
-
-        if (!addedSkill) {
-            // if there is no class with that code an error is returned 
-            console.warn(`There is no class with course code ${courseCode}`);
+        if (preferredSkills && preferredSkills.length + 1 > MAX_NUM_SKILLS){
+            console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
             return false;
         }
 
+        await createPreferredSkill(courseCode, newSkill);
 
-        
-
+        refreshRecords();
         return true;
     };
 
     const removePreferredSkill = async (courseCode: string, skill: string): Promise<boolean> => {
-        const classRecords: ClassRecord = await getClassRecords();
+        console.log("Remove preferred skill function call");
+        // check if the preferred skill entry exists
+        const preferredSkills = await fetchPreferredSkills(courseCode);
+        console.log(preferredSkills);
 
-        if (!classRecords){return false;}
-        
-        const currUserRecord = classRecords[courseCode];
-        if (currUserRecord) { // check whether record actually exists
-
-            // Ensure skills array exists before operating on it
-            if (!currUserRecord.preferredSkills) {
-                console.warn(`Course with code ${courseCode} does not have any skills to remove`);
-                return false;
+        if (preferredSkills){
+            const matchingPreferredSkill = preferredSkills.find((app => app.courseCode === courseCode && app.skill === skill));
+            if (matchingPreferredSkill) {
+                await removePrefSkill(courseCode, skill);
+                refreshRecords();
+                return true;
             }
-            
-            // get old length of skills array
-            const oldLength = currUserRecord.preferredSkills.length;
-
-            // filter out all skills that match
-            currUserRecord.preferredSkills = currUserRecord.preferredSkills.filter((recordedSkill) => {
-                return (recordedSkill.trim() !== skill.trim());
-            });
-
-            // if the length stays the same show an error that no skills matched
-            if (oldLength == currUserRecord.preferredSkills.length){
-                console.warn(`Class with code ${courseCode} has no called ${skill} to remove`)
-                return false;
+            else {
+                console.warn("removePreferredSkill function has found no matching skills to delete");
             }
-
-            // Update localStorage with new skills array
-            saveClassRecords(classRecords);
-            return true;
         }
-        else {
-            // if there is no record with that code show error 
-            console.warn(`Class with code ${courseCode} cannot be foundx`);
-        }
-
         return false;
     };
 
@@ -918,7 +881,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         currClass.fullTimefriendly = fullTime;
         currClass.partTimeFriendly = partTime;
         
-        saveClassRecords(classRecords);
+        // saveClassRecords(classRecords);
         return true;
     };
 
@@ -927,127 +890,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     //     localStorage.setItem("classData", JSON.stringify(classRecords));
     // };
 
-    useEffect(() => {
-        // !!! Load dummy data
-        let shortlist: LecturerShortList = {};
-        shortlist["lecturer123@gmail.com"] = ["example123@gmail.com", "luca@student.rmit.edu.au", "brad@student.rmit.edu.au"];
-        const classRecord = classRecords;
-        if (classRecord) {
-        classRecord["COSC2804"] = {
-            courseCode: "COSC2804",
-            courseTitle: "Introduction to Programming",
-            lecturerEmails: ["lecturer123@gmail.com"],
-            tutorEmails: [],
-            tutorsApplied: ["luca@student.rmit.edu.au", "example123@gmail.com", "brad@student.rmit.edu.au"],
-            tutorsShortlist: [
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "luca@student.rmit.edu.au", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["JavaScript", "Python"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        };
-        shortlist = {};
-        shortlist["lecturer123@gmail.com"] = [
-            "jeffrey@student.rmit.edu.au",
-            "trent@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "luca@student.rmit.edu.au"
-          ];
-        shortlist["nathaniel@rmit.edu.au"] = [
-            "luca@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "jeffrey@student.rmit.edu.au",
-            "trent@student.rmit.edu.au"
-        ];
-        shortlist["matt@rmit.edu.au"] = [
-            "trent@student.rmit.edu.au",
-            "brad@student.rmit.edu.au",
-            "luca@student.rmit.edu.au",
-            "jeffrey@student.rmit.edu.au",
-            "example123@gmail.com"
-          ];
-        classRecord["COSC2801"] = {
-            courseCode: "COSC2801",
-            courseTitle: "Java Programming Bootcamp",
-            lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au", "matt@rmit.edu.au"],
-            tutorEmails: [],
-            tutorsApplied: ["example123@gmail.com", "luca@student.rmit.edu.au", "trent@student.rmit.edu.au", "brad@student.rmit.edu.au", "jeffrey@student.rmit.edu.au"],
-            tutorsShortlist: [
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "luca@student.rmit.edu.au", notes: []},
-                {tutorEmail: "trent@student.rmit.edu.au", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []},
-                {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["Java"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
-        shortlist = {};
-        classRecord["COSC2888"] = {
-            courseCode: "COSC2888",
-            courseTitle: "Java Programming Studio",
-            lecturerEmails: ["lecturer123@gmail.com"],
-            tutorEmails: [],
-            tutorsApplied: ["tommy@student.rmit.edu.au"],
-            tutorsShortlist: [],
-            preferredSkills: ["Java", "MCPP", "LC3"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
-        shortlist["lecturer123@gmail.com"] = [
-            "jeffrey@student.rmit.edu.au",
-            "alysha@student.rmit.edu.au",
-            "example123@gmail.com",
-            "brad@student.rmit.edu.au",
-            "rupert@student.rmit.edu.au"
-          ];
-        shortlist["nathaniel@rmit.edu.au"] = [
-        "jeffrey@student.rmit.edu.au",
-        "alysha@student.rmit.edu.au",
-        "brad@student.rmit.edu.au",
-        "example123@gmail.com",
-        "rupert@student.rmit.edu.au"
-        ];
-        classRecord["COSC2274"] = {
-            courseCode: "COSC2274",
-            courseTitle: "Software Requirements Engineering",
-            lecturerEmails: ["lecturer123@gmail.com", "nathaniel@rmit.edu.au"],
-            tutorEmails: [],
-            tutorsApplied: [
-                "jeffrey@student.rmit.edu.au",
-                "alysha@student.rmit.edu.au",
-                "example123@gmail.com",
-                "brad@student.rmit.edu.au",
-                "rupert@student.rmit.edu.au"
-              ],
-            tutorsShortlist: [
-                {tutorEmail: "jeffrey@student.rmit.edu.au", notes: []},
-                {tutorEmail: "alysha@student.rmit.edu.au", notes: []},
-                {tutorEmail: "example123@gmail.com", notes: []},
-                {tutorEmail: "brad@student.rmit.edu.au", notes: []},
-                {tutorEmail: "rupert@student.rmit.edu.au", notes: []}
-            ],
-            preferredSkills: ["Python"],
-            partTimeFriendly: true,
-            fullTimefriendly: false,
-            lecturerShortlist: shortlist,
-        }
-        saveClassRecords(classRecord);
-    }
-
-        console.log("Dummy class data loaded");
-        addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "Seems like a good fit, need interview to confirm");
-        addNote("COSC2801", "example123@gmail.com", "lecturer123@gmail.com", "after interview, John has my approval to tutor the class");        
-        // !!! end loading dummy data
-    }, [addNote]);
 
     return (
         <ClassDataContext.Provider
