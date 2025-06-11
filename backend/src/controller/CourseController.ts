@@ -358,7 +358,7 @@ async getAllPreferredSkills(req: Request, res: Response) {
    */
    async getTutorApplicationByCourseCode(req: Request, res: Response) {
     /** Retrieve the TutorApplication from the database */
-    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+    const tutorApplication = await this.tutorApplicationRepo.findBy({
       courseCode: req.params.courseCode,
     });
 
