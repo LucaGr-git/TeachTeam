@@ -46,6 +46,9 @@ router.get("/lecturers/:lecturerEmail/courses", (req, res) => controller.getCour
 
 router.post("/courses/:courseCode/lecturers", validateDto(CreateCourseLecturerDTO), (req, res) => controller.createCourseLecturer(req, res));
 
+router.delete("/courses/:courseCode/lecturers/:lecturerEmail", (req, res) => controller.deleteCourseLecturer(req, res));
+
+
 router.get("/courses/:courseCode/tutors", (req, res) => controller.getLecturerByCourseCode(req, res));
 
 router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 

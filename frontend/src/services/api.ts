@@ -82,6 +82,10 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/lecturers`, lecturer);
   },
 
+  deleteCourseLecturer: async (courseCode: string, lecturerEmail: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}`);
+  },
+
   getTutorByCourseCode: async (courseCode: string): Promise<CourseTutor[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/tutors`);
     return data;

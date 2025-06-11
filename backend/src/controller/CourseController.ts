@@ -264,6 +264,27 @@ async getAllPreferredSkills(req: Request, res: Response) {
   }
 
   /**
+   * Deletes a CourseLecturer record
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if CourseLecturer not found
+   */
+  async deleteCourseLecturer(req: Request, res: Response) {
+    const courseLecturer = await this.courseLecturerRepo.findOneBy({
+       lecturerEmail: req.params.lecturerEmail,
+       courseCode: req.params.courseCode,
+    });
+
+    if (!courseLecturer) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    await this.courseLecturerRepo.remove(courseLecturer);
+
+    res.json({ message: "Course Lecturer deleted" });
+  }
+
+  /**
    * Creates a new CourseTutor record
    * @param req - Express request object containing course data in body
    * @param res - Express response object
