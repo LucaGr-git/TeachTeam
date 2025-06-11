@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Course } from './Course';
 import { User } from './User';
 
@@ -17,11 +17,14 @@ export class LecturerShortlist {
   rank: number;
 
   @ManyToOne(() => Course)
+  @JoinColumn({name: 'courseCode'})
   course: Course;
 
   @ManyToOne(() => User)
+  @JoinColumn({name: 'lecturerEmail'})
   lecturer: User;
 
   @ManyToOne(() => User)
+  @JoinColumn({name: 'tutorEmail'})
   tutor: User;
 }

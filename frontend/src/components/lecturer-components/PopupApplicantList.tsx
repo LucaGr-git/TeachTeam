@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import Section from "../general-components/Section";
 
 import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
@@ -42,13 +43,18 @@ const PopupApplicantList = ({
     const applicantList: ApplicantInfo[] = [];
 
     // Get the records from local storage
-    const {getClassRecords, addToShortlist, removeFromShortlist, rejectApplication} = useClassData();
+    const {getClassRecords, addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
     const {getUserRecords} = useUserData();
     const {getUsers, getCurrentUser} = useAuth();
 
 
-
-    const classRecords: ClassRecord = getClassRecords();
+    if (!classRecords) {
+        return (
+        <Section title="Error">
+            <p className="text-red-500">Failed to load class records.</p>
+        </Section>
+        );
+  }
     const course = classRecords[courseCode];
     const userData: UserRecord = getUserRecords();
     const userList = getUsers();
@@ -93,7 +99,7 @@ const PopupApplicantList = ({
     }
 
     // function for adding to shortlist
-    const handleShortlist = (email: string) => {
+    const handleShortlist = async(email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -101,7 +107,7 @@ const PopupApplicantList = ({
         // if user is shortlisted remove them from the shortlist
         if (shortlisted) {
             
-            if (removeFromShortlist(courseCode, email)) {
+            if (await removeFromShortlist(courseCode, email)) {
                 // rerender
                 setRerenderCounter(rerenderCounter + 1);
             }
@@ -111,7 +117,7 @@ const PopupApplicantList = ({
         } 
         else {
             // if user is not shortlisted add them to the shortlist
-            if (addToShortlist(courseCode, email)) {
+            if (await addToShortlist(courseCode, email)) {
                 // rerender
                 setRerenderCounter(rerenderCounter + 1);
             }
@@ -123,7 +129,7 @@ const PopupApplicantList = ({
     }
 
     // function for rejecting applicants
-    const handleRejection = (email: string) => {
+    const handleRejection = async (email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -134,7 +140,7 @@ const PopupApplicantList = ({
             alert("That applicant is shortlisted, please remove from shortlist before rejecting applicant")
         } 
         else {
-            if (rejectApplication(courseCode, email)){
+            if (await rejectApplication(courseCode, email)){
 
                 // rerender if rejection is successful
                 setRerenderCounter(rerenderCounter + 1);

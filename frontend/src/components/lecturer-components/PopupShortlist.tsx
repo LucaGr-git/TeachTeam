@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import Section from "../general-components/Section";
 
 import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
@@ -36,7 +37,7 @@ const PopupShortlist = ({
 
     
     // Get the records from local storage
-    const {getClassRecords, removeFromShortlist, acceptApplication, initializeLecturerShortlist, orderLecturerShortList} = useClassData();
+    const {getClassRecords, removeFromShortlist, acceptApplication, initializeLecturerShortlist, orderLecturerShortList, classRecords} = useClassData();
     const {getUserRecords} = useUserData();
     const {getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
@@ -47,8 +48,13 @@ const PopupShortlist = ({
     const [shortList, setShortlist] = useState<ApplicantInfo[]>(shortlistArray);
     
 
-
-    const classRecords: ClassRecord = getClassRecords();
+    if (!classRecords) {
+        return (
+        <Section title="Error">
+            <p className="text-red-500">Failed to load class records.</p>
+        </Section>
+        );
+    }
     const course = classRecords[courseCode];
 
 
@@ -106,7 +112,7 @@ const PopupShortlist = ({
     
 
     
-    const removeShortlist = (email: string) => {
+    const removeShortlist = async(email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -114,7 +120,7 @@ const PopupShortlist = ({
         // if user is shortlisted remove them from the shortlist
         if (shortlisted) {
             
-            if (removeFromShortlist(courseCode, email)) {
+            if (await removeFromShortlist(courseCode, email)) {
                 // rerender via useState
                 setShortlist ( shortList.filter((applicant) => {
                     return (applicant.email !== email);
@@ -129,14 +135,14 @@ const PopupShortlist = ({
         }
     }
 
-    const acceptApplicant = (email: string) => {
+    const acceptApplicant = async(email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted accept Applicant
         if (shortlisted) {
-            if (acceptApplication(courseCode, email)){
+            if (await acceptApplication(courseCode, email)){
                 // rerender
                 setShortlist ( shortList.filter((applicant) => {
                     return (applicant.email !== email);
@@ -151,7 +157,7 @@ const PopupShortlist = ({
         }
     }
 
-    const toTopShortlist = (email: string) => {
+    const toTopShortlist = async(email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -169,7 +175,7 @@ const PopupShortlist = ({
                 return alert("Error: tutor not in array");
             }
             
-            if (orderLecturerShortList(courseCode, email, currEmail, 0)) {
+            if (await orderLecturerShortList(courseCode, email, currEmail, 0)) {
                 // rerender via useState
                 // use a temporary shortList variable rather tanh shortlist itself to render properly
                 const tempShortList = [...shortList];
@@ -186,7 +192,7 @@ const PopupShortlist = ({
         }
     }
     
-    const toBottomShortlist = (email: string) => {
+    const toBottomShortlist = async(email: string) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -206,7 +212,7 @@ const PopupShortlist = ({
                 return alert("Error: tutor not in array");
             }
             
-            if (orderLecturerShortList(courseCode, email, currEmail, endPos)) {
+            if (await orderLecturerShortList(courseCode, email, currEmail, endPos)) {
                 // rerender via useState
                 // use a temporary shortList variable rather tanh shortlist itself to render properly
                 const tempShortList = [...shortList];
@@ -222,7 +228,7 @@ const PopupShortlist = ({
             alert ("Error: Not part of shortlist");
         }
     }
-    const bumpShortlisted = (email: string, bumpDown:boolean = false) => {
+    const bumpShortlisted = async(email: string, bumpDown:boolean = false) => {
         // check if user is shortlisted
         const course = classRecords[courseCode];
         const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
@@ -244,7 +250,7 @@ const PopupShortlist = ({
                 return alert("Error: tutor not in array");
             }
             
-            if (orderLecturerShortList(courseCode, email, currEmail, endPos)) {
+            if (await orderLecturerShortList(courseCode, email, currEmail, endPos)) {
                 // rerender via useState
                 // use a temporary shortList variable rather tanh shortlist itself to render properly
                 const tempShortList = [...shortList];

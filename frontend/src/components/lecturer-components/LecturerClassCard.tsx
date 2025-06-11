@@ -22,13 +22,19 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   const [viewCourseInfo, setViewCourseInfo] = useState<boolean>(true);
 
   // get class records
-  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability} = useClassData();
+  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords} = useClassData();
   // get user records
   const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
-  const lecturerClass = classRecords[courseCode];
+if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
+    const lecturerClass = classRecords[courseCode];
 
   // get users record
   const users = getUsers();
@@ -118,14 +124,14 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   
 
   // function to change the full time preferred availability
-  const toggleFullTimeFriendly = () => {
-    changeAvailability(courseCode, !fullTimeFriendly, partTimeFriendly);
+  const toggleFullTimeFriendly = async() => {
+    await changeAvailability(courseCode, !fullTimeFriendly, partTimeFriendly);
     setFullTimeFriendly(!fullTimeFriendly);
     
   }
   // function to change the part time preferred availability
-  const togglePartTimeFriendly = () => {
-    changeAvailability(courseCode, fullTimeFriendly, !partTimeFriendly);
+  const togglePartTimeFriendly = async() => {
+    await changeAvailability(courseCode, fullTimeFriendly, !partTimeFriendly);
     setPartTimeFriendly(!partTimeFriendly);
     
   }
@@ -180,7 +186,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
       <section className="mt-4">
         <p>Shortlisted Ranking Chart</p>
-        <LecturerListChart courseCode={courseCode}/>
+        {/* <LecturerListChart courseCode={courseCode}/> */}
       </section>
 
       

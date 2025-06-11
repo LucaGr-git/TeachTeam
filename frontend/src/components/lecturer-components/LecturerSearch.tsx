@@ -27,11 +27,10 @@ const LecturerSearch = () => {
     const applicantList: ApplicantInfo[] = [];
 
     // Get the ClassRecords from local storage
-    const {getClassRecords} = useClassData();
+    const {getClassRecords, isLoading, classRecords} = useClassData();
     const {getUserRecords} = useUserData();
     const {getUsers} = useAuth();
 
-    const classRecords: ClassRecord = getClassRecords();
     const userData: UserRecord = getUserRecords();
     const userList = getUsers();
     

@@ -15,7 +15,7 @@ const TutorJobList = () => {
     const currUser = getCurrentUser();
     
 
-    const { getClassRecords, rejectApplication } = useClassData();
+    const { getClassRecords, rejectApplication, classRecords } = useClassData();
     
     // return error card if not authenticated 
     if (!isAuthenticated || !currUser) {
@@ -26,13 +26,20 @@ const TutorJobList = () => {
         )
     }
 
+    if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
+
 
     // get user email 
     const email = currUser.email;
 
     
     // get class records
-    const classRecords: ClassRecord = getClassRecords();
     // create a list of course codes for classes they have applied for 
     const courseCodes: string[] = [];  
 
@@ -59,7 +66,7 @@ const TutorJobList = () => {
     };
 
 
-    const handleCancellation = (courseCode: string) => {
+    const handleCancellation = async(courseCode: string) => {
         if (!courseCodes.includes(courseCode)) {
             return alert("Course code not found");
         }
@@ -73,7 +80,7 @@ const TutorJobList = () => {
             return alert("You are already tutoring this course");
         }
         // finally remove application 
-        const noError: boolean = rejectApplication(courseCode, email);
+        const noError: boolean = await rejectApplication(courseCode, email);
 
         // if an error within the addApplication function occurs display an error message
         if (!noError) {

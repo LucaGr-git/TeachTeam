@@ -12,7 +12,7 @@ const TutorApplyList = () => {
 
     const  { isAuthenticated, getCurrentUser } = useAuth();
 
-    const { getClassRecords, addApplication } = useClassData();
+    const { getClassRecords, addApplication, classRecords} = useClassData();
     
     // get current user
     const currUser = getCurrentUser();
@@ -25,6 +25,13 @@ const TutorApplyList = () => {
         </Section>
         )
     }
+    if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
 
 
     // get user email 
@@ -32,7 +39,6 @@ const TutorApplyList = () => {
 
     
     // get class records
-    const classRecords: ClassRecord = getClassRecords();
     // create a list of course codes for classes they are not tutoring or have not already applied to 
     const courseCodes: string[] = [];  
 
@@ -58,7 +64,7 @@ const TutorApplyList = () => {
         )
     };
 
-    const handleApply = (courseCode: string) => {
+    const handleApply = async(courseCode: string) => {
         if (!courseCodes.includes(courseCode)) {
             return alert("Course code not found");
         }
@@ -72,7 +78,7 @@ const TutorApplyList = () => {
             return alert("You are already tutoring this course");
         }
         // finally add application 
-        const noError: boolean = addApplication(courseCode, email);
+        const noError: boolean = await addApplication(courseCode, email);
 
         // if an error within the addApplication function occurs display an error message
         if (!noError) {

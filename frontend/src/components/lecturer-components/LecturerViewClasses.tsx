@@ -12,7 +12,7 @@ interface LecturerViewClassesProps {
 
 const LecturerViewClasses = ({viewAll=false}:LecturerViewClassesProps) => {
     
-    const { getClassRecords } = useClassData();
+    const { getClassRecords, classRecords } = useClassData();
 
 
     const  { isAuthenticated, isLecturer, getCurrentUser } = useAuth();
@@ -35,9 +35,7 @@ const LecturerViewClasses = ({viewAll=false}:LecturerViewClassesProps) => {
     const email = currUser.email;
 
     
-    // get class records
-    const classRecords: ClassRecord = getClassRecords();
-    
+    // get class records    
 
     // loop through the class records course codes
     for (const courseCode in classRecords) {

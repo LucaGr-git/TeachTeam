@@ -23,7 +23,7 @@ interface LecturerViewNotesProps {
   
 }
 
-const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNotesProps) => {
+const LecturerViewNotes = async({ courseCode, tutorEmail, children }: LecturerViewNotesProps) => {
 
   // manual rerender useState
   const [rerenderCounter, setRerenderCounter] = useState<number>(0);
@@ -34,13 +34,19 @@ const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNot
   const [notePopup, toggleNotePopup] = useState(false);
 
   // get class records
-  const { getClassRecords, getTutorNotes, deleteNote} = useClassData();
+  const { getClassRecords, getTutorNotes, deleteNote, classRecords} = useClassData();
   // get user records
   const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
-  const lecturerCLass = classRecords[courseCode];
+if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
+    const lecturerCLass = classRecords[courseCode];
 
   // get users record
   const users = getUsers();
@@ -86,7 +92,7 @@ const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNot
     }
   }
   // get all notes for that class / tutor 
-  const notes: ShortlistNote[] = getTutorNotes(courseCode, tutorEmail);
+  const notes: ShortlistNote[] = await getTutorNotes(courseCode, tutorEmail);
 
   // option to display date
   const dateBadgeFormat: Intl.DateTimeFormatOptions = {
@@ -98,9 +104,9 @@ const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNot
     hour12: true,
   }
 
-  const handleDelete = (note: ShortlistNote) => {
+  const handleDelete = async(note: ShortlistNote) => {
     // delete message
-    if (deleteNote(courseCode, tutorEmail, note.lecturerEmail, note.message)){
+    if (await deleteNote(courseCode, tutorEmail, note.lecturerEmail, note.message)){
       // rerender to display that the message is gone 
       setRerenderCounter(rerenderCounter + 1);
     }

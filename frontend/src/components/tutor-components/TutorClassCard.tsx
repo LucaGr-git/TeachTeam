@@ -12,12 +12,18 @@ interface TutorClassCardProps {
 
 const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   // get class records
-  const { getClassRecords } = useClassData();
+  const { getClassRecords, classRecords } = useClassData();
   // get user records
   const { getUsers } = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
+  if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
   const tutorClass = classRecords[courseCode];
 
   // get users record

@@ -26,7 +26,7 @@ const LecturerListChart = (
     const [chartColor, setChartColor] = useState("#FF0000"); // red if the css cannot be red
 
     // get class records
-    const { getClassRecords} = useClassData();
+    const { getClassRecords, isLoading, classRecords} = useClassData();
     // get user records
     const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
@@ -34,8 +34,14 @@ const LecturerListChart = (
     
 
     // get class record
-    const classRecords = getClassRecords();
-    const lecturerClass = classRecords[courseCode];
+    if (!classRecords) {
+    return (
+        <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+        </Section>
+    );
+    }
+      const lecturerClass = classRecords[courseCode];
 
     // get users record
     const users = getUsers();
@@ -62,6 +68,10 @@ const LecturerListChart = (
     useEffect(() => {
 
         const shortlistedTutors: ShortlistedTutor[] = [];
+        // change colour based on global css var
+        const primaryColorCode = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+        // if primaryColorCode exists then set the chart colour to that code 
+        if (primaryColorCode) setChartColor(primaryColorCode);
 
         // iterate through all shortlidted tutors emails
         for (const applicant of classRecords[courseCode].tutorsShortlist){
@@ -90,10 +100,6 @@ const LecturerListChart = (
                 rankingScore: rankingScore,
             })
 
-            // change colour based on global css var
-            const primaryColorCode = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
-            // if primaryColorCode exists then set the chart colour to that code 
-            if (primaryColorCode) setChartColor(primaryColorCode);
         }
         
         // Sort by highest score first
@@ -160,7 +166,7 @@ const LecturerListChart = (
 
 
         
-    }, [classRecords, courseCode, users]);
+    }, [courseCode, users]);
     
 
     if (!currUser || !isAuthenticated || !isLecturer) {
