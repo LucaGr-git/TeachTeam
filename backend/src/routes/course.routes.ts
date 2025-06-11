@@ -87,7 +87,7 @@ router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, r
 
 router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.getSkillByCourseCode(req, res));
 
-router.get("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
+router.post("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
 
 router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => controller.deletePreferredSkill(req, res));
 
