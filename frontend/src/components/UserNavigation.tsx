@@ -38,8 +38,7 @@ const UserNavigation = () => {
   const [profilePopup, toggleProfilePopup] = useState(false);
 
   const { getCurrentUser, isAuthenticated } = useAuth();
-  const { 
-    getUserRecords, 
+  const {  
     addUserSkill, 
     removeUserSkill, 
     addUserQualification, 
@@ -54,8 +53,6 @@ const UserNavigation = () => {
 
   // get the current user
   let currentUser = getCurrentUser();
-  // get the user records
-  // const userRecords = getUserRecords();
   
   // defaults if the user is not authenticated
   if (!isAuthenticated || !currentUser) {

@@ -23,6 +23,7 @@ export interface UserDataProvision {
     removeUserQualification: (qualification: string, email: string) => Promise<boolean>;
     changeAvailability: (fullTime: boolean, email: string) => Promise<boolean>;
     getUserRecords: () => UserRecord ;
+    getAllUsers: () => Promise<User[]>;
     getUser: (email: string) => Promise<User>;
     getUserSkills: (email: string) => Promise<Skill[]>;
     getUserQualifications: (email: string) => Promise<Qualification[]>;
@@ -38,6 +39,16 @@ export interface localStorageExperienceData {
     company: string;
     timeStarted: string; // this is an ISO string
     timeFinished?: string; // this is an ISO string
+}
+
+const fetchAllUsers = async () => {
+    try {
+        const allUsers = await userService.getAllUsers();
+        return allUsers;
+    }
+    catch(error) {
+        console.error("Error fetching all users in userDataProvider");
+    }
 }
 
 const fetchUser = async (email: string) => {
@@ -580,6 +591,20 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return userData ? JSON.parse(userData) : {}; // return null object if there is no records
     };
 
+    const getAllUsers = async(): Promise<User[]> => {
+        try {
+            const allUsers = await fetchAllUsers();
+            if (allUsers) {
+                return allUsers;
+            }
+            return [];
+        }
+        catch(error) {
+            console.warn("Error getting all users in getAllUsers userDataProvider function");
+            return [];
+        }
+    }
+
     const getUser = async (email: string): Promise<User> => {
     const userInfo = await fetchUser(email);
     return userInfo ?? { email, firstName: "", lastName: "", password: "", isLecturer: false, fullTime: false, dateJoined: "" };
@@ -622,7 +647,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getUser, getUserSkills, getUserQualifications, getUserExperiences, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getAllUsers ,getUser, getUserSkills, getUserQualifications, getUserExperiences, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>

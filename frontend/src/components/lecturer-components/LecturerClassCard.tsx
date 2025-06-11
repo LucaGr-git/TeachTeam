@@ -71,7 +71,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const addSkillTag = (skillTag: string): string => {
+  const addSkillTag = async(skillTag: string): Promise<string> => {
     if (lecturerClass.preferredSkills.length >= MAX_NUM_SKILLS) {
       return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
 
@@ -95,7 +95,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const removeSkillTag = (skillTag: string): string => {
+  const removeSkillTag = async(skillTag: string): Promise<string> => {
  
     // if the skill tag is already in the userSkills array, remove it
     if (lecturerClass.preferredSkills.includes(skillTag)) {
