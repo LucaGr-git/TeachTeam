@@ -184,6 +184,7 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createPreferredSkill: async (courseCode: string, skill: PreferredSkill): Promise<void> => {
+    console.log("AXIOS FINAL VALUE BEFORE POST: " + skill.courseCode + " " + skill.skill);
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/preferredSkills`, skill);
   },
 

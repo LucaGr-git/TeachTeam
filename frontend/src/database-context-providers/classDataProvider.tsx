@@ -230,9 +230,9 @@ const createShortlistedTutor = async (courseCode: string, email: string) => {
     }
 }
 
-const createPreferredSkill = async (courseCode: string, email: string) => {
+const createPreferredSkill = async (courseCode: string, skill: string) => {
     try {
-        const data = await courseService.createPreferredSkill(courseCode,  {skill: email, courseCode: courseCode});
+        const data = await courseService.createPreferredSkill(courseCode,  {skill: skill, courseCode: courseCode});
         return data;
     } catch (error) {
         console.error("Error creating preferred skill", error);
@@ -301,13 +301,23 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         });
 
         // Delete and recreate CourseLecturers
-        //   await removeCourse(courseCode); // assuming it clears lecturers too
-        //   await courseService.createCourse({ // recreate course so we can re-add lecturers
-        //     courseCode,
-        //     courseTitle: record.courseTitle,
-        //     partTimeFriendly: record.partTimeFriendly,
-        //     fullTimeFriendly: record.fullTimefriendly,
-        //   });
+        try {
+            await removeCourse(courseCode); // assuming it clears lecturers too
+        }
+        catch (error) {
+            console.error("SCR - Failed to remove course with given code: " + courseCode);
+        }
+        await courseService.createCourse({ // recreate course so we can re-add lecturers
+            courseCode,
+            courseTitle: record.courseTitle,
+            partTimeFriendly: record.partTimeFriendly,
+            fullTimeFriendly: record.fullTimefriendly,
+          });
+
+        const newCourse = await courseService.getCourseByCode(courseCode);
+        if (!newCourse) {
+            throw new Error(`Course ${courseCode} not found after creation`);
+        }
         for (const lecturerEmail of record.lecturerEmails) {
             await courseService.createCourseLecturer(courseCode, { courseCode, lecturerEmail });
         }
@@ -346,10 +356,12 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
         // Preferred Skills
         for (const skill of record.preferredSkills) {
-            await courseService.createPreferredSkill(courseCode, {
-            courseCode,
-            skill,
-            });
+            try {
+                await createPreferredSkill(courseCode, skill);
+            }
+            catch (error) {
+                console.error("SCR: Error trying to create preferred skill");
+            }
         }
 
         // Lecturer Shortlist

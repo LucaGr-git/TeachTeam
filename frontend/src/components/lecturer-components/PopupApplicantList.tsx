@@ -44,7 +44,7 @@ const PopupApplicantList = ({
 
     // Get the records from local storage
     const {getClassRecords, addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
-    const {getUserRecords} = useUserData();
+    const {getUserRecords, getAllUsers} = useUserData();
     const {getUsers, getCurrentUser} = useAuth();
 
 
@@ -58,6 +58,7 @@ const PopupApplicantList = ({
     const course = classRecords[courseCode];
     const userData: UserRecord = getUserRecords();
     const userList = getUsers();
+
     const currUser = getCurrentUser();
 
     // if the user is not logged in return a message
