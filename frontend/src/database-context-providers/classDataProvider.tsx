@@ -1,5 +1,6 @@
 import { courseService } from "@/services/api";
 import { CourseLecturer } from "@/types/types";
+import { get } from "http";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
 export const MAX_NUM_SKILLS: number = 10;
@@ -220,6 +221,15 @@ const fetchLecturer = async (CourseCode: string) => {
      }
 };
 
+const removeLecturer = async (courseCode: string, lecturerEmail: string) => {
+    try {
+        await courseService.deleteCourseLecturer(courseCode, lecturerEmail);
+    }
+    catch (error) {
+        console.error("Error removing user in class data provider: " + error);
+    }
+}
+
 const createShortlistedTutor = async (courseCode: string, email: string) => {
     try {
         const data = await courseService.createShortlistedTutor(courseCode,  {tutorEmail: email, courseCode: courseCode});
@@ -227,6 +237,26 @@ const createShortlistedTutor = async (courseCode: string, email: string) => {
     } catch (error) {
         console.error("Error creating tutor lecturer:", error);
         return null;
+    }
+}
+
+const fetchShortlistedTutor = async () => {
+    try {
+        const data = await courseService.getAllShortlistedTutors();
+        return data;
+    }
+    catch(error){
+        console.error("Unable to fetch ALL shortlisted tutor entities in classDataProvider: " + error);
+    }
+}
+
+const removeShortlistedTutor = async (courseCode: string, tutorEmail: string) => {
+    try {
+        const data = await courseService.deleteShortlistedTutor(courseCode, tutorEmail);
+        return data;
+    }
+    catch(error){
+        console.error("Unable to remove Shortlisted Tutor entry in classDataProvider");
     }
 }
 
@@ -268,6 +298,45 @@ const removePreferredSkill = async (courseCode: string, skill: string) => {
     }
 }
 
+const fetchTutorApplications = async (courseCode: string) => {
+    try {
+        const data = await courseService.getTutorApplicationsByCourseCode(courseCode);
+        return data;
+    }
+    catch(error) {
+        console.error("Error fetching tutorApplications entity entries in classDataProvider");
+    }
+}
+
+const removeTutorApplication = async (tutorEmail: string, courseCode: string) => {
+    try {
+        await courseService.deleteTutorApplication(tutorEmail, courseCode);
+    }
+    catch {
+        console.error("Error removing tutor application in classDataProvider with these params: " + tutorEmail + " " + courseCode);
+    }
+}
+
+const createTutorApplication = async (courseCode: string, tutorEmail: string) => {
+    try {
+        const data = await courseService.createTutorApplication(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail});
+        return data;
+    }
+    catch (error) {
+        console.error("Error creating TutorApplication entry in classDataProvider: " + error);
+    }
+}
+
+const createCourseTutor = async (courseCode: string, tutorEmail: string) => {
+    try {
+        const data = await courseService.createCourseTutor(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail});
+        return data
+    }
+    catch (error){
+        console.error("Error creating courseTutor entity in classDataProvider");
+    }
+}
+
 
 
 // Create context
@@ -278,6 +347,11 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
     const [classRecords, setClassRecords] = useState<ClassRecord | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [version, setVersion] = useState(0);
+
+    const refreshRecords= () => {
+        setVersion(v => v +1);
+    }
 
     useEffect(() => {
         const fetchRecords = async () => {
@@ -287,7 +361,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         };
 
         fetchRecords();
-    }, []);
+    }, [version]);
 
     const saveClassRecords = async (classRecords: ClassRecord): Promise<void> => {
     for (const courseCode in classRecords) {
@@ -393,79 +467,35 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             console.warn(`There is no class with course code ${courseCode} or lecturer with email ${lecturerEmail}`);
             return false;
         }
-        
+        refreshRecords();
         return true;
     };
 
     const removeLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
         const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
+        const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
             // return message if there is no class with that code
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
+        }   
+
+        // Check if the courseLecturer entity exists before deleting it
+        const lecturer = await fetchLecturer(courseCode);
+        if (lecturer){
+            const matchingLecturer = lecturer.find(lec => lec.lecturerEmail === lecturerEmail);
+            if (matchingLecturer) {
+                await removeLecturer(courseCode, lecturerEmail);
+            }
         }
-
-        const oldLength : number = currClass.lecturerEmails.length;
-
-        // filter out all matching lecturer emails
-        currClass.lecturerEmails = currClass.lecturerEmails.filter((lecturer) => {
-            return (lecturer !== lecturerEmail);
-        });
-
-        // if no elements were filtered send an error message
-        if (oldLength === currClass.lecturerEmails.length){
-            console.warn(`Lecturer ${lecturerEmail} does not teach class with course code ${courseCode}`);
-            return false;
-        }
-
-        // save changes
-
-        delete classRecords[courseCode].lecturerShortlist[lecturerEmail];
-
-        saveClassRecords(classRecords);
+        refreshRecords();
         return true;
     };
 
     // application methods
-    const acceptApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        
-        const currClass = classRecords[courseCode];
-
-        if (!currClass) {
-            // return message if there is no class with that code
-            console.warn(`There is no class with course code ${courseCode}`);
-            return false
-        };
-
-        // move from tutorApplication to tutors
-        currClass.tutorEmails.push(tutorEmail);
-        currClass.tutorsApplied = currClass.tutorsApplied.filter((tutor) => {
-            return (tutor !== tutorEmail);
-        });
-
-        const reject: boolean =  await rejectApplication(courseCode, tutorEmail);
-
-        if (!reject){
-            console.warn(`Tutor ${tutorEmail} does not teach class with course code ${courseCode}`);
-            return false;
-        }
-
-        // if the applicant is in the short list remove them
-        if (currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
-            removeFromShortlist(courseCode, tutorEmail);
-        }
-
-        saveClassRecords(classRecords);
-        return true;
-    };
-
-    const rejectApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-
-        const currClass = classRecords[courseCode];
+    const acceptApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {        
+        const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
             // if there is no class with that code an error is returned 
@@ -473,51 +503,107 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
 
-        const oldLength : number = currClass.tutorsApplied.length;
+        // move from tutorApplication to tutors
+        // create courseTutor entity
+        await createCourseTutor(courseCode, tutorEmail);
 
-        // filter out matching emails from tutorsApplied and short list
-        currClass.tutorsApplied = currClass.tutorsApplied.filter((tutor) => {
-            return tutor !== tutorEmail;
-        });
-        currClass.tutorsShortlist = currClass.tutorsShortlist.filter((tutorData) => {
-            return tutorData.tutorEmail !== tutorEmail;
-        });
+        // this removes the tutorApplication field
+        const reject: boolean =  await rejectApplication(courseCode, tutorEmail);
 
-        // if no elements were filtered send an error message
-        if (oldLength === currClass.tutorsApplied.length){
+        if (!reject){
             console.warn(`Tutor ${tutorEmail} does not teach class with course code ${courseCode}`);
             return false;
         }
 
+        // checking if needing to remove from tutorShortlist entity
         // if the applicant is in the short list remove them
-        if (currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
-            removeFromShortlist(courseCode, tutorEmail);
+        const shortlistedTutors = await fetchShortlistedTutor();
+        if (shortlistedTutors) {
+            const matchingTutor = shortlistedTutors.find(app => app.tutorEmail === tutorEmail && app.courseCode === courseCode);
+            if (matchingTutor) {
+                await removeShortlistedTutor(courseCode, tutorEmail);
+            }
         }
 
-        saveClassRecords(classRecords);
+        refreshRecords();
+        return true;
+    };
+
+    const rejectApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+        const classRecords = await getClassRecords();
+
+        const currClass = await fetchCourse(courseCode);
+
+        if (!currClass) {
+            // if there is no class with that code an error is returned 
+            console.warn(`There is no class with course code ${courseCode}`);
+            return false;
+        }
+
+        // Check if the application field exists
+        const tutorApplication = await fetchTutorApplications(courseCode);
+        if (tutorApplication) {
+            const matchingApplication = tutorApplication.find(app => app.tutorEmail === tutorEmail);
+            if (matchingApplication) {
+                await removeTutorApplication(tutorEmail, courseCode);
+            }
+        }
+
+        refreshRecords();
+        
+
+
+
+        // const oldLength : number = currClass.tutorsApplied.length;
+
+        // // filter out matching emails from tutorsApplied and short list
+        // currClass.tutorsApplied = currClass.tutorsApplied.filter((tutor) => {
+        //     return tutor !== tutorEmail;
+        // });
+        // currClass.tutorsShortlist = currClass.tutorsShortlist.filter((tutorData) => {
+        //     return tutorData.tutorEmail !== tutorEmail;
+        // });
+
+        // // if no elements were filtered send an error message
+        // if (oldLength === currClass.tutorsApplied.length){
+        //     console.warn(`Tutor ${tutorEmail} does not teach class with course code ${courseCode}`);
+        //     return false;
+        // }
+
+        // // if the applicant is in the short list remove them
+        // if (currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
+        //     removeFromShortlist(courseCode, tutorEmail);
+        // }
+
+        // saveClassRecords(classRecords);
         return true;
     };
 
     const addApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        
-        const currClass = classRecords[courseCode];
-        
-        // if the courseCode doesn't exist send an error
+        const currClass = await fetchCourse(courseCode);
+
         if (!currClass) {
+            // if there is no class with that code an error is returned 
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
-    
+        
+
         // Check if tutor has already applied
-        if (currClass.tutorsApplied.includes(tutorEmail)) {
-            console.warn(`Tutor with email ${tutorEmail} has already applied to ${courseCode}`);
-            return false;
+        // Check if the application field exists
+        const tutorApplication = await fetchTutorApplications(courseCode);
+        if (tutorApplication) {
+            const matchingApplication = tutorApplication.find(app => app.tutorEmail === tutorEmail);
+            if (matchingApplication) {
+                console.warn('The user already has an application');
+                return false;
+            }
         }
     
         // Add the tutor's email to the tutorsApplied list and save to localStorage
-        currClass.tutorsApplied.push(tutorEmail);
-        saveClassRecords(classRecords);
+        await createTutorApplication(courseCode, tutorEmail);
+
+        refreshRecords();
         
         return true;
     };
