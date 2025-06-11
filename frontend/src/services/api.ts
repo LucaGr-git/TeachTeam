@@ -192,8 +192,8 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/preferredSkills`, skill);
   },
 
-  deletePreferredSkill: async (courseCode: string, skillId: string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/preferredSkills/${skillId}`);
+  deletePreferredSkill: async (courseCode: string, skill: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/preferredSkills/${skill}`);
   },
 };
 

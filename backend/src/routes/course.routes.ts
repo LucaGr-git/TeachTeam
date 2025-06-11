@@ -92,7 +92,7 @@ router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.getS
 
 router.post("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
 
-router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => controller.deletePreferredSkill(req, res));
+router.delete("/courses/:courseCode/preferredSkills/:skill", (req, res) => controller.deletePreferredSkill(req, res));
 
 
 // todo change course code functions to reference entity not jsut code where applicable
