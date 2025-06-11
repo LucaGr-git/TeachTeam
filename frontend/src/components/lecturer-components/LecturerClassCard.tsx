@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useClassData, MAX_NUM_SKILLS} from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
@@ -24,7 +24,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   // get class records
   const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords} = useClassData();
   // get user records
-  const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+  const { getUsers, getCurrentUser, isAuthenticated, isLecturer, fetchUser} = useAuth();
 
   // get class record
 if (!classRecords) {
@@ -65,14 +65,35 @@ if (!classRecords) {
     )
   }
 
-  const lecturerNames: string[] = [];
-  // get the lecturers for the course
-  for (const lecturerEmail of lecturerClass.lecturerEmails) {
+  const [lecturerNames, setLecturerNames] = useState<string[]>([]);
 
-    if (users[lecturerEmail]) {
-      lecturerNames.push(users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName);
-    }
-  }
+  // get the lecturers for the course
+  useEffect(() => {
+    const fetchLecturerNames = async () => {
+      const names: string[] = [];
+
+      // Await full loop 
+      await Promise.all(
+        lecturerClass.lecturerEmails.map(async (lecturerEmail) => {
+          try {
+            const user = await fetchUser(lecturerEmail);
+            if (user) {
+              names.push(`${user.firstName} ${user.lastName}`);
+            } else {
+              names.push(lecturerEmail); // fallback 
+            }
+          } catch (error) {
+            console.error("Error fetching user:", error);
+            names.push(lecturerEmail); // fallback
+          }
+        })
+      );
+
+      setLecturerNames(names);
+    };
+
+    fetchLecturerNames();
+  }, [lecturerClass.lecturerEmails]);
 
 
   // function to add a skill tag

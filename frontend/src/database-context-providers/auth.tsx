@@ -22,6 +22,7 @@ export interface Authentication {
     getUsers: () => Record<string, LocalStorageUser>;
     saveUsers : (users: Record<string, LocalStorageUser>) => void;
     getCurrentUser: () => LocalStorageUser | null;
+    fetchUser: (email: string) => Promise<User | null>;
 }
 
   const createUser = async (user: User) => {
@@ -281,7 +282,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser }}>
+        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser, fetchUser }}>
             {children}
         </AuthContext.Provider>
     );

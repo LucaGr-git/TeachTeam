@@ -158,6 +158,7 @@ const getClassRecords = async (): Promise<ClassRecord> => {
         lecturerShortlist: lecturerShortlistMap,
       };
     }
+    console.log(classRecords);
     return classRecords;
   } catch (err) {
     console.error("Error hydrating class records:", err);
@@ -208,9 +209,10 @@ const createLecturer = async (courseCode: string, email: string) => {
 };
 
 const fetchLecturer = async (CourseCode: string) => {
+    console.log("Fetching lecturer for course code:", CourseCode);
     try {
         const data = await courseService.getLecturerByCourseCode(CourseCode);
-         return data;
+        return data;
     } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return null;

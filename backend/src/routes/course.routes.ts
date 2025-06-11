@@ -49,7 +49,7 @@ router.post("/courses/:courseCode/lecturers", validateDto(CreateCourseLecturerDT
 router.delete("/courses/:courseCode/lecturers/:lecturerEmail", (req, res) => controller.deleteCourseLecturer(req, res));
 
 
-router.get("/courses/:courseCode/tutors", (req, res) => controller.getLecturerByCourseCode(req, res));
+router.get("/courses/:courseCode/tutors", (req, res) => controller.getTutorByCourseCode(req, res));
 
 router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
 
