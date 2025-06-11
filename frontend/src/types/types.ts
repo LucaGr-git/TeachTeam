@@ -54,12 +54,12 @@ export interface ShortlistNote {
 
 export interface ShortlistedTutor {
     courseCode: string;
-    tuthorEmail: string;
+    tutorEmail: string;
 }
 
 export interface TutorApplication {
     courseCode: string;
-    tuthorEmail: string;
+    tutorEmail: string;
 }
 
 export interface CourseLecturer {
@@ -69,7 +69,7 @@ export interface CourseLecturer {
 
 export interface CourseTutor{
     courseCode: string;
-    tuthorEmail: string;
+    tutorEmail: string;
 }
 
 export interface PreferredSkill {
