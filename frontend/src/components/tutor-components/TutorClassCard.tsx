@@ -12,7 +12,7 @@ interface TutorClassCardProps {
 
 const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   // get class records
-  const { getClassRecords, classRecords } = useClassData();
+  const { classRecords } = useClassData();
   // get user records
   const { getUsers, fetchUser } = useAuth();
 

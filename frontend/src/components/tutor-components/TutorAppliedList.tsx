@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TutorClassCard from "./TutorClassCard";
@@ -15,7 +15,7 @@ const TutorJobList = () => {
     const currUser = getCurrentUser();
     
 
-    const { getClassRecords, rejectApplication, classRecords } = useClassData();
+    const { rejectApplication, classRecords } = useClassData();
     
     // return error card if not authenticated 
     if (!isAuthenticated || !currUser) {

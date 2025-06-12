@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from "react";
-import { useClassData, RecordShortlistNote} from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TagDisplay from "../general-components/TagDisplay";
@@ -39,10 +39,10 @@ const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNot
   const [lecturerNameMap, setLecturerNameMap] = useState<LecturerShortList>({})
 
   // get class records
-  const { getClassRecords, getTutorNotes, deleteNote, classRecords} = useClassData();
-  const { getAllUsers, getUser } = useUserData();
+  const { getTutorNotes, deleteNote, classRecords} = useClassData();
+  const { getUser } = useUserData();
   // get user records
-  const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+  const { getCurrentUser, isAuthenticated, isLecturer} = useAuth();
   type LecturerShortList = Record<string, string>;
 
 useEffect(() => {

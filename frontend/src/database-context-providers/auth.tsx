@@ -40,7 +40,7 @@ export interface Authentication {
     try {
       const data = await userService.getUserByEmail(email);
       return data;
-    } catch (error: any) {
+    } catch (error: any) { // todo fix any type issue
         if (error.response && error.response.status === 404) {
         // This is expected during signup
         return null;

@@ -3,9 +3,9 @@ import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
 import Section from "../general-components/Section";
 
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 
@@ -41,11 +41,10 @@ const PopupApplicantList = ({
 
     // Get the records from local storage
     const { addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
-    const {getUserRecords, getAllUsers, getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
-    const {getUsers, getCurrentUser} = useAuth();
+    const {getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
+    const { getCurrentUser} = useAuth();
 
     const [applicantList, setApplicantList] = useState<ApplicantInfo[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
 
 
     useEffect(() => {
@@ -77,7 +76,6 @@ const PopupApplicantList = ({
     }
 
         setApplicantList(applicants);
-        setLoading(false);
     };
 
     fetchApplicants();

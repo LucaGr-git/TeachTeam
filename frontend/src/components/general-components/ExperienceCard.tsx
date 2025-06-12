@@ -1,6 +1,5 @@
 import React from "react";
 import Section from "./Section"
-import { localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import { Experience } from "@/types/types";
 
 // props needed to display the nav card

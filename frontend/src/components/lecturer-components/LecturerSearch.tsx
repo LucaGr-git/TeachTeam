@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";
-import { User } from "@/types/types";
 
 
 
@@ -28,9 +27,8 @@ const LecturerSearch = () => {
     const [filteredResults, setFilteredResults] = useState<ApplicantInfo[]>([]);
 
     // Get the ClassRecords from local storage
-    const {getClassRecords, isLoading, classRecords} = useClassData();
-    const {getUserRecords, getUserExperiences, getUserQualifications, getUserSkills, getAllUsers, getUser} = useUserData();
-    const {getUsers} = useAuth();
+    const {classRecords} = useClassData();
+    const { getUserExperiences, getUserQualifications, getUserSkills, getAllUsers, getUser} = useUserData();
 
 
 

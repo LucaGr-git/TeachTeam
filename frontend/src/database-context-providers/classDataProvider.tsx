@@ -178,7 +178,7 @@ const fetchAllCourses = async () => {
         return data;
     }
     catch (error) {
-        console.error("Error fetching all courses from DB in 'fetchAllCourses' function in classDataProvider");
+        console.error("Error fetching all courses from DB in 'fetchAllCourses' function in classDataProvider", error);
     }
 }
 
@@ -188,7 +188,7 @@ const fetchCourse = async (courseCode: string) => {
         return data;
     }
     catch (error){
-        console.error("Error fetching " + courseCode + " from the DB in 'fetchCourse' function in classDataProvider");
+        console.error("Error fetching " + courseCode + " from the DB in 'fetchCourse' function in classDataProvider", error);
     }
 }
 
@@ -297,7 +297,7 @@ const createShortlistNote = async (courseCode: string, tutorEmail: string, lectu
         return data
     }
     catch (error){
-        console.error("Unable to create shortlistNote entry in classDataProvider");
+        console.error("Unable to create shortlistNote entry in classDataProvider", error);
     }
 }
 
@@ -317,7 +317,7 @@ const fetchPreferredSkills = async (courseCode: string) => {
         return experienceData;
     }
     catch (error) {
-        console.error("Error getting preferred skills");
+        console.error("Error getting preferred skills", error);
         return null;
     }
 }
@@ -374,7 +374,7 @@ const createCourseTutor = async (courseCode: string, tutorEmail: string) => {
         return data
     }
     catch (error){
-        console.error("Error creating courseTutor entity in classDataProvider");
+        console.error("Error creating courseTutor entity in classDataProvider", error);
     }
 }
 
@@ -384,7 +384,7 @@ const createLecturerShortlist = async (courseCode: string, lecturerEmail: string
         return data;
     }
     catch (error) {
-        console.error("Error creating LecturerShortlist entry in classDataProvider");
+        console.error("Error creating LecturerShortlist entry in classDataProvider", error);
     }
 }
 
@@ -404,7 +404,7 @@ const updateLecturerShortlist = async (courseCode: string, lecturerEmail: string
         return data;
     }
     catch (error){
-        console.error("Error updating lecturerShortlist entry in classDataProvider");
+        console.error("Error updating lecturerShortlist entry in classDataProvider", error);
     }
 }
 
@@ -414,7 +414,7 @@ const fetchAllLecturerShortlists = async() => {
         return data;
     }
     catch (error) {
-        console.error("Error fetching all lecturer shortlists");
+        console.error("Error fetching all lecturer shortlists", error);
         return [];
     }
 }
@@ -425,7 +425,7 @@ const updateCourse = async (courseCode: string, course: {courseTitle: string, pa
         return data;
     }
     catch (error) {
-        console.error("Error fetching all lecturer shortlists");
+        console.error("Error fetching all lecturer shortlists", error);
         return {};
     }
 };
@@ -472,7 +472,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             await removeCourse(courseCode); // assuming it clears lecturers too
         }
         catch (error) {
-            console.error("SCR - Failed to remove course with given code: " + courseCode);
+            console.error("SCR - Failed to remove course with given code: " + courseCode, error);
         }
         await courseService.createCourse({ // recreate course so we can re-add lecturers
             courseCode,
@@ -527,7 +527,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
                 await createPreferredSkill(courseCode, skill);
             }
             catch (error) {
-                console.error("SCR: Error trying to create preferred skill");
+                console.error("SCR: Error trying to create preferred skill", error);
             }
         }
 

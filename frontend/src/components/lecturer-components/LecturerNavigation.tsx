@@ -10,7 +10,7 @@ const LecturerNavigation = () => {
 
   const { getCurrentUser, isAuthenticated, isLecturer} = useAuth();
   
-  const { getClassRecords, isLoading, classRecords } = useClassData();
+  const { classRecords } = useClassData();
 
   // get the current user
   const currentUser = getCurrentUser();

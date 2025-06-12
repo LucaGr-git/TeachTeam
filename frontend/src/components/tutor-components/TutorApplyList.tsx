@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TutorClassCard from "./TutorClassCard";
@@ -12,7 +12,7 @@ const TutorApplyList = () => {
 
     const  { isAuthenticated, getCurrentUser } = useAuth();
 
-    const { getClassRecords, addApplication, classRecords} = useClassData();
+    const { addApplication, classRecords} = useClassData();
     
     // get current user
     const currUser = getCurrentUser();

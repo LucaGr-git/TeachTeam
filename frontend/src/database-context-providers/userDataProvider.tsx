@@ -47,7 +47,7 @@ const fetchAllUsers = async () => {
         return allUsers;
     }
     catch(error) {
-        console.error("Error fetching all users in userDataProvider");
+        console.error("Error fetching all users in userDataProvider", error);
     }
 }
 
@@ -73,7 +73,7 @@ const updateUser = async (email: string, newUpdatedUser: Partial<User>) => {
             const changedUser = await userService.updateUser(email, newUpdatedUser);
         }
     }
-    catch (error){
+    catch {
         return null;
     }
 }
@@ -136,7 +136,7 @@ const fetchUserSkills = async (email: string) => {
         return skillData;
     }
     catch (error) {
-        console.error("Error get getting user skills");
+        console.error("Error get getting user skills", error);
         return null;
     }
 }
@@ -152,7 +152,7 @@ const fetchUserQualifications = async (email: string) => {
         return qualificationData;
     }
     catch (error) {
-        console.error("Error getting user qualifications");
+        console.error("Error getting user qualifications", error);
         return null;
     }
 }
@@ -168,7 +168,7 @@ const fetchUserExperiences = async (email: string) => {
         return experienceData;
     }
     catch (error) {
-        console.error("Error getting user experiences");
+        console.error("Error getting user experiences", error);
         return null;
     }
 }
@@ -187,7 +187,7 @@ const removeSkill = async (email: string, id: number) => {
         }
     }
     catch(error) {
-        console.error("Error removing chosen skill");
+        console.error("Error removing chosen skill", error);
     }
 }
 
@@ -204,7 +204,7 @@ const removeQualification = async (email: string, id: number) => {
         }
     }
     catch(error) {
-        console.error("Error removing chosen qualification");
+        console.error("Error removing chosen qualification", error);
     }
 }
 
@@ -221,7 +221,7 @@ const removeExperience = async (email: string, id: number) => {
         }
     }
     catch(error) {
-        console.error("Error removing chosen qualification");
+        console.error("Error removing chosen qualification", error);
     }
 }
 
@@ -459,7 +459,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
         catch (error){
-            console.error("Error removing experience");
+            console.error("Error removing experience", error);
             return false;
         }
     };
@@ -580,7 +580,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
         catch (error) {
-            console.warn("Error updating user availability");
+            console.warn("Error updating user availability", error);
             return false;
         }
     };
@@ -600,7 +600,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             return [];
         }
         catch(error) {
-            console.warn("Error getting all users in getAllUsers userDataProvider function");
+            console.warn("Error getting all users in getAllUsers userDataProvider function", error);
             return [];
         }
     }
