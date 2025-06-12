@@ -58,9 +58,12 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
             //sorts each of the tutors' courses alphabetically
             const aCourses = a.courseName.map(name => name.toLowerCase()).sort();
             const bCourses = b.courseName.map(name => name.toLowerCase()).sort();
+
+            const aPrimary = aCourses[0] ?? ""; 
+            const bPrimary = bCourses[0] ?? "";
         
             // Reverse the comparison
-            return aCourses[0].localeCompare(bCourses[0]);
+            return aPrimary.localeCompare(bPrimary);
         });
         
         setFilteredResults(sorted);
@@ -72,9 +75,12 @@ const LecturerSort = ({results, setFilteredResults}: LecturerSortProps) => {
             //sorts each of the tutors' courses alphabetically
             const aCourses = a.courseName.map(name => name.toLowerCase()).sort();
             const bCourses = b.courseName.map(name => name.toLowerCase()).sort();
+
+            const aPrimary = aCourses[0] ?? ""; 
+            const bPrimary = bCourses[0] ?? "";
         
             // Reverse the comparison
-            return bCourses[0].localeCompare(aCourses[0]);
+            return bPrimary.localeCompare(aPrimary);
         });
         
         setFilteredResults(sorted);

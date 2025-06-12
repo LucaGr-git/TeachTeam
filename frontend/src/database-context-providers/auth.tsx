@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useContext, ReactNode, useCallback 
 import { useRouter } from "next/router";
 import { User } from "@/types/types";
 import { userService } from "@/services/api";
+import bcrypt from 'bcryptjs';
 
 // interface for user records details
 export interface LocalStorageUser {
@@ -138,7 +139,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (fetchedUser == null) {return false;}
         
         // update hooks based on matching email pass
-        if (fetchedUser.email && fetchedUser.password === password) {
+        const match = await bcrypt.compare(password, fetchedUser.password);
+
+        if(match) {
+        //login
+         }
+        if (fetchedUser.email && match) {
 
             // sets current user to the matching record
             setCurrentUser(email);

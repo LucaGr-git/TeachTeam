@@ -162,7 +162,6 @@ const getClassRecords = async (): Promise<ClassRecord> => {
         lecturerShortlist: lecturerShortlistMap,
       };
     }
-    console.log(classRecords);
     return classRecords;
   } catch (err) {
     console.error("Error hydrating class records:", err);
