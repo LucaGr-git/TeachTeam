@@ -7,6 +7,7 @@ import TagCustomDisplay from "../general-components/TagCustomizableDisplay";
 import { Switch } from "../ui/switch";
 import LecturerListChart from "./LecturerListChart";
 import { Button } from "../ui/button";
+import { set } from "react-hook-form";
 
 // interface for the class card details
 interface LecturerClassCardProps {
@@ -22,7 +23,7 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   const [viewCourseInfo, setViewCourseInfo] = useState<boolean>(true);
 
   // get class records
-  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords} = useClassData();
+  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords, fetchCourse} = useClassData();
   // get user records
   const { getUsers, getCurrentUser, isAuthenticated, isLecturer, fetchUser} = useAuth();
 
@@ -159,6 +160,24 @@ if (!classRecords) {
     setPartTimeFriendly(!partTimeFriendly);
     
   }
+
+    useEffect(() => {
+      // fetches date joined and avaiability
+      const fetchCourseInfo = async () => {
+        try {
+          const course = await fetchCourse(lecturerClass.courseCode);
+
+          setFullTimeFriendly(course?.fullTimeFriendly || false);
+          setPartTimeFriendly(course?.partTimeFriendly || false);
+     
+        } catch (error) {
+          console.error("Failed to fetch class info:", error);
+        }
+      };
+  
+      fetchCourseInfo();
+
+    }, [currUser.email]);
   
   
   return (

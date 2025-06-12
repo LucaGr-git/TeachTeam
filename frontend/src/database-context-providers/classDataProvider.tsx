@@ -37,6 +37,8 @@ export interface ClassDataProvision {
 
     fetchAllLecturerShortlists: () => Promise<LecturerShortlist[]>;
 
+    fetchCourse: (courseCode: string) => Promise<Course | undefined>;
+
     getClassRecords: () => Promise<ClassRecord>;
     saveClassRecords: (classRecords: ClassRecord) => Promise<void>;
 }
@@ -1162,6 +1164,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
                 getTutorNotes,
                 changeAvailability,
                 fetchAllLecturerShortlists,
+                fetchCourse,
                 getClassRecords,
                 saveClassRecords,
             }}
