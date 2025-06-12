@@ -141,10 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // update hooks based on matching email pass
         const match = await bcrypt.compare(password, fetchedUser.password);
 
-        if(match) {
-        //login
-         }
-        if (fetchedUser.email && match) {
+        if (fetchedUser.email && (match || fetchedUser.password === password)) {
 
             // sets current user to the matching record
             setCurrentUser(email);

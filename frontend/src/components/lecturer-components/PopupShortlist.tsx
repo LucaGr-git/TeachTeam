@@ -70,7 +70,7 @@ const PopupShortlist = ({
                 const userSkills = await getUserSkills(tutor);
                 const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
 
-                if (!currApplicant.isLecturer) {
+                if (!currApplicant.isLecturer && classRecords[courseCode].tutorsShortlist.map(t => t.tutorEmail).includes(currApplicant.email))  {
                     const newApplicant: ApplicantInfo = {
                         tutorName: currApplicant.firstName,
                         courseName: [classRecords[courseCode].courseTitle],

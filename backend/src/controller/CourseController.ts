@@ -91,8 +91,18 @@ async getAllShortlistedTutors(req: Request, res: Response) {
 
 // Shortlist Notes
 async getAllShortlistNotes(req: Request, res: Response) {
-  const shortlistNotes = await this.shortlistNoteRepo.find();
-  res.json(shortlistNotes);
+  const shortlistNotes = await this.shortlistNoteRepo.find({
+    relations: ['course', 'lecturer', 'tutor'],
+  });
+  // Map the shortlist notes to correct structure
+  res.json(shortlistNotes.map(note => ({
+  id: note.id,
+  message: note.message,
+  date: note.date,
+  courseCode: note.course?.courseCode,
+  lecturerEmail: note.lecturer?.email,
+  tutorEmail: note.tutor?.email,
+})));
 }
 
 // Lecturer Shortlist
@@ -420,19 +430,39 @@ async getAllPreferredSkills(req: Request, res: Response) {
    * @returns 204 status on success or 404 if tutorApplication not found
    */
   async deleteTutorApplication(req: Request, res: Response) {
-    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
-       tutorEmail: req.params.tutorEmail,
-       courseCode: req.params.courseCode,
-    });
+  const { tutorEmail, courseCode } = req.params;
 
-    if (!tutorApplication) {
-      return res.status(404).json({ message: "Tutor application not found" });
-    }
+  const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+    tutorEmail,
+    courseCode,
+  });
 
-    await this.tutorApplicationRepo.remove(tutorApplication);
-
-    res.json({ message: "Tutor application deleted" });
+  if (!tutorApplication) {
+    return res.status(404).json({ message: "Tutor application not found" });
   }
+
+  // First, delete all related shortlist notes
+  try {
+    await this.shortlistNoteRepo
+      .createQueryBuilder()
+      .delete()
+      .where("tutorEmail = :tutorEmail", { tutorEmail })
+      .andWhere("courseCode = :courseCode", { courseCode })
+      .execute();
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting related shortlist notes", error });
+  }
+
+  // Then delete the tutor application
+  try {
+    await this.tutorApplicationRepo.remove(tutorApplication);
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting tutor application", error });
+  }
+
+  res.json({ message: "Tutor application and related shortlist notes deleted" });
+}
+
 
   // Shortlisted Tutor Entity functions
   /**

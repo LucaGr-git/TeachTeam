@@ -1100,7 +1100,9 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         }
         
         //return the notes array
+        
         const shortlistNotes = await fetchAllShortlistNotes();
+        console.log(shortlistNotes);
         if (shortlistNotes) {
             const matchingNotes = shortlistNotes.filter(
                 note => note.courseCode === courseCode && note.tutorEmail === tutorEmail
