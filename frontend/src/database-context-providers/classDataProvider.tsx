@@ -1,5 +1,5 @@
 import { courseService } from "@/services/api";
-import { CourseLecturer } from "@/types/types";
+import { CourseLecturer, ShortlistedTutor, ShortlistNote } from "@/types/types";
 import { get } from "http";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -42,7 +42,7 @@ export interface ClassDataProvision {
 export type LecturerShortList = Record<string, string[]>;
 
 // interface for the data type of a note
-export interface ShortlistNote {
+export interface RecordShortlistNote {
     lecturerEmail: string,
     message: string,
     date: string, // ISO format date string 
@@ -50,7 +50,7 @@ export interface ShortlistNote {
 // interface for shortlisted applicants
 export interface ShortlistedInfo {
     tutorEmail: string,
-    notes: ShortlistNote[];
+    notes: RecordShortlistNote[];
 }
 
 // Interface for class details
@@ -114,7 +114,7 @@ const getClassRecords = async (): Promise<ClassRecord> => {
         .filter(s => s.courseCode === courseCode)
         .map(s => s.tutorEmail);
 
-      const shortlistNoteMap: Record<string, ShortlistNote[]> = {};
+      const shortlistNoteMap: Record<string, RecordShortlistNote[]> = {};
       for (const note of shortlistNotes) {
         if (note.courseCode === courseCode) {
           if (!shortlistNoteMap[note.tutorEmail]) {
@@ -259,6 +259,42 @@ const removeShortlistedTutor = async (courseCode: string, tutorEmail: string) =>
     }
     catch(error){
         console.error("Unable to remove Shortlisted Tutor entry in classDataProvider");
+    }
+}
+
+const fetchAllShortlistNotes = async () => {
+    try {
+        const data = await courseService.getAllShortlistNotes();
+        return data;
+    }
+    catch (error){
+        console.error("Unable to fetch shortlist notes in classDataProvider: " + error);
+    }
+}
+
+// const fetchShortlistNote = async () => {
+//     try {
+//         const data = await courseService.get
+//     }
+// }
+
+const removeShortlistNote = async (noteID: string) => {
+    try {
+        const data = await courseService.deleteShortlistNote(noteID);
+        return data;
+    }
+    catch (error) {
+        console.error("Unable to remove shortlistNote with ID: " + noteID + ". Error: " + error);
+    }
+}
+
+const createShortlistNote = async (courseCode: string, tutorEmail: string, lecturerEmail: string, note: string) => {
+    try {
+        const data = await courseService.createShortlistNote(courseCode, tutorEmail, {courseCode: courseCode, lecturerEmail: lecturerEmail, tutorEmail: tutorEmail, message: note, date: new Date().toISOString()});
+        return data
+    }
+    catch (error){
+        console.error("Unable to create shortlistNote entry in classDataProvider");
     }
 }
 
@@ -766,38 +802,50 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const addNote = useCallback (async(courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
+        const courses = await fetchCourse(courseCode);
 
         // error checking
-        if (!currClass) {
+        // Checking if the course exists
+        if (!courses) {
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
-        if (!currClass.lecturerEmails.includes(lecturerEmail)) {
+
+        // Checking if the lecturer lectures that course
+        const lecturer = await fetchLecturer(courseCode);
+
+        let matchingLec: CourseLecturer | undefined;
+        if (lecturer) {
+            matchingLec = lecturer.find(match => match.lecturerEmail === lecturerEmail);
+        }
+
+        if (!matchingLec) {
             console.warn(`There is no lecturer with email of ${lecturerEmail}`);
             return false;
         }
-        if (!currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
+
+        // Checking if there is a tutor shortlisted
+        const shortlistedTutors = await fetchShortlistedTutor();
+        let matchingTutor: ShortlistedTutor | undefined;
+        if (shortlistedTutors) {
+            matchingTutor = shortlistedTutors.find(match => match.courseCode === courseCode && match.tutorEmail === tutorEmail);
+        }
+        if (!matchingTutor) {
             console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
             return false;
         }
-        
-        for (const tutorShortlisted of currClass.tutorsShortlist){
-            if (tutorShortlisted.tutorEmail === tutorEmail){
-                tutorShortlisted.notes.push({
-                    lecturerEmail: lecturerEmail,
-                    message: message,
-                    date: new Date().toISOString(), // ISO format date string 
-                });
-                saveClassRecords(classRecords);
-                return true;
-            }
-        }
-        
-        console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
-        return false;
 
+
+        // Add note to the DB
+        try {
+            const data = await createShortlistNote(courseCode, tutorEmail, lecturerEmail, message);
+            refreshRecords();
+            return true;
+        }
+        catch {
+            console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
+            return false;
+        }
     }, []);
 
     const deleteNote = async (
@@ -806,37 +854,49 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         lecturerEmail: string,
         message: string
       ): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
-      
+        const courses = await fetchCourse(courseCode);
+
         // error checking
-        if (!currClass) {
+        // Checking if the course exists
+        if (!courses) {
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
-        if (!currClass.lecturerEmails.includes(lecturerEmail)) {
+
+        // Checking if the lecturer lectures that course
+        const lecturer = await fetchLecturer(courseCode);
+
+        let matchingLec: CourseLecturer | undefined;
+        if (lecturer) {
+            matchingLec = lecturer.find(match => match.lecturerEmail === lecturerEmail);
+        }
+
+        if (!matchingLec) {
             console.warn(`There is no lecturer with email of ${lecturerEmail}`);
             return false;
         }
-        const tutor = currClass.tutorsShortlist.find(t => t.tutorEmail === tutorEmail);
-        if (!tutor) {
+
+        // Checking if there is a tutor shortlisted
+        const shortlistedTutors = await fetchShortlistedTutor();
+        let matchingTutor: ShortlistedTutor | undefined;
+        if (shortlistedTutors) {
+            matchingTutor = shortlistedTutors.find(match => match.courseCode === courseCode && match.tutorEmail === tutorEmail);
+        }
+        if (!matchingTutor) {
             console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
             return false;
         }
         
-        // get position of note in list
-        const noteIndex = tutor.notes.findIndex(
-          note => note.lecturerEmail === lecturerEmail && note.message === message
-        );
-      
-        if (noteIndex === -1) {
-            console.warn(`There is no note matching that description`);
-            return false;
+        // Checking if matching note exists
+        const shortListNotes = await fetchAllShortlistNotes();
+        let matchingNote: ShortlistNote | undefined;
+        if (shortListNotes){
+            matchingNote = shortListNotes.find(match => match.courseCode === courseCode && match.message === message && match.lecturerEmail === lecturerEmail && match.tutorEmail === tutorEmail);
+            if (matchingNote) {
+                await removeShortlistNote(matchingNote.id?.toString()!);
+            }
         }
-        
-        // splice note to remove 
-        tutor.notes.splice(noteIndex, 1);
-        saveClassRecords(classRecords);
+        refreshRecords();
         return true;
     };
 
@@ -845,27 +905,35 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         courseCode: string,
         tutorEmail: string
       ): Promise<ShortlistNote[]> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
-      
-        // Error checking
-        if (!currClass) {
-          console.warn(`No class found with course code: ${courseCode}`);
-          return [];
+        const courses = await fetchCourse(courseCode);
+
+        // error checking
+        // Checking if the course exists
+        if (!courses) {
+            console.warn(`There is no class with course code ${courseCode}`);
+            return [];
         }
         
-        // find entry for specific tutor
-        const tutorEntry = currClass.tutorsShortlist.find(
-          (tutor) => tutor.tutorEmail === tutorEmail
-        );
-      
-        if (!tutorEntry) {
-          console.warn(`Tutor with email ${tutorEmail} not found in shortlist`);
-          return [];
+        const shortlistedTutors = await fetchShortlistedTutor();
+        let matchingTutor: ShortlistedTutor | undefined;
+        if (shortlistedTutors) {
+            matchingTutor = shortlistedTutors.find(match => match.courseCode === courseCode && match.tutorEmail === tutorEmail);
+        }
+        if (!matchingTutor) {
+            console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
+            return [];
         }
         
         //return the notes array
-        return tutorEntry.notes || [];
+        const shortlistNotes = await fetchAllShortlistNotes();
+        if (shortlistNotes) {
+            const matchingNotes = shortlistNotes.filter(
+                note => note.courseCode === courseCode && note.tutorEmail === tutorEmail
+            );
+            refreshRecords();
+            return matchingNotes;
+        }
+        return [];
     };
       
 

@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import { useClassData, ShortlistNote} from "@/database-context-providers/classDataProvider";
+import { useClassData, RecordShortlistNote} from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TagDisplay from "../general-components/TagDisplay";
@@ -13,6 +13,7 @@ import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import LecturerAddNote from "./LecturerAddNote";
 import NavList from "../general-components/NavList";
+import { ShortlistNote } from "@/types/types";
 
 // interface for the class card details
 interface LecturerViewNotesProps {
@@ -93,6 +94,7 @@ if (!classRecords) {
   }
   // get all notes for that class / tutor 
   const notes: ShortlistNote[] = await getTutorNotes(courseCode, tutorEmail);
+  
 
   // option to display date
   const dateBadgeFormat: Intl.DateTimeFormatOptions = {
