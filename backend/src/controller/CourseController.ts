@@ -661,6 +661,7 @@ async updateLecturerShortlist(req: Request, res: Response) {
   let lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
     courseCode: req.params.courseCode,
     lecturerEmail: req.params.lecturerEmail,
+    tutorEmail: req.params.tutorEmail,
   });
 
   if (!lecturerShortlist) {
