@@ -178,8 +178,8 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     return data;
   },
 
-  deleteLecturerShortlist: async (courseCode: string, lecturerEmail: string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`);
+  deleteLecturerShortlist: async (courseCode: string, lecturerEmail: string, tutorEmail: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist/${tutorEmail}`);
   },
 
   getPreferredSkills: async (courseCode: string): Promise<PreferredSkill[]> => {

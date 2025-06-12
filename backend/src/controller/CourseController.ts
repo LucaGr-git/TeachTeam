@@ -688,6 +688,7 @@ async deleteLecturerShortlist(req: Request, res: Response) {
   const lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
     courseCode: req.params.courseCode,
     lecturerEmail: req.params.lecturerEmail,
+    tutorEmail: req.params.tutorEmail,
   });
 
   if (!lecturerShortlist) {
