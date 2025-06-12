@@ -35,6 +35,8 @@ export interface ClassDataProvision {
 
     changeAvailability: (courseCode: string, fullTime: boolean, partTime: boolean) => Promise<boolean>;
 
+    fetchAllLecturerShortlists: () => Promise<LecturerShortlist[]>;
+
     getClassRecords: () => Promise<ClassRecord>;
     saveClassRecords: (classRecords: ClassRecord) => Promise<void>;
 }
@@ -412,6 +414,7 @@ const fetchAllLecturerShortlists = async() => {
     }
     catch (error) {
         console.error("Error fetching all lecturer shortlists");
+        return [];
     }
 }
 
@@ -1141,6 +1144,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
                 deleteNote,
                 getTutorNotes,
                 changeAvailability,
+                fetchAllLecturerShortlists,
                 getClassRecords,
                 saveClassRecords,
             }}
