@@ -143,6 +143,8 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createShortlistNote: async (courseCode: string, tutorEmail: string, note: ShortlistNote): Promise<void> => {
+    console.log("These are the params passed in AXIOS, " + courseCode + " " + tutorEmail + " " + note.lecturerEmail + " " + note.date + " " + note.message
+    );
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/shortlisted-tutors/${tutorEmail}/notes`, note);
   },
 

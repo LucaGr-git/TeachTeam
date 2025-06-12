@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import { useClassData, RecordShortlistNote} from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
@@ -14,6 +14,7 @@ import { Button } from "../ui/button";
 import LecturerAddNote from "./LecturerAddNote";
 import NavList from "../general-components/NavList";
 import { ShortlistNote } from "@/types/types";
+import { useUserData } from "@/database-context-providers/userDataProvider";
 
 // interface for the class card details
 interface LecturerViewNotesProps {
@@ -24,7 +25,7 @@ interface LecturerViewNotesProps {
   
 }
 
-const LecturerViewNotes = async({ courseCode, tutorEmail, children }: LecturerViewNotesProps) => {
+const LecturerViewNotes = ({ courseCode, tutorEmail, children }: LecturerViewNotesProps) => {
 
   // manual rerender useState
   const [rerenderCounter, setRerenderCounter] = useState<number>(0);
@@ -34,10 +35,47 @@ const LecturerViewNotes = async({ courseCode, tutorEmail, children }: LecturerVi
   // states for visibillity of viewNotes as a whole
   const [notePopup, toggleNotePopup] = useState(false);
 
+  const [notes, setNotes] = useState<ShortlistNote[]>([])
+  const [lecturerNameMap, setLecturerNameMap] = useState<LecturerShortList>({})
+
   // get class records
   const { getClassRecords, getTutorNotes, deleteNote, classRecords} = useClassData();
+  const { getAllUsers, getUser } = useUserData();
   // get user records
   const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+  type LecturerShortList = Record<string, string>;
+
+useEffect(() => {
+  const fetchNotesAndNames = async () => {
+    if (!classRecords || !classRecords[courseCode]) return;
+
+    const lecturerEmails = classRecords[courseCode].lecturerEmails;
+
+    // Parallel fetch of users
+    const lecturerData = await Promise.all(
+      lecturerEmails.map(email => 
+        getUser(email).then(user => ({ email, user }))
+      )
+    );
+
+    // Create name map
+    const nameMap: Record<string, string> = {};
+    for (const { email, user } of lecturerData) {
+      if (user) {
+        nameMap[email] = `${user.firstName} ${user.lastName}`;
+      }
+    }
+
+    // Fetch notes
+    const tutorNotes = await getTutorNotes(courseCode, tutorEmail);
+
+    // Set state
+    setLecturerNameMap(nameMap);
+    setNotes(tutorNotes);
+  };
+
+  fetchNotesAndNames();
+}, [classRecords?.[courseCode]?.lecturerEmails?.join(","), courseCode, tutorEmail]);
 
   // get class record
 if (!classRecords) {
@@ -47,10 +85,7 @@ if (!classRecords) {
       </Section>
     );
   }
-    const lecturerCLass = classRecords[courseCode];
 
-  // get users record
-  const users = getUsers();
 
   // get current user
   const currUser = getCurrentUser();
@@ -65,7 +100,7 @@ if (!classRecords) {
 
   
   // return error card if course code is wrong
-  if (!lecturerCLass) {
+  if (!classRecords[courseCode]) {
     return (
       <Section title="Error course code not found">
         <p className="text-destructive">Course code {courseCode} not found.</p>
@@ -73,27 +108,30 @@ if (!classRecords) {
     )
   }
 
-  if (!lecturerCLass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
+  if (!classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
     return (
       <Section title="Error tutor not in shortlist, only shortlisted tutors may have notes">
         <p className="text-destructive">Tutor {tutorEmail} not shortlisted.</p>
       </Section>);
   }
   
-  // record for getting lecturer names from emails
-  type LecturerShortList = Record<string, string>;
-  const lecturerNameMap: LecturerShortList = {};
+  // // get users record
+  // const users = await getAllUsers();
 
-  // get the lecturers for the course
-  for (const lecturerEmail of lecturerCLass.lecturerEmails) {
+  // // record for getting lecturer names from emails
+  // type LecturerShortList = Record<string, string>;
+  // const lecturerNameMap: LecturerShortList = {};
 
-    if (users[lecturerEmail]) {
-      // add the lecturs email as key and full name as value 
-      lecturerNameMap[lecturerEmail] = users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName;
-    }
-  }
-  // get all notes for that class / tutor 
-  const notes: ShortlistNote[] = await getTutorNotes(courseCode, tutorEmail);
+  // // get the lecturers for the course
+  // for (const lecturerEmail of classRecords[courseCode].lecturerEmails) {
+
+  //   if (users[lecturerEmail]) {
+  //     // add the lecturs email as key and full name as value 
+  //     lecturerNameMap[lecturerEmail] = users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName;
+  //   }
+  // }
+  // // get all notes for that class / tutor 
+  // const notes: ShortlistNote[] = await getTutorNotes(courseCode, tutorEmail);
   
 
   // option to display date

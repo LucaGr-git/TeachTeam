@@ -549,7 +549,15 @@ async getAllPreferredSkills(req: Request, res: Response) {
    */
   async createShortlistNote(req: Request, res: Response) {
     /** Create a new course note object from the request body */
-    const shortlistNote = this.shortlistNoteRepo.create(req.body);
+    const { courseCode, tutorEmail, lecturerEmail, message, date } = req.body;
+
+    const shortlistNote = this.shortlistNoteRepo.create({
+    course: { courseCode }, // must match the PK of Course entity
+        tutor: { email: tutorEmail }, // must match the PK of User
+        lecturer: { email: lecturerEmail }, // must match the PK of User
+        message,
+        date 
+    });
 
     /** Save the new course to the database */
     try {

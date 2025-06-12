@@ -323,7 +323,7 @@ const PopupShortlist = ({
                         // if not lecturing the course extra details like notes are not rendered
                         <>
                         <div className="mb-3">
-                            {/* <LecturerViewNotes courseCode={courseCode} tutorEmail={applicant.email}></LecturerViewNotes> */}
+                            <LecturerViewNotes courseCode={courseCode} tutorEmail={applicant.email}></LecturerViewNotes>
                         </div>
                         <Button 
                             key = {applicant.email + "remove"} 

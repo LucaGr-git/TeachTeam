@@ -230,7 +230,7 @@ if (!classRecords) {
 
       <section className="mt-4">
         <p>Shortlisted Ranking Chart</p>
-        {/* <LecturerListChart courseCode={courseCode}/> */}
+        <LecturerListChart courseCode={courseCode}/>
       </section>
 
       

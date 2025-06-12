@@ -48,7 +48,6 @@ const LecturerAddNote = (
     );
   }
   }
-  const lecturerCLass = classRecords[courseCode];
 
   // get current user
   const currUser = getCurrentUser();
@@ -78,7 +77,7 @@ const noteForm = useForm({
 
   
   // return error card if course code is wrong
-  if (!lecturerCLass) {
+  if (!classRecords[courseCode]) {
     return (
       <Section title="Error course code not found">
         <p className="text-destructive">Course code {courseCode} not found.</p>
@@ -86,7 +85,7 @@ const noteForm = useForm({
     )
   }
 
-  if (!lecturerCLass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
+  if (!classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
     return (
       <Section title="Error tutor not in shortlist, only shortlisted tutors may have notes">
         <p className="text-destructive">Tutor {tutorEmail} not shortlisted.</p>
