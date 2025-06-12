@@ -514,7 +514,7 @@ async getAllPreferredSkills(req: Request, res: Response) {
       return res.status(404).json({ message: "Shortlisted tutor not found" });
     }
 
-    await this.tutorApplicationRepo.remove(shortListedTutor);
+    await this.shortlistedTutorRepo.remove(shortListedTutor);
 
     res.json({ message: "Shortlisted tutor deleted" });
   }
