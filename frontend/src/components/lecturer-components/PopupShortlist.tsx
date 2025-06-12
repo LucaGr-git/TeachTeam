@@ -11,6 +11,7 @@ import TagDisplay from "../general-components/TagDisplay";
 import NavList from "../general-components/NavList";
 import { ChevronDown, ChevronDownCircle, ChevronUp, ChevronUpCircle } from "lucide-react";
 import LecturerViewNotes from "./LecturerViewNotes";
+import { LecturerShortlist } from "@/types/types";
 
 interface PopupShortlistProps {
     // Props for popup
@@ -37,7 +38,7 @@ const PopupShortlist = ({
 
     
     // Get the records from local storage
-    const {getClassRecords, removeFromShortlist, acceptApplication, initializeLecturerShortlist, orderLecturerShortList, classRecords} = useClassData();
+    const {getClassRecords, removeFromShortlist, acceptApplication, fetchAllLecturerShortlists, orderLecturerShortList, classRecords} = useClassData();
     const {getUserRecords, getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const {getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
@@ -53,7 +54,16 @@ const PopupShortlist = ({
         const applicants: ApplicantInfo[] = [];
 
         if (classRecords != null) {
-            for (const tutor of classRecords[courseCode].tutorsApplied) {
+        // Fetch the full shortlist with ranks & lecturers
+            const fullShortlist: LecturerShortlist[] = await fetchAllLecturerShortlists();
+
+            // Filter for this course and lecturer, then sort by rank ascending
+            const filteredShortlist = fullShortlist
+                .filter(entry => entry.courseCode === courseCode && entry.lecturerEmail === currEmail)
+                .sort((a, b) => a.rank - b.rank);       
+
+            for (const shortlistEntry of filteredShortlist) {
+                const tutor = shortlistEntry.tutorEmail;
                 const currApplicant = await getUser(tutor);
                 const userExperience = await getUserExperiences(tutor);
                 const userQualification = await getUserQualifications(tutor);
