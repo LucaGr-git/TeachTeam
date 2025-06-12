@@ -84,7 +84,7 @@ router.get("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res)
 
 router.post("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(CreateLecturerShortlistDTO),(req, res) => controller.createLecturerShortlist(req, res));
 
-router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(UpdateLecturerShortlistDTO),(req, res) => controller.updateLecturerShortlist(req, res));
+router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist/:tutorEmail", validateDto(UpdateLecturerShortlistDTO),(req, res) => controller.updateLecturerShortlist(req, res));
 
 router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist/:tutorEmail", (req, res) => controller.deleteLecturerShortlist(req, res));
 
