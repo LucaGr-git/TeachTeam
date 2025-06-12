@@ -175,7 +175,7 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
         tutorEmail: string;
         rank: number;
     }): Promise<LecturerShortlist> => {
-    const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist/${TutorApplyList}`, shortlist);
+    const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist/${shortlist.tutorEmail}`, shortlist);
     return data;
   },
 

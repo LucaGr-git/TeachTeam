@@ -911,6 +911,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         }
 
         const oldPosition = movingEntry.rank;
+    
 
         // Step 4: If positions are the same, no update needed
         if (oldPosition === newPosition) {
@@ -919,6 +920,12 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
         // Step 5: Adjust ranks of affected entries
         const updatedEntries: LecturerShortlist[] = [];
+
+        // updatedEntries.push({
+        //     ...movingEntry,
+        //     rank: newPosition,
+        // }
+        // );
 
         for (const entry of lecturerShortlist) {
             if (entry.tutorEmail === tutorEmail) continue;
@@ -947,6 +954,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         for (const entry of updatedEntries) {
             await updateLecturerShortlist(courseCode, lecturerEmail, entry);
         }
+
+        refreshRecords();
 
         return true;
     }

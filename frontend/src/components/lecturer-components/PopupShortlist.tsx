@@ -52,25 +52,27 @@ const PopupShortlist = ({
     const fetchApplicants = async () => {
         const applicants: ApplicantInfo[] = [];
 
-        for (const tutor of course.tutorsApplied) {
-            const currApplicant = await getUser(tutor);
-            const userExperience = await getUserExperiences(tutor);
-            const userQualification = await getUserQualifications(tutor);
-            const userSkills = await getUserSkills(tutor);
-            const shortlisted = course.tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
+        if (classRecords != null) {
+            for (const tutor of classRecords[courseCode].tutorsApplied) {
+                const currApplicant = await getUser(tutor);
+                const userExperience = await getUserExperiences(tutor);
+                const userQualification = await getUserQualifications(tutor);
+                const userSkills = await getUserSkills(tutor);
+                const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
 
-            if (!currApplicant.isLecturer) {
-                const newApplicant: ApplicantInfo = {
-                    tutorName: currApplicant.firstName,
-                    courseName: [course.courseTitle],
-                    availability: currApplicant.fullTime ? "Full time" : "Part time",
-                    skills: userSkills.map(s => s.skill),
-                    qualifications: userQualification.map(q => q.qualification),
-                    experience: userExperience,
-                    shortListed: shortlisted,
-                    email: currApplicant.email,
-                };
-                applicants.push(newApplicant);
+                if (!currApplicant.isLecturer) {
+                    const newApplicant: ApplicantInfo = {
+                        tutorName: currApplicant.firstName,
+                        courseName: [classRecords[courseCode].courseTitle],
+                        availability: currApplicant.fullTime ? "Full time" : "Part time",
+                        skills: userSkills.map(s => s.skill),
+                        qualifications: userQualification.map(q => q.qualification),
+                        experience: userExperience,
+                        shortListed: shortlisted,
+                        email: currApplicant.email,
+                    };
+                    applicants.push(newApplicant);
+                }
             }
         }
 
@@ -89,8 +91,6 @@ const PopupShortlist = ({
         </Section>
         );
     }
-    const course = classRecords[courseCode];
-
 
     const userData: UserRecord = getUserRecords();
     const userList = getUsers();
@@ -102,14 +102,14 @@ const PopupShortlist = ({
     const currEmail = currUser.email;
 
     // shortlist that will be checked through 
-    let lecturersShortlist = course.lecturerShortlist[currEmail];
+    let lecturersShortlist = classRecords[courseCode].lecturerShortlist[currEmail];
     
     // See if user is lecturing the course 
-    const lecturingThisCourse: boolean = course.lecturerEmails.includes(currEmail);
+    const lecturingThisCourse: boolean = classRecords[courseCode].lecturerEmails.includes(currEmail);
 
     // if the user is not a lecturer of this course use the default shortlist not a ranked shortlist
     if (!lecturingThisCourse){
-        lecturersShortlist = course.tutorsShortlist.map((tutor) => tutor.tutorEmail);
+        lecturersShortlist = classRecords[courseCode].tutorsShortlist.map((tutor) => tutor.tutorEmail);
     }
     // if the user is a lecturer ensure that their shortlist ahs been initialized
     
@@ -144,8 +144,7 @@ const PopupShortlist = ({
     
     const removeShortlist = async(email: string) => {
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted remove them from the shortlist
         if (shortlisted) {
@@ -167,8 +166,7 @@ const PopupShortlist = ({
 
     const acceptApplicant = async(email: string) => {
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted accept Applicant
         if (shortlisted) {
@@ -189,14 +187,13 @@ const PopupShortlist = ({
 
     const toTopShortlist = async(email: string) => {
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted move their position to top
         if (shortlisted) {
             // move the tutor email from it's position to the given position
             // get current position
-            const currPos = course.lecturerShortlist[currEmail].indexOf(email);
+            const currPos = classRecords[courseCode].lecturerShortlist[currEmail].indexOf(email);
             // if it is already at the first position no need to move it
             if (currPos === 0) {
                 return;
@@ -224,16 +221,15 @@ const PopupShortlist = ({
     
     const toBottomShortlist = async(email: string) => {
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted move their position to top
         if (shortlisted) {
             // move the tutor email from it's position to the given position
             // get current position
-            const currPos = course.lecturerShortlist[currEmail].indexOf(email);
+            const currPos = classRecords[courseCode].lecturerShortlist[currEmail].indexOf(email);
             // get current length
-            const endPos = course.lecturerShortlist[currEmail].length - 1;
+            const endPos = classRecords[courseCode].lecturerShortlist[currEmail].length - 1;
             // if it is already at the first position no need to move it
             if (currPos === endPos ){
                 return;
@@ -260,16 +256,15 @@ const PopupShortlist = ({
     }
     const bumpShortlisted = async(email: string, bumpDown:boolean = false) => {
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted move their position to top
         if (shortlisted) {
             // move the tutor email from it's position to the given position
             // get current position
-            const currPos = course.lecturerShortlist[currEmail].indexOf(email);
+            const currPos = classRecords[courseCode].lecturerShortlist[currEmail].indexOf(email);
             // get current length
-            const length = course.lecturerShortlist[currEmail].length - 1;
+            const length = classRecords[courseCode].lecturerShortlist[currEmail].length - 1;
             // get end position length
             const endPos = currPos + ((bumpDown)? 1 : -1);
             // if it is at the end or start of list nothing happens
@@ -304,7 +299,7 @@ const PopupShortlist = ({
             <h2 className="popup-title">Candidate Shortlist</h2>
             <div className="overflow-auto max-h-[80vh]">
             <div className="mt-4 space-y-2">
-                {shortList.map((applicant, index) => 
+                {shortlistArray.map((applicant, index) => 
                     {return <ApplicantCard 
                         tutorName = {applicant.tutorName}
                         courseName = {applicant.courseName}
@@ -318,7 +313,7 @@ const PopupShortlist = ({
                         // if not lecturing the course extra details like notes are not rendered
                         <>
                         <div className="mb-3">
-                            <LecturerViewNotes courseCode={courseCode} tutorEmail={applicant.email}></LecturerViewNotes>
+                            {/* <LecturerViewNotes courseCode={courseCode} tutorEmail={applicant.email}></LecturerViewNotes> */}
                         </div>
                         <Button 
                             key = {applicant.email + "remove"} 
