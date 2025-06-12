@@ -83,7 +83,7 @@ export class UserController {
   async update(req: Request, res: Response) {
     /** Retrieve the user from the database */
     let user = await this.userRepo.findOneBy({
-      email: req.params.id,
+      email: req.params.email,
     });
 
     /** Check if the user exists, if not, return a 404 error */

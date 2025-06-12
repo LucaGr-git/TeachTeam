@@ -93,6 +93,7 @@ const UserNavigation = () => {
 
   // get the current user qualifications
   const [userQualifications, setUserQualifications] = useState<string[]>([]);
+  const [dateJoined, setDateJoined] = useState<string>("Date joined");
 
   const [userExperiences, setUserExperiences] = useState<Experience[]>([]);
 
@@ -107,7 +108,27 @@ const UserNavigation = () => {
       }
     };
 
+    // fetches date joined and avaiability
+    const fetchUserInfo = async () => {
+      try {
+        const user = await getUser(currentUser.email);
+        const date = new Date(user.dateJoined);
+        // format the ISO string
+        const formattedDate = date.toLocaleDateString("en-AU", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+
+        setDateJoined(`Joined on ${formattedDate}`);
+        setUserAvailability(user.fullTime);
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    };
+
     fetchQualifications();
+    fetchUserInfo();
   }, [currentUser.email]);
 
 
@@ -124,6 +145,7 @@ const UserNavigation = () => {
 
   // get the current user availability
   const [userAvailability, setUserAvailability] = useState<boolean>(false);
+  const [availabilityLoaded, setAvailabilityLoaded] = useState<boolean>(false);
 
   const monthYearFormats: Intl.DateTimeFormatOptions = {
     year: 'numeric',
@@ -356,6 +378,10 @@ const UserNavigation = () => {
       </div>
       <div className="flex mt-4 justify-center">
         <Switch className=""id="availability" checked={userAvailability} onCheckedChange={toggleUserAvailability}/>
+      </div>
+      <NavList title="Date Joined"/>
+      <div className="flex mt-4 justify-center">
+        <Label> {dateJoined} </Label>
       </div>
       </ul>
     </nav>

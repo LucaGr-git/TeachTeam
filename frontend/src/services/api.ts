@@ -214,6 +214,7 @@ export const userService = {
   },
 
   updateUser: async (email: string, updatedData: Partial<User>): Promise<User> => {
+    console.log(updatedData.fullTime);
     const { data } = await axios.put(`${API_BASE_URL}/users/${email}`, updatedData);
     return data;
   },
