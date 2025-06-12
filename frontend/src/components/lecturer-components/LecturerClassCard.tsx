@@ -89,7 +89,8 @@ if (!classRecords) {
           }
         })
       );
-
+      // sort names alphabetically
+      names.sort(); 
       setLecturerNames(names);
     };
 
