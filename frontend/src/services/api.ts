@@ -56,11 +56,11 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     await axios.post(`${API_BASE_URL}/courses`, course);
   },
 
-  updateCourse: async (courseCode: string, course: {
+  updateCourse: async (courseCode: string, course: Partial<{
   courseTitle: string;
   partTimeFriendly: boolean;
   fullTimeFriendly: boolean;
-    }): Promise<Course> => {
+    }>): Promise<Course> => {
     const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}`, course);
     return data;
   },

@@ -1,5 +1,5 @@
 import { courseService } from "@/services/api";
-import { CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote } from "@/types/types";
+import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote } from "@/types/types";
 import { get } from "http";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -417,6 +417,18 @@ const fetchAllLecturerShortlists = async() => {
         return [];
     }
 }
+
+const updateCourse = async (courseCode: string, course: {courseTitle: string, partTimeFriendly: boolean, fullTimeFriendly: boolean}): Promise<Partial<Course>> => {
+    try {
+        const data = await courseService.updateCourse(courseCode, course);
+        return data;
+    }
+    catch (error) {
+        console.error("Error fetching all lecturer shortlists");
+        return {};
+    }
+};
+
 
 
 // Create context
@@ -1100,22 +1112,27 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
       
 
     const changeAvailability = async (courseCode: string, fullTime: boolean, partTime: boolean): Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
 
-        if (!currClass) {
-            // if there is no class with that code an error is returned 
+        const courses = await fetchCourse(courseCode);
+
+        // error checking
+        // Checking if the course exists
+        if (!courses) {
             console.warn(`There is no class with course code ${courseCode}`);
             return false;
         }
 
-        // update the availability
-        currClass.fullTimefriendly = fullTime;
-        currClass.partTimeFriendly = partTime;
+        // Checking if the lecturer lectures that course
+        await updateCourse(courseCode, {
+            courseTitle: courses.courseTitle,
+            partTimeFriendly: partTime,    
+            fullTimeFriendly: fullTime,});
         
-        // saveClassRecords(classRecords);
+        refreshRecords();
         return true;
-    };
+    }
+    
+
 
 
     // const saveClassRecords = (classRecords: ClassRecord) => {
