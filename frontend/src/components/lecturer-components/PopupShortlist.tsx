@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Section from "../general-components/Section";
 
 import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
@@ -38,14 +38,48 @@ const PopupShortlist = ({
     
     // Get the records from local storage
     const {getClassRecords, removeFromShortlist, acceptApplication, initializeLecturerShortlist, orderLecturerShortList, classRecords} = useClassData();
-    const {getUserRecords} = useUserData();
+    const {getUserRecords, getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const {getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
-    // get user data  
-    const shortlistArray: ApplicantInfo[] = [];
-
     // get user data
-    const [shortList, setShortlist] = useState<ApplicantInfo[]>(shortlistArray);
+    const [shortList, setShortlist] = useState<ApplicantInfo[]>([]);
+
+    const [shortlistArray, setApplicantList] = useState<ApplicantInfo[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+
+
+    useEffect(() => {
+    const fetchApplicants = async () => {
+        const applicants: ApplicantInfo[] = [];
+
+        for (const tutor of course.tutorsApplied) {
+            const currApplicant = await getUser(tutor);
+            const userExperience = await getUserExperiences(tutor);
+            const userQualification = await getUserQualifications(tutor);
+            const userSkills = await getUserSkills(tutor);
+            const shortlisted = course.tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
+
+            if (!currApplicant.isLecturer) {
+                const newApplicant: ApplicantInfo = {
+                    tutorName: currApplicant.firstName,
+                    courseName: [course.courseTitle],
+                    availability: currApplicant.fullTime ? "Full time" : "Part time",
+                    skills: userSkills.map(s => s.skill),
+                    qualifications: userQualification.map(q => q.qualification),
+                    experience: userExperience,
+                    shortListed: shortlisted,
+                    email: currApplicant.email,
+                };
+                applicants.push(newApplicant);
+            }
+        }
+
+        setApplicantList(applicants);
+        setLoading(false);
+    };
+
+    fetchApplicants();
+}, [classRecords, courseCode]);
     
 
     if (!classRecords) {
@@ -78,32 +112,28 @@ const PopupShortlist = ({
         lecturersShortlist = course.tutorsShortlist.map((tutor) => tutor.tutorEmail);
     }
     // if the user is a lecturer ensure that their shortlist ahs been initialized
-    else {
-        // initalize the shortlist
-        initializeLecturerShortlist(courseCode, currEmail);
-    }
     
     
-    if (lecturersShortlist){ // if the shortlist is empty/undefined it is not iteratable
-        for (const tutor of lecturersShortlist) {
-            const currApplicant = userList[tutor];
-            const currUserData = userData[tutor];
+    // if (lecturersShortlist){ // if the shortlist is empty/undefined it is not iteratable
+    //     for (const tutor of lecturersShortlist) {
+    //         const currApplicant = userList[tutor];
+    //         const currUserData = userData[tutor];
 
-            if (currApplicant && !currApplicant.isLecturer) {
-                const newApplicant: ApplicantInfo = {
-                    tutorName: currApplicant.firstName,
-                    courseName: [course.courseTitle],
-                    availability: ((currUserData.fullTime)? "Full time":"Part time"),
-                    skills: currUserData.skills,
-                    qualifications: currUserData.qualifications,
-                    experience: currUserData.experience,
-                    shortListed: true,
-                    email: currApplicant.email,
-                }
-                shortlistArray.push(newApplicant);
-            } 
-        }
-    }
+    //         if (currApplicant && !currApplicant.isLecturer) {
+    //             const newApplicant: ApplicantInfo = {
+    //                 tutorName: currApplicant.firstName,
+    //                 courseName: [course.courseTitle],
+    //                 availability: ((currUserData.fullTime)? "Full time":"Part time"),
+    //                 skills: currUserData.skills,
+    //                 qualifications: currUserData.qualifications,
+    //                 experience: currUserData.experience,
+    //                 shortListed: true,
+    //                 email: currApplicant.email,
+    //             }
+    //             shortlistArray.push(newApplicant);
+    //         } 
+    //     }
+    // }
     
 
     

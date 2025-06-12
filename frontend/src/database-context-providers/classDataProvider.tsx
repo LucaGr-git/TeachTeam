@@ -1,5 +1,5 @@
 import { courseService } from "@/services/api";
-import { CourseLecturer, ShortlistedTutor, ShortlistNote } from "@/types/types";
+import { CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote } from "@/types/types";
 import { get } from "http";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -375,6 +375,45 @@ const createCourseTutor = async (courseCode: string, tutorEmail: string) => {
     }
 }
 
+const createLecturerShortlist = async (courseCode: string, lecturerEmail: string, tutorEmail: string, rank: number) => {
+    try {
+        const data = await courseService.createLecturerShortlist(courseCode, lecturerEmail, {courseCode: courseCode, lecturerEmail: lecturerEmail, tutorEmail: tutorEmail, rank: rank});
+        return data;
+    }
+    catch (error) {
+        console.error("Error creating LecturerShortlist entry in classDataProvider");
+    }
+}
+
+const removeLecturerShortlist = async (courseCode: string, lecturerEmail: string, tutorEmail: string) => {
+    try {
+        const data = await courseService.deleteLecturerShortlist(courseCode, lecturerEmail, tutorEmail);
+        return data;
+    }
+    catch (error){
+        console.error("Error removing lecturerShortlist entry in classDataProvider: " + error);
+    }
+}
+
+const updateLecturerShortlist = async (courseCode: string, lecturerEmail: string, shortlist: LecturerShortlist) => {
+    try {
+        const data = await courseService.updateLecturerShortlist(courseCode, lecturerEmail, shortlist);
+        return data;
+    }
+    catch (error){
+        console.error("Error updating lecturerShortlist entry in classDataProvider");
+    }
+}
+
+const fetchAllLecturerShortlists = async() => {
+    try {
+        const data = await courseService.getAllLecturerShortlists();
+        return data;
+    }
+    catch (error) {
+        console.error("Error fetching all lecturer shortlists");
+    }
+}
 
 
 // Create context
@@ -668,6 +707,50 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             }
         }
 
+        // fetch all course lecturers
+        const courseLecturers = await fetchLecturer(courseCode);
+        if (!courseLecturers) {
+            console.warn("Failed to fetch course lecturers");
+            return false;
+        }
+
+        // Fetch all lecturer shortlist entries
+        const allLecturerShortlists = await fetchAllLecturerShortlists();
+        if (!allLecturerShortlists) {
+            console.warn("Failed to fetch lecturer shortlists.");
+            return false;
+        }
+
+        // For each lecturer in this course
+        for (const lecturerEmail of courseLecturers) {
+            const entriesForLecturer = allLecturerShortlists.filter(
+                (entry) => entry.courseCode === courseCode && entry.lecturerEmail === lecturerEmail.lecturerEmail
+            );
+
+            // Find the entry for the tutor
+            const deletedEntry = entriesForLecturer.find(
+                (entry) => entry.tutorEmail === tutorEmail
+            );
+
+            if (!deletedEntry) continue; // This lecturer didn't shortlist the tutor
+
+            const deletedRank = deletedEntry.rank;
+
+            // 1. Remove the matching entry
+            await removeLecturerShortlist(courseCode, lecturerEmail.lecturerEmail, tutorEmail);
+
+            // 2. Decrement rank of any other entries > deletedRank
+            for (const entry of entriesForLecturer) {
+                if (entry.rank > deletedRank) {
+                    const updatedEntry = {
+                        ...entry,
+                        rank: entry.rank - 1
+                    };
+                    await updateLecturerShortlist(courseCode, lecturerEmail.lecturerEmail, updatedEntry);
+                }
+            }
+        }
+
         refreshRecords();
         return true;
     };
@@ -677,11 +760,42 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         const shortListedTutor = await createShortlistedTutor(courseCode, tutorEmail);
         
         // if the courseCode doesn't exist send an error
-        if (!shortListedTutor) {
+        if (shortListedTutor != null) {
             console.warn(`There is no class with course code ${courseCode} or tutor with email ${tutorEmail}`);
             return false;
         }
+
+        // get every course lecturer
+        const courseLecturers = await fetchLecturer(courseCode);
+        if (!courseLecturers) {
+                console.warn(`No lecturers found for course code ${courseCode}`);
+                return false;
+        }
+
+        // Create lecturer shortlist entries for every course lecturer
+        // To decide rank, look at other lecturer shortlist entries for each lecturer for that course, and choose the rank to be +1 of the highest rank
+        // Fetch all existing lecturer shortlist entries
+        const allLecturerShortlists = await fetchAllLecturerShortlists();
+        if (!allLecturerShortlists) {
+            console.warn("Failed to fetch existing lecturer shortlists");
+            return false;
+        }  
         
+        // For each lecturer, find the highest rank so far and add new entry with rank + 1
+        for (const lecturerEmail of courseLecturers) {
+            const lecturerShortlists = allLecturerShortlists.filter(
+                (entry) => entry.courseCode === courseCode && entry.lecturerEmail === lecturerEmail.lecturerEmail
+            );
+
+            const highestRank = lecturerShortlists.length > 0
+                ? Math.max(...lecturerShortlists.map(entry => entry.rank))
+                : 0;
+
+            const newRank = highestRank + 1;
+
+            await createLecturerShortlist(courseCode, lecturerEmail.lecturerEmail, tutorEmail, newRank);
+        }
+
         refreshRecords();
         return true;
     };
@@ -750,55 +864,91 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         if (!currClass.lecturerShortlist[lecturerEmail]) {
             // add lecturer's short list
             currClass.lecturerShortlist[lecturerEmail] = currClass.tutorsShortlist.map(tutor => tutor.tutorEmail);
-            saveClassRecords(classRecords);
+            // saveClassRecords(classRecords);
             return true;
         }
         // If that lecturer already has a shortlist skip initalization
         return false;
     };
 
-    const orderLecturerShortList = async(courseCode: string, tutorEmail: string, lecturerEmail: string, position: number):  Promise<boolean> => {
-        const classRecords = await getClassRecords();
-        const currClass = classRecords[courseCode];
+    const orderLecturerShortList = async(courseCode: string, tutorEmail: string, lecturerEmail: string, newPosition: number):  Promise<boolean> => {
+        // const classRecords = await getClassRecords();
+        // const currClass = classRecords[courseCode];
 
         // initialize array if not done so already
-        initializeLecturerShortlist(courseCode, lecturerEmail);
 
+        // 1. For that courseCode/tutorEmail/lecturerEmail combo, check the range of ranks (highest rank)
+        // 2. check if newPosition is a valid newPosition (greater than 0, less than or equal to highest rank)
+        // 3. Get the oldPosition via that combo of course/tutorEmail/lecturerEmail.
+        // 4. Arrange the shortlist accordingly
         // error checking
-        if (!currClass) {
-            console.warn(`There is no class with course code ${courseCode}`);
-            return false;
-        }
-        if (!currClass.lecturerEmails.includes(lecturerEmail)) {
-            console.warn(`There is no lecturer with email of ${lecturerEmail}`);
-            return false;
-        }
-        if (!currClass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
-            console.warn(`There is no tutor shortlisted with email of ${tutorEmail}`);
-            return false;
-        }
-        if (position > currClass.lecturerShortlist[lecturerEmail].length || position < 0) {
-            console.warn(`That is an invalid position to place ${tutorEmail}`);
-            return false;
-        }
-        
-        if (currClass.lecturerShortlist[lecturerEmail]) {
-            // move the tutor email from it's position to the given position
-            // get current position
-            const currPos = currClass.lecturerShortlist[lecturerEmail].indexOf(tutorEmail);
+        const allShortlists = await fetchAllLecturerShortlists();
 
-            // use splice to remove and move position
-            if (currPos !== -1) {
-                const [movedTutor] = currClass.lecturerShortlist[lecturerEmail].splice(currPos, 1);
-                currClass.lecturerShortlist[lecturerEmail].splice(position, 0, movedTutor);
-            }
+        if (!allShortlists) {
+            console.warn("Could not fetch lecturer shortlists.");
+            return false;
+        }
 
-            saveClassRecords(classRecords);
+        // Step 1: Filter shortlist for given course and lecturer
+        const lecturerShortlist = allShortlists
+            .filter(entry =>
+                entry.courseCode === courseCode &&
+                entry.lecturerEmail === lecturerEmail
+            );
+
+        // Step 2: Determine highest valid rank
+        const maxRank = lecturerShortlist.length;
+        if (newPosition < 1 || newPosition > maxRank) {
+            console.warn(`Invalid newPosition: ${newPosition}. Must be between 1 and ${maxRank}`);
+            return false;
+        }    
+
+        // Step 3: Find old position of the tutor
+        const movingEntry = lecturerShortlist.find(entry => entry.tutorEmail === tutorEmail);
+        if (!movingEntry) {
+            console.warn(`Tutor ${tutorEmail} is not in lecturer ${lecturerEmail}'s shortlist for ${courseCode}`);
+            return false;
+        }
+
+        const oldPosition = movingEntry.rank;
+
+        // Step 4: If positions are the same, no update needed
+        if (oldPosition === newPosition) {
             return true;
         }
-        // If that lecturer does not have a shortlist return error
-        console.warn(`There is no shortlist for ${lecturerEmail}`);
-        return false;
+
+        // Step 5: Adjust ranks of affected entries
+        const updatedEntries: LecturerShortlist[] = [];
+
+        for (const entry of lecturerShortlist) {
+            if (entry.tutorEmail === tutorEmail) continue;
+
+            // Moving up (e.g., 5 → 2): push others down (2 → 3, 3 → 4, etc.)
+            if (oldPosition > newPosition &&
+                entry.rank >= newPosition && entry.rank < oldPosition) {
+                updatedEntries.push({ ...entry, rank: entry.rank + 1 });
+            }
+
+            // Moving down (e.g., 2 → 5): pull others up (3 → 2, 4 → 3, etc.)
+            else if (oldPosition < newPosition &&
+                entry.rank <= newPosition && entry.rank > oldPosition) {
+                updatedEntries.push({ ...entry, rank: entry.rank - 1 });
+            }
+        }
+
+        // Step 6: Update the moving tutor's rank
+        const updatedMovingEntry: LecturerShortlist = {
+            ...movingEntry,
+            rank: newPosition
+        };
+        updatedEntries.push(updatedMovingEntry);
+
+        // Step 7: Save all updates
+        for (const entry of updatedEntries) {
+            await updateLecturerShortlist(courseCode, lecturerEmail, entry);
+        }
+
+        return true;
     }
 
     const addNote = useCallback (async(courseCode: string, tutorEmail: string, lecturerEmail: string, message: string): Promise<boolean> => {
