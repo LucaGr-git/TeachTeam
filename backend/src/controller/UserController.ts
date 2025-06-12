@@ -5,6 +5,7 @@ import { AppDataSource } from '../data-source';
 import { Skill } from '../entity/Skill';
 import { Qualification } from '../entity/Qualification';
 import { Experience } from '../entity/Experience';
+import bcrypt from 'bcryptjs';
 
 /**
  * UserController handles all HTTP requests related to courses
@@ -30,8 +31,15 @@ export class UserController {
       return res.status(400).json({ message: "User with this email already exists" });
     }
 
+    // hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the num of bcrypt salt rounds
+
     /** Create a new user object from the request body */
-    const user = this.userRepo.create(req.body);
+    // update password to the hased one
+    const user = this.userRepo.create({
+      ...req.body,
+      password: hashedPassword,
+    });
 
     /** Save the new user to the database */
     try {
@@ -91,8 +99,23 @@ export class UserController {
       return res.status(404).json({ message: "User not found" });
     }
 
-    /** Merge the existing user with the new data from the request body */
-    this.userRepo.merge(user, req.body);
+    // If password is provided in the request body, hash it
+    if (req.body.password) {
+
+      // hash the password with bcrypt
+      const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the num of bcrypt salt rounds
+
+      /** Merge the existing user with the new data from the request body */
+      // update password to the hashed one
+      this.userRepo.merge(user, {
+        ...req.body,
+        password: hashedPassword,
+      });
+    } 
+    else{
+      this.userRepo.merge(user, req.body);
+    }
+    
 
     /** Save the updated user to the database */
     try {
