@@ -104,7 +104,6 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
 
 
   getTutorApplication: async (courseCode: string, tutorEmail: string) => {
-    console.log(courseCode, " : ", tutorEmail);
     try {
       const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/applications/${tutorEmail}`);
       return data;
@@ -126,7 +125,6 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createTutorApplication: async (courseCode: string, application: TutorApplication): Promise<void> => {
-    console.log(application);
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/applications`, application);
   },
 
@@ -158,8 +156,6 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createShortlistNote: async (courseCode: string, tutorEmail: string, note: ShortlistNote): Promise<void> => {
-    console.log("These are the params passed in AXIOS, " + courseCode + " " + tutorEmail + " " + note.lecturerEmail + " " + note.date + " " + note.message
-    );
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/shortlisted-tutors/${tutorEmail}/notes`, note);
   },
 
@@ -175,7 +171,6 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   deleteShortlistNote: async (noteId: string): Promise<void> => {
-    console.log("Deleting note with ID: " + noteId);
     await axios.delete(`${API_BASE_URL}/shortlistNotes/${noteId}`);
   },
 
@@ -207,7 +202,6 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createPreferredSkill: async (courseCode: string, skill: PreferredSkill): Promise<void> => {
-    console.log("AXIOS FINAL VALUE BEFORE POST: " + skill.courseCode + " " + skill.skill);
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/preferredSkills`, skill);
   },
 
@@ -232,7 +226,6 @@ export const userService = {
   },
 
   updateUser: async (email: string, updatedData: Partial<User>): Promise<User> => {
-    console.log(updatedData.fullTime);
     const { data } = await axios.put(`${API_BASE_URL}/users/${email}`, updatedData);
     return data;
   },

@@ -218,8 +218,6 @@ const UserNavigation = () => {
     // if the skill tag exists remove it
     if (userSkills.includes(skillTag)) {
       const removedSkill = await removeUserSkill(skillTag, currentUser.email);
-      console.log(currentUser.email);
-      console.log(removedSkill + " checking removedSkill bool");
     	if (removedSkill){
         // update the userSkills array
         // cannot use localstorage as removing can take too long 

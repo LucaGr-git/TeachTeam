@@ -319,7 +319,6 @@ export class UserController {
    */
   async deleteSkill(req: Request, res: Response) {
     const { skillId } = req.params; // skill ID
-    console.log(skillId);
     const result = await this.skillRepo.delete({ id: parseInt(skillId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Skill not found' });

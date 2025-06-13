@@ -118,7 +118,6 @@ const PopupApplicantList = ({
     
     // function for adding to shortlist
     const handleShortlist = async(email: string) => {
-        console.log("handleShortlist called");
         // check if user is shortlisted
         const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
@@ -148,7 +147,6 @@ const PopupApplicantList = ({
 
     // function for rejecting applicants
     const handleRejection = async (email: string) => {
-        console.log("Handle reject function called");
         // check if user is shortlisted
         const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         

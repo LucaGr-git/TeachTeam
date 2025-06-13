@@ -211,7 +211,6 @@ const createLecturer = async (courseCode: string, email: string) => {
 };
 
 const fetchLecturer = async (CourseCode: string) => {
-    console.log("Fetching lecturer for course code:", CourseCode);
     try {
         const data = await courseService.getLecturerByCourseCode(CourseCode);
         return data;
@@ -764,7 +763,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     const addPreferredSkill = async (courseCode: string, newSkill: string): Promise<boolean> => {
         
         const preferredSkills = await fetchPreferredSkills(courseCode);
-        console.log(preferredSkills);
         if (preferredSkills && preferredSkills.length + 1 > MAX_NUM_SKILLS){
             console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
             return false;
@@ -777,10 +775,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const removePreferredSkill = async (courseCode: string, skill: string): Promise<boolean> => {
-        console.log("Remove preferred skill function call");
         // check if the preferred skill entry exists
         const preferredSkills = await fetchPreferredSkills(courseCode);
-        console.log(preferredSkills);
 
         if (preferredSkills){
             const matchingPreferredSkill = preferredSkills.find((app => app.courseCode === courseCode && app.skill === skill));

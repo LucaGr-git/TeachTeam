@@ -106,7 +106,6 @@ if (!classRecords) {
     // if the skill tag is not already in the userSkills array, add it
     if (!lecturerClass.preferredSkills.includes(skillTag)) {
       const checkAddPreferredSkill = await addPreferredSkill(courseCode, skillTag);
-      console.log (checkAddPreferredSkill);
       if (checkAddPreferredSkill == true) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);

@@ -17,6 +17,8 @@ export interface ApplicantInfo {
     skills: string[];
     qualifications: string[]
     experience: Experience[];
+    isLabAssistant: boolean[];
+    roles: ("Tutorial" | "Lab")[];
     email: string;
 }
 
@@ -29,7 +31,7 @@ const LecturerSearch = () => {
     const [filteredResults, setFilteredResults] = useState<ApplicantInfo[]>([]);
 
     // Get the ClassRecords from local storage
-    const {classRecords, isLoading} = useClassData();
+    const {classRecords, isLoading, fetchTutorApplication} = useClassData();
     const { getUserExperiences, getUserQualifications, getUserSkills, getAllUsers, getUser} = useUserData();
 
 
@@ -44,7 +46,6 @@ useEffect(() => {
 
     for (const user of userList) {
         const email = user.email;
-      console.log(email);
       const currApplicant = await getUser(email);
       if (currApplicant.isLecturer) continue;
 
@@ -52,11 +53,18 @@ useEffect(() => {
       const userQualification = await getUserQualifications(email);
       const userSkills = await getUserSkills(email);
 
+
       // Collect all course titles they've applied to, if any
       const courseNames: string[] = [];
+      const applicationTypes: boolean[] = [];
       for (const classCode in classRecords) {
+
         if (classRecords[classCode].tutorsApplied.includes(email)) {
-          courseNames.push(classRecords[classCode].courseTitle);
+            courseNames.push(classRecords[classCode].courseTitle);
+            const application = await fetchTutorApplication(classRecords[classCode].courseCode, email);
+            if (application){
+                applicationTypes.push(application.isLabAssistant);
+            }
         }
       }
 
@@ -68,13 +76,14 @@ useEffect(() => {
         qualifications: userQualification.map(q => q.qualification),
         experience: userExperience,
         email: currApplicant.email,
+        isLabAssistant: applicationTypes,
+        roles: Array.from(new Set(applicationTypes.map(type => type ? "Lab" : "Tutorial")))
       };
 
       applicants.push(newApplicant);
     }
 
     setApplicants(applicants);
-    console.log(applicants);
   };
 
     fetchApplicants();
@@ -95,7 +104,9 @@ useEffect(() => {
             applicant.tutorName.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, "")) ||
             applicant.availability.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, "")) ||
             applicant.courseName.some(course => course.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, ""))) ||
-            applicant.skills.some(skill => skill.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, "")))
+            applicant.skills.some(skill => skill.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, ""))) ||
+            applicant.roles.some(role => role.toLowerCase().replace(/ /g, "").includes(searchTerm.toLowerCase().replace(/ /g, "")))
+
         );
     }
 

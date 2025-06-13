@@ -24,7 +24,7 @@ const SearchBar =
     return (
       <input
         type="text"
-        placeholder="Search by course, tutor, skill, etc."
+        placeholder="Search by course, tutor, skill, type of session applied (tutorial, lab), etc."
         value={query}
         onChange={handleInputChange}
         className="p-2 border rounded w-full"

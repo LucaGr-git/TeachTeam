@@ -100,7 +100,6 @@ const createQualification = async (email: string, qualification: Qualification) 
             console.warn("User not found for qualification creation:", email);
             return null;
         }
-        console.log(qualification.qualification + " string data for passed qualification. " + qualification.userEmail + " user email.")
         const qualificationData = await userService.addQualificationToUser(user.email!, qualification);
         return qualificationData;
     } catch (error) {
@@ -175,11 +174,9 @@ const fetchUserExperiences = async (email: string) => {
 const removeSkill = async (email: string, id: number) => {
     try {
         const userSkills = await fetchUserSkills(email);
-        console.log(userSkills);
         if (userSkills) {
             // Try to find a Skill object that matches the skill string
             const matchingSkill = userSkills.find(s => s.id === id);
-            console.log(matchingSkill?.id + " TEST, REMOVE SKILL ID");
             if (matchingSkill) {
                 await userService.deleteSkill(email, matchingSkill.id!);
             }
@@ -330,7 +327,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
     const removeUserSkill = async (skillToRemove: string, email: string): Promise<boolean> => {    
         try {
-            console.log(email + " remove user skill start of function: " + skillToRemove);
             const currUserRecord = await getUser(email);
             if (currUserRecord) { // check whether record actually exists
 
@@ -338,7 +334,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
                 const currUserSkills = await fetchUserSkills(currUserRecord.email); 
                 currUserSkills?.map((skill: Skill) => {console.log(skill.skill + "- skill name, " + skill.id + "- skill id, " + skill.userEmail + "- skill email");
                 });
-                console.log("Printing currUserSkills Array" + currUserSkills);
                 if (!currUserSkills || currUserSkills.length == 0) {
                     console.warn(`User with email ${email} has no skills to remove`);
                     return false;
@@ -354,7 +349,6 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
                 }
 
                 // Call your backend delete function using the Skill ID
-                console.log(matchingSkill.userEmail + " log in removeUserSkill and ID is:" + matchingSkill.id!);
                 await removeSkill(matchingSkill.userEmail, matchingSkill.id!);
                 return true;
             }
