@@ -13,9 +13,9 @@ export interface ClassDataProvision {
     addLecturer: (courseCode: string, lecturer: string) =>  Promise<boolean>;
     removeLecturer: (courseCode: string, lecturer: string) => Promise<boolean>;
 
-    acceptApplication: (courseCode: string, tutor: string) => Promise<boolean>;
+    acceptApplication: (courseCode: string, tutor: string, isLabAssistant: boolean) => Promise<boolean>;
     rejectApplication: (courseCode: string, tutor: string) => Promise<boolean>;
-    addApplication: (courseCode: string, tutorEmail: string) => Promise<boolean>;
+    addApplication: (courseCode: string, tutorEmail: string, isLabAssistant: boolean) => Promise<boolean>;
 
     addToShortlist: (courseCode: string, tutorEmail: string) => Promise<boolean>;
     removeFromShortlist: (courseCode: string, tutorEmail: string) => Promise<boolean>;
@@ -357,9 +357,9 @@ const removeTutorApplication = async (tutorEmail: string, courseCode: string) =>
     }
 }
 
-const createTutorApplication = async (courseCode: string, tutorEmail: string) => {
+const createTutorApplication = async (courseCode: string, tutorEmail: string, isLabAssistant: boolean) => {
     try {
-        const data = await courseService.createTutorApplication(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail});
+        const data = await courseService.createTutorApplication(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail, isLabAssistant: isLabAssistant});
         return data;
     }
     catch (error) {
@@ -367,9 +367,9 @@ const createTutorApplication = async (courseCode: string, tutorEmail: string) =>
     }
 }
 
-const createCourseTutor = async (courseCode: string, tutorEmail: string) => {
+const createCourseTutor = async (courseCode: string, tutorEmail: string, isLabAssistant: boolean) => {
     try {
-        const data = await courseService.createCourseTutor(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail});
+        const data = await courseService.createCourseTutor(courseCode, {courseCode: courseCode, tutorEmail: tutorEmail, isLabAssistant: isLabAssistant});
         return data
     }
     catch (error){
@@ -490,7 +490,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // application methods
-    const acceptApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {        
+    const acceptApplication = async (courseCode: string, tutorEmail: string, isLabAssistant: boolean): Promise<boolean> => {        
         const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
@@ -501,7 +501,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
         // move from tutorApplication to tutors
         // create courseTutor entity
-        await createCourseTutor(courseCode, tutorEmail);
+        await createCourseTutor(courseCode, tutorEmail, isLabAssistant);
 
         // this removes the tutorApplication field
         const reject: boolean =  await rejectApplication(courseCode, tutorEmail);
@@ -573,7 +573,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    const addApplication = async (courseCode: string, tutorEmail: string): Promise<boolean> => {
+    const addApplication = async (courseCode: string, tutorEmail: string, isLabAssistant: boolean): Promise<boolean> => {
         const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
@@ -595,7 +595,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         }
     
         // Add the tutor's email to the tutorsApplied list and save to localStorage
-        await createTutorApplication(courseCode, tutorEmail);
+        await createTutorApplication(courseCode, tutorEmail, isLabAssistant);
 
         refreshRecords();
         

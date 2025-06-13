@@ -60,6 +60,7 @@ export interface ShortlistedTutor {
 export interface TutorApplication {
     courseCode: string;
     tutorEmail: string;
+    isLabAssistant: boolean;
 }
 
 export interface CourseLecturer {
@@ -70,6 +71,7 @@ export interface CourseLecturer {
 export interface CourseTutor{
     courseCode: string;
     tutorEmail: string;
+    isLabAssistant: boolean;
 }
 
 export interface PreferredSkill {
