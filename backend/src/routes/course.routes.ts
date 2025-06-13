@@ -53,7 +53,7 @@ router.get("/courses/:courseCode/tutors", (req, res) => controller.getTutorByCou
 
 router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
 
-router.post("/courses/:courseCode/tutors", validateDto(CreateCourseTutorDTO), (req, res) => controller.createCourseLecturer(req, res));
+router.post("/courses/:courseCode/tutors", validateDto(CreateCourseTutorDTO), (req, res) => controller.createCourseTutor(req, res));
 
 router.get("/courses/:courseCode/applications", (req, res) => controller.getTutorApplicationByCourseCode(req, res));
 

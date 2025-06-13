@@ -302,17 +302,25 @@ async getAllPreferredSkills(req: Request, res: Response) {
    */
   async createCourseTutor(req: Request, res: Response) {
     /** Create a new course tutor object from the request body */
-    const courseTutor = this.courseTutorRepo.create(req.body);
+    const { courseCode, tutorEmail } = req.body;
+
+    const newCourseTutor = this.courseTutorRepo.create({
+      courseCode,
+      tutorEmail,
+      course: { courseCode },     // <-- must match PK on Course entity
+      tutor: { email: tutorEmail } // <-- must match PK on User entity
+    });
 
     /** Save the new course to the database */
     try {
-      await this.courseTutorRepo.save(courseTutor);
+      await this.courseTutorRepo.save(newCourseTutor);
     } catch (error) {
-      return res.status(500).json({ message: "Error saving course lecturer", error });
+      console.error("Error saving course Tutor ", error);
+      return res.status(500).json({ message: "Error saving course tutor "});
     }
 
     /** Return the created course with a 201 status */
-    res.status(201).json(courseTutor);
+    res.status(201).json(newCourseTutor);
   }
 
   /**
