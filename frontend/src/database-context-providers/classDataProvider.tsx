@@ -74,8 +74,6 @@ export interface ClassData {
 
 export type ClassRecord = Record<string, ClassData>;
 
-//TODO: for instead of manually make every component fit into new entity calls, hydrate entities to fit the existing ClassData
-// interface, then dehydrate specific function.
 
 const getClassRecords = async (): Promise<ClassRecord> => {
     try {
@@ -745,7 +743,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         return true;
     };
 
-    // TODO: REMOVE DEFUCT FUNCTION
+    // TODO: REMOVE FUNCTION
     const changeCourseTitle = async (courseCode: string, newTitle: string): Promise<boolean> => {
         console.log(courseCode);
         console.log(newTitle);
@@ -767,7 +765,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         
         const preferredSkills = await fetchPreferredSkills(courseCode);
         console.log(preferredSkills);
-        // todo maximum of MAX_NUM_SKILLS skills allowed
         if (preferredSkills && preferredSkills.length + 1 > MAX_NUM_SKILLS){
             console.warn(`Maximum of ${MAX_NUM_SKILLS} allowed per user.`);
             return false;

@@ -15,7 +15,6 @@ export const MAX_CHAR_EXPERIENCES : number = 35;
 
 // interface for what users of the hook will be able to use
 export interface UserDataProvision {
-    // TODO: 10/06/2025 change all functions to DB functions
     addUserSkill: (skill: string, email: string) => Promise<boolean>;
     removeUserSkill: (skill: string, email: string) => Promise<boolean>;
     addUserExperience: (experience: Experience, email: string) => Promise<boolean>;
@@ -29,7 +28,6 @@ export interface UserDataProvision {
     getUserSkills: (email: string) => Promise<Skill[]>;
     getUserQualifications: (email: string) => Promise<Qualification[]>;
     getUserExperiences: (email: string) => Promise<Experience[]>;
-    // TODO: Rewire how get and save user records work.
     
 }
 
