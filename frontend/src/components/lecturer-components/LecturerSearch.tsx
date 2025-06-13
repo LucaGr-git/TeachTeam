@@ -5,6 +5,7 @@ import { useUserData, localStorageExperienceData } from "@/database-context-prov
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";
+import { Experience } from "@/types/types";
 
 
 
@@ -14,7 +15,7 @@ export interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: localStorageExperienceData[];
+    experience: Experience[];
     email: string;
 }
 
