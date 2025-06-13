@@ -12,7 +12,7 @@ const TutorApplyList = () => {
 
     const  { isAuthenticated, getCurrentUser } = useAuth();
 
-    const { addApplication, classRecords, fetchTutorApplication} = useClassData();
+    const { addApplication, classRecords} = useClassData();
     
     // get current user
     const currUser = getCurrentUser();
