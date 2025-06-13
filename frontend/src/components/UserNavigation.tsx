@@ -72,7 +72,6 @@ const UserNavigation = () => {
   }
 
   
-  // TODO: gonna have chance these useStates values be based off the database
   //get the current user skills
   const [userSkills, setUserSkills] = useState<string[]>([]);
 

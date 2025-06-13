@@ -97,7 +97,4 @@ router.post("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredS
 router.delete("/courses/:courseCode/preferredSkills/:skill", (req, res) => controller.deletePreferredSkill(req, res));
 
 
-// todo change course code functions to reference entity not jsut code where applicable
-// todo also pluralize e.g.  getShortlistedTutorByCourseCode --> getShortlistedTutorsByCourseCode
-// todo add dto validation where necessary
 export default router;
