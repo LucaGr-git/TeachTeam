@@ -5,6 +5,7 @@ import { localStorageExperienceData } from "@/database-context-providers/userDat
 import TagDisplay from "./TagDisplay";
 import ExperienceCard from "./ExperienceCard";
 import NavList from "./NavList";
+import { Experience } from "@/types/types";
 
 // props needed to display the nav card
 interface ApplicantCardProps {
@@ -13,7 +14,7 @@ interface ApplicantCardProps {
     availability: string;
     skills: string[];
     qualifications: string[];
-    experience: localStorageExperienceData[];
+    experience: Experience[];
     children?: React.ReactNode;
 }
 

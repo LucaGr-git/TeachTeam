@@ -28,7 +28,6 @@ export interface UserDataProvision {
     getUserSkills: (email: string) => Promise<Skill[]>;
     getUserQualifications: (email: string) => Promise<Qualification[]>;
     getUserExperiences: (email: string) => Promise<Experience[]>;
-    saveUserRecords: (userRecords: UserRecord) => void;
     // TODO: Rewire how get and save user records work.
     
 }
@@ -643,15 +642,15 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // save a list of user records 
-    const saveUserRecords = (userRecords: UserRecord) => {
-        localStorage.setItem("userData", JSON.stringify(userRecords));
-    };
+    // const saveUserRecords = (userRecords: UserRecord) => {
+    //     localStorage.setItem("userData", JSON.stringify(userRecords));
+    // };
 
     return (
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getAllUsers ,getUser, getUserSkills, getUserQualifications, getUserExperiences, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getAllUsers ,getUser, getUserSkills, getUserQualifications, getUserExperiences
         } }>
       {children}
     </UserDataContext.Provider>

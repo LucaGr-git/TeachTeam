@@ -21,7 +21,6 @@ export interface Authentication {
     logout: () => void;
     signup: (email: string, password: string, isLecturer: boolean, firstName: string, lastName: string) => Promise<boolean>;
     getUsers: () => Record<string, LocalStorageUser>;
-    saveUsers : (users: Record<string, LocalStorageUser>) => void;
     getCurrentUser: () => LocalStorageUser | null;
     fetchUser: (email: string) => Promise<User | null>;
 }
@@ -174,11 +173,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return users ? JSON.parse(users) : {};
     };
 
-    // save users record
-    const saveUsers = (users: Record<string, LocalStorageUser>) => {
-        localStorage.setItem("users", JSON.stringify(users));
-    };
-
     
 
 
@@ -285,7 +279,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser, fetchUser }}>
+        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, getCurrentUser, fetchUser }}>
             {children}
         </AuthContext.Provider>
     );

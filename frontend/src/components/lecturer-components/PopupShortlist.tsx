@@ -11,7 +11,7 @@ import TagDisplay from "../general-components/TagDisplay";
 import NavList from "../general-components/NavList";
 import { ChevronDown, ChevronDownCircle, ChevronUp, ChevronUpCircle } from "lucide-react";
 import LecturerViewNotes from "./LecturerViewNotes";
-import { LecturerShortlist } from "@/types/types";
+import { Experience, LecturerShortlist } from "@/types/types";
 
 interface PopupShortlistProps {
     // Props for popup
@@ -26,7 +26,7 @@ interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: localStorageExperienceData[];
+    experience: Experience[];
     shortListed: boolean;
     email: string;
 }

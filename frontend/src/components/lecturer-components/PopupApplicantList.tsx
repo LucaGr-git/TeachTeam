@@ -8,6 +8,7 @@ import { useAuth } from "@/database-context-providers/auth";
 import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
+import { Experience } from "@/types/types";
 
 interface PopupApplicantListProps {
     // Props for popup
@@ -23,7 +24,7 @@ interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: localStorageExperienceData[];
+    experience: Experience[];
     shortListed: boolean;
     email: string;
 }
@@ -40,7 +41,7 @@ const PopupApplicantList = ({
     const [shortlistOnly, setShortlistOnly] = useState<boolean>(false);
 
     // Get the records from local storage
-    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
+    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords, acceptApplication} = useClassData();
     const {getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const { getCurrentUser} = useAuth();
 
