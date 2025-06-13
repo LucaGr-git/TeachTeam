@@ -3,7 +3,6 @@ import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TagDisplay from "../general-components/TagDisplay";
-import { Badge } from "../ui/badge";
 
 // interface for the class card details
 interface TutorClassCardProps {
@@ -13,9 +12,9 @@ interface TutorClassCardProps {
 
 const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   // get class records
-  const { classRecords, fetchTutorApplication } = useClassData();
+  const { classRecords } = useClassData();
   // get user records
-  const { fetchUser, getCurrentUser } = useAuth();
+  const { fetchUser } = useAuth();
 
   // get class record
   if (!classRecords) {
@@ -39,7 +38,6 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   }
 
    const [lecturerNames, setLecturerNames] = useState<string[]>([]);
-   const [isLabAssistant, setIsLabAssistant] = useState<boolean>(false);
   
   // get the lecturers for the course
   useEffect(() => {
@@ -69,24 +67,7 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
     fetchLecturerNames();
   }, [tutorClass.lecturerEmails]);
 
-  // get the current tutors application
-  useEffect(() => {
-    const fetchApplcation = async () => {
-      const user = getCurrentUser();
 
-      if (user){
-        const application = await fetchTutorApplication(courseCode, user.email);
-
-        if (application){
-          setIsLabAssistant(application.isLabAssistant);
-        }
-      }
-
-      
-    };
-
-    fetchApplcation();
-  }, []);
 
   // get the preferred availability 
   const preferredAvailabilities: string[] = [];
@@ -114,7 +95,6 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
         <p>Lecturers:</p>
         <TagDisplay tags={lecturerNames}></TagDisplay>
       </section>
-      <Badge>{((isLabAssistant)? "Lab Assistant":"Tutor")}</Badge>
 
       
 
