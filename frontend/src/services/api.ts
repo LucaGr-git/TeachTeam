@@ -160,6 +160,7 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   deleteShortlistNote: async (noteId: string): Promise<void> => {
+    console.log("Deleting note with ID: " + noteId);
     await axios.delete(`${API_BASE_URL}/shortlistNotes/${noteId}`);
   },
 

@@ -638,7 +638,7 @@ async getAllPreferredSkills(req: Request, res: Response) {
    */
   async deleteShortlistNote(req: Request, res: Response) {
     const shortlistNote = await this.shortlistNoteRepo.findOneBy({
-       id: parseInt(req.params.id),
+       id: parseInt(req.params.noteId),
     });
 
     if (!shortlistNote) {
