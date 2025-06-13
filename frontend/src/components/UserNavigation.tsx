@@ -182,7 +182,7 @@ const UserNavigation = () => {
         return "";
       }
       else {
-        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
+        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed or skill is over 15 characters`;
       }
     }
     // if tag exists show error
@@ -254,7 +254,7 @@ const UserNavigation = () => {
         return "";
       }
       else {
-        return `Only a maximum of ${MAX_NUM_QUALIFICATIONS} qualifications allowed`;
+        return `Only a maximum of ${MAX_NUM_QUALIFICATIONS} qualifications allowed or input is > 15 characters`;
       }
     }
     // if tag exists show error
