@@ -230,7 +230,7 @@ const PopupShortlist = ({
                 return alert("Error: tutor not in array");
             }
             
-            if (await orderLecturerShortList(courseCode, email, currEmail, 0)) {
+            if (await orderLecturerShortList(courseCode, email, currEmail, 1)) {
                 // rerender via useState
                 // use a temporary shortList variable rather tanh shortlist itself to render properly
                 const tempShortList = [...shortList];
