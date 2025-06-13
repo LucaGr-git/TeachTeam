@@ -40,7 +40,6 @@ export interface ClassDataProvision {
     fetchCourse: (courseCode: string) => Promise<Course | undefined>;
 
     getClassRecords: () => Promise<ClassRecord>;
-    saveClassRecords: (classRecords: ClassRecord) => Promise<void>;
 }
 
 export type LecturerShortList = Record<string, string[]>;
@@ -444,6 +443,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
     const refreshRecords= () => {
         const fetchRecords = async () => {
+        setIsLoading(true);
         const data = await getClassRecords(); // fetch and compose your ClassRecord object
         setClassRecords(data);
         setIsLoading(false);
@@ -456,101 +456,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         refreshRecords();
     }, [])
 
-    const saveClassRecords = async (classRecords: ClassRecord): Promise<void> => {
-    for (const courseCode in classRecords) {
-        const record = classRecords[courseCode];
-        try {
-        // Update or create the course
-        await courseService.updateCourse(courseCode, {
-            courseTitle: record.courseTitle,
-            partTimeFriendly: record.partTimeFriendly,
-            fullTimeFriendly: record.fullTimefriendly,
-        });
-
-        // Delete and recreate CourseLecturers
-        try {
-            await removeCourse(courseCode); // assuming it clears lecturers too
-        }
-        catch (error) {
-            console.error("SCR - Failed to remove course with given code: " + courseCode, error);
-        }
-        await courseService.createCourse({ // recreate course so we can re-add lecturers
-            courseCode,
-            courseTitle: record.courseTitle,
-            partTimeFriendly: record.partTimeFriendly,
-            fullTimeFriendly: record.fullTimefriendly,
-          });
-
-        const newCourse = await courseService.getCourseByCode(courseCode);
-        if (!newCourse) {
-            throw new Error(`Course ${courseCode} not found after creation`);
-        }
-        for (const lecturerEmail of record.lecturerEmails) {
-            await courseService.createCourseLecturer(courseCode, { courseCode, lecturerEmail });
-        }
-
-        // Course Tutors
-        for (const tutorEmail of record.tutorEmails) {
-            await courseService.createCourseTutor(courseCode, { courseCode, tutorEmail });
-        }
-
-        // Tutor Applications
-        for (const tutorEmail of record.tutorsApplied) {
-            await courseService.createTutorApplication(courseCode, { courseCode, tutorEmail });
-        }
-
-        // Shortlisted Tutors
-        for (const shortlistEntry of record.tutorsShortlist) {
-            await courseService.createShortlistedTutor(courseCode, {
-            courseCode,
-            tutorEmail: shortlistEntry.tutorEmail,
-            });
-
-            for (const note of shortlistEntry.notes) {
-            await courseService.createShortlistNote(
-                courseCode,
-                shortlistEntry.tutorEmail,
-                {    
-                courseCode,
-                tutorEmail: shortlistEntry.tutorEmail,
-                lecturerEmail: note.lecturerEmail,
-                message: note.message,
-                date: note.date,
-                }
-            );
-            }
-        }
-
-        // Preferred Skills
-        for (const skill of record.preferredSkills) {
-            try {
-                await createPreferredSkill(courseCode, skill);
-            }
-            catch (error) {
-                console.error("SCR: Error trying to create preferred skill", error);
-            }
-        }
-
-        // Lecturer Shortlist
-        for (const [lecturerEmail, rankedList] of Object.entries(record.lecturerShortlist)) {
-            for (let rank = 0; rank < rankedList.length; rank++) {
-            const tutorEmail = rankedList[rank];
-            if (tutorEmail) {
-                await courseService.createLecturerShortlist(courseCode, lecturerEmail, {
-                courseCode,
-                lecturerEmail,
-                tutorEmail,
-                rank,
-                });
-            }
-            }
-        }
-        setClassRecords(classRecords)
-        } catch (err) {
-        console.error(`Error dehydrating course ${courseCode}:`, err);
-        }
-    }
-    };
 
     const addLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
         
@@ -1166,7 +1071,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
                 fetchAllLecturerShortlists,
                 fetchCourse,
                 getClassRecords,
-                saveClassRecords,
             }}
         >
             {children}

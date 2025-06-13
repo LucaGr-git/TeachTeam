@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useClassData } from "@/database-context-providers/classDataProvider";
-import { useAuth } from "@/database-context-providers/auth";
-import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData } from "@/database-context-providers/userDataProvider";
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";
 import { Experience } from "@/types/types";
+import LoadingIcons from 'react-loading-icons'
+
 
 
 
@@ -28,7 +29,7 @@ const LecturerSearch = () => {
     const [filteredResults, setFilteredResults] = useState<ApplicantInfo[]>([]);
 
     // Get the ClassRecords from local storage
-    const {classRecords} = useClassData();
+    const {classRecords, isLoading} = useClassData();
     const { getUserExperiences, getUserQualifications, getUserSkills, getAllUsers, getUser} = useUserData();
 
 
@@ -79,8 +80,15 @@ useEffect(() => {
     fetchApplicants();
 }, [classRecords]);    
 
+    if (isLoading || applicants.length === 0) {
+    return <div>Loading applicants...
+        <div><LoadingIcons.SpinningCircles /></div>
+    </div>
+    ;
 
-     // Search function
+    }
+
+// Search function
      const searchItems = (applicants: ApplicantInfo[], searchTerm: string): ApplicantInfo[] => {
         return applicants.filter(applicant => 
             // Check if any string or array of strings contains the search term
