@@ -5,6 +5,7 @@ import { AppDataSource } from '../data-source';
 import { Skill } from '../entity/Skill';
 import { Qualification } from '../entity/Qualification';
 import { Experience } from '../entity/Experience';
+import bcrypt from 'bcryptjs';
 
 /**
  * UserController handles all HTTP requests related to courses
@@ -30,8 +31,15 @@ export class UserController {
       return res.status(400).json({ message: "User with this email already exists" });
     }
 
+    // hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the num of bcrypt salt rounds
+
     /** Create a new user object from the request body */
-    const user = this.userRepo.create(req.body);
+    // update password to the hased one
+    const user = this.userRepo.create({
+      ...req.body,
+      password: hashedPassword,
+    });
 
     /** Save the new user to the database */
     try {
@@ -83,7 +91,7 @@ export class UserController {
   async update(req: Request, res: Response) {
     /** Retrieve the user from the database */
     let user = await this.userRepo.findOneBy({
-      email: req.params.id,
+      email: req.params.email,
     });
 
     /** Check if the user exists, if not, return a 404 error */
@@ -91,8 +99,23 @@ export class UserController {
       return res.status(404).json({ message: "User not found" });
     }
 
-    /** Merge the existing user with the new data from the request body */
-    this.userRepo.merge(user, req.body);
+    // If password is provided in the request body, hash it
+    if (req.body.password) {
+
+      // hash the password with bcrypt
+      const hashedPassword = await bcrypt.hash(req.body.password, 10); // 10 is the num of bcrypt salt rounds
+
+      /** Merge the existing user with the new data from the request body */
+      // update password to the hashed one
+      this.userRepo.merge(user, {
+        ...req.body,
+        password: hashedPassword,
+      });
+    } 
+    else{
+      this.userRepo.merge(user, req.body);
+    }
+    
 
     /** Save the updated user to the database */
     try {
@@ -139,7 +162,13 @@ export class UserController {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.skills);
+    // res.json(user.skills);
+      const skills = user.skills.map(skill => ({
+        id: skill.id,
+        skill: skill.skill,
+        userEmail: email, // safe optional chaining
+      }));
+      res.json(skills);
 }
 
   /**
@@ -154,7 +183,14 @@ export class UserController {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user.qualifications);
+    // res.json(user.qualifications);
+    const qualifications = user.qualifications.map(qualification => ({
+    id: qualification.id,
+    qualification: qualification.qualification,
+    userEmail: email,
+    }));
+    res.json(qualifications);
+
   }
 
 
@@ -171,6 +207,15 @@ export class UserController {
       return res.status(404).json({ message: 'User not found' });
     }
     res.json(user.experiences);
+    // const experiences = user.experiences.map(experience => ({
+    // id: experience.id,
+    // title: experience.title,
+    // company: experience.company,
+    // timeStarted: experience.timeStarted,
+    // timeFinished: experience.timeFinished,
+    // userEmail: email,
+    // }));
+    // res.json(experiences);
   }
 
   /**
@@ -243,8 +288,8 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteExperience(req: Request, res: Response) {
-    const { id } = req.params; // experience ID
-    const result = await this.experienceRepo.delete({ id: parseInt(id) });
+    const { experienceId } = req.params; // experience ID
+    const result = await this.experienceRepo.delete({ id: parseInt(experienceId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Experience not found' });
     }
@@ -258,8 +303,8 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteQualification(req: Request, res: Response) {
-    const { id } = req.params; // qualification ID
-    const result = await this.qualificationRepo.delete({ id: parseInt(id) });
+    const { qualificationId } = req.params; // qualification ID
+    const result = await this.qualificationRepo.delete({ id: parseInt(qualificationId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Qualification not found' });
     }
@@ -273,8 +318,9 @@ export class UserController {
    * @returns 204 status on success or 404 if user not found
    */
   async deleteSkill(req: Request, res: Response) {
-    const { id } = req.params; // skill ID
-    const result = await this.skillRepo.delete({ id: parseInt(id) });
+    const { skillId } = req.params; // skill ID
+    console.log(skillId);
+    const result = await this.skillRepo.delete({ id: parseInt(skillId) });
     if (!result.affected) {
       return res.status(404).json({ error: 'Skill not found' });
     }

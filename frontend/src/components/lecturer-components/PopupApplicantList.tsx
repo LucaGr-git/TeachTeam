@@ -1,10 +1,11 @@
 import React from "react";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Section from "../general-components/Section";
 
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, experienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 
@@ -22,7 +23,7 @@ interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: experienceData[];
+    experience: localStorageExperienceData[];
     shortListed: boolean;
     email: string;
 }
@@ -38,20 +39,58 @@ const PopupApplicantList = ({
     // usestate for whether only non-shortlisted applicants should be shown
     const [shortlistOnly, setShortlistOnly] = useState<boolean>(false);
 
-    // get user data
-    const applicantList: ApplicantInfo[] = [];
-
     // Get the records from local storage
-    const {getClassRecords, addToShortlist, removeFromShortlist, rejectApplication} = useClassData();
-    const {getUserRecords} = useUserData();
-    const {getUsers, getCurrentUser} = useAuth();
+    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
+    const {getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
+    const { getCurrentUser} = useAuth();
+
+    const [applicantList, setApplicantList] = useState<ApplicantInfo[]>([]);
+
+
+    useEffect(() => {
+    const fetchApplicants = async () => {
+        const applicants: ApplicantInfo[] = [];
+
+        if (classRecords != null){
+        for (const tutor of classRecords[courseCode].tutorsApplied) {
+            const currApplicant = await getUser(tutor);
+            const userExperience = await getUserExperiences(tutor);
+            const userQualification = await getUserQualifications(tutor);
+            const userSkills = await getUserSkills(tutor);
+            const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
+
+            if (!currApplicant.isLecturer) {
+                const newApplicant: ApplicantInfo = {
+                    tutorName: currApplicant.firstName,
+                    courseName: [classRecords[courseCode].courseTitle],
+                    availability: currApplicant.fullTime ? "Full time" : "Part time",
+                    skills: userSkills.map(s => s.skill),
+                    qualifications: userQualification.map(q => q.qualification),
+                    experience: userExperience,
+                    shortListed: shortlisted,
+                    email: currApplicant.email,
+                };
+                applicants.push(newApplicant);
+            }
+        }
+    }
+
+        setApplicantList(applicants);
+    };
+
+    fetchApplicants();
+}, [classRecords, courseCode, rerenderCounter]);
 
 
 
-    const classRecords: ClassRecord = getClassRecords();
-    const course = classRecords[courseCode];
-    const userData: UserRecord = getUserRecords();
-    const userList = getUsers();
+    if (!classRecords) {
+        return (
+        <Section title="Error">
+            <p className="text-red-500">Failed to load class records.</p>
+        </Section>
+        );
+  }
+
     const currUser = getCurrentUser();
 
     // if the user is not logged in return a message
@@ -63,45 +102,18 @@ const PopupApplicantList = ({
     }
     
     // See if user is lecturing the course 
-    const lecturingThisCourse: boolean = course.lecturerEmails.includes(currUser?.email);
+    const lecturingThisCourse: boolean = classRecords[courseCode].lecturerEmails.includes(currUser?.email);
     
-
-    for (const tutor of course.tutorsApplied) {
-
-
-        const currApplicant = userList[tutor];
-        const currUserData = userData[tutor];
-
-        // check if user is shortlisted
-        const shortlisted = course.tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
-        
-
-
-        if (!currApplicant.isLecturer) {
-            const newApplicant: ApplicantInfo = {
-                tutorName: currApplicant.firstName,
-                courseName: [course.courseTitle],
-                availability: ((currUserData.fullTime)? "Full time":"Part time"),
-                skills: currUserData.skills,
-                qualifications: currUserData.qualifications,
-                experience: currUserData.experience,
-                shortListed: shortlisted,
-                email: currApplicant.email,
-            }
-            applicantList.push(newApplicant);
-        }
-    }
-
     // function for adding to shortlist
-    const handleShortlist = (email: string) => {
+    const handleShortlist = async(email: string) => {
+        console.log("handleShortlist called");
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // if user is shortlisted remove them from the shortlist
         if (shortlisted) {
             
-            if (removeFromShortlist(courseCode, email)) {
+            if (await removeFromShortlist(courseCode, email)) {
                 // rerender
                 setRerenderCounter(rerenderCounter + 1);
             }
@@ -111,7 +123,7 @@ const PopupApplicantList = ({
         } 
         else {
             // if user is not shortlisted add them to the shortlist
-            if (addToShortlist(courseCode, email)) {
+            if (await addToShortlist(courseCode, email)) {
                 // rerender
                 setRerenderCounter(rerenderCounter + 1);
             }
@@ -123,10 +135,10 @@ const PopupApplicantList = ({
     }
 
     // function for rejecting applicants
-    const handleRejection = (email: string) => {
+    const handleRejection = async (email: string) => {
+        console.log("Handle reject function called");
         // check if user is shortlisted
-        const course = classRecords[courseCode];
-        const shortlisted = course.tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
         
         // cannot remove shorltisteed applicants without first removing form shortlist
         if (shortlisted) {
@@ -134,7 +146,7 @@ const PopupApplicantList = ({
             alert("That applicant is shortlisted, please remove from shortlist before rejecting applicant")
         } 
         else {
-            if (rejectApplication(courseCode, email)){
+            if (await rejectApplication(courseCode, email) == true){
 
                 // rerender if rejection is successful
                 setRerenderCounter(rerenderCounter + 1);
@@ -148,7 +160,7 @@ const PopupApplicantList = ({
 
     // only the shortlisted applicants
     const shortlist = applicantList.filter(applicant => 
-        course.tutorsShortlist.some(tutor => tutor.tutorEmail === applicant.email))
+        classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === applicant.email))
     
 
     return (buttonPopup) ? (
@@ -184,7 +196,7 @@ const PopupApplicantList = ({
                         (
                             <>
                                 <Button 
-                                    key = {index} 
+                                    key = {`shortlist-${applicant.email}`} 
                                     type="button" 
                                     onClick={() => handleShortlist(applicant.email)} 
                                     variant={(!applicant.shortListed)? "default": "destructive"}>
@@ -194,7 +206,7 @@ const PopupApplicantList = ({
                                     // if applicant is not shortlisted show option to reject application 
                                     <Button 
                                         className="ml-5"
-                                        key = {index} 
+                                        key = {`reject-${applicant.email}`} 
                                         type="button" 
                                         onClick={() => handleRejection(applicant.email)} 
                                         variant="destructive">

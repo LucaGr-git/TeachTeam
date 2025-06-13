@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useContext, ReactNode, useCallback 
 import { useRouter } from "next/router";
 import { User } from "@/types/types";
 import { userService } from "@/services/api";
+import bcrypt from 'bcryptjs';
 
 // interface for user records details
 export interface LocalStorageUser {
@@ -22,6 +23,7 @@ export interface Authentication {
     getUsers: () => Record<string, LocalStorageUser>;
     saveUsers : (users: Record<string, LocalStorageUser>) => void;
     getCurrentUser: () => LocalStorageUser | null;
+    fetchUser: (email: string) => Promise<User | null>;
 }
 
   const createUser = async (user: User) => {
@@ -38,7 +40,7 @@ export interface Authentication {
     try {
       const data = await userService.getUserByEmail(email);
       return data;
-    } catch (error: any) {
+    } catch (error: any) { // todo fix any type issue
         if (error.response && error.response.status === 404) {
         // This is expected during signup
         return null;
@@ -137,7 +139,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (fetchedUser == null) {return false;}
         
         // update hooks based on matching email pass
-        if (fetchedUser.email && fetchedUser.password === password) {
+        const match = await bcrypt.compare(password, fetchedUser.password);
+
+        if (fetchedUser.email && (match || fetchedUser.password === password)) {
 
             // sets current user to the matching record
             setCurrentUser(email);
@@ -281,7 +285,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser }}>
+        <AuthContext.Provider value={{ isAuthenticated, isLecturer, login, logout, signup, getUsers, saveUsers, getCurrentUser, fetchUser }}>
             {children}
         </AuthContext.Provider>
     );

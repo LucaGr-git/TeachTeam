@@ -19,5 +19,5 @@ export class Experience {
   timeStarted: string;
 
   @Column({ type: "varchar", length: 40, nullable: true })
-  timeFinished: string;
+  timeFinished?: string;
 }

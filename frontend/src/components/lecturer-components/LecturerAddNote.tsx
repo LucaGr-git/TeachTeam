@@ -34,13 +34,20 @@ const LecturerAddNote = (
 
 
   // get class records
-  const { getClassRecords, addNote} = useClassData();
+  const { getClassRecords, addNote, isLoading, classRecords} = useClassData();
   // get user records
   const {getCurrentUser, isAuthenticated, isLecturer} = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
-  const lecturerCLass = classRecords[courseCode];
+  if (!classRecords){
+    if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
+  }
 
   // get current user
   const currUser = getCurrentUser();
@@ -70,7 +77,7 @@ const noteForm = useForm({
 
   
   // return error card if course code is wrong
-  if (!lecturerCLass) {
+  if (!classRecords[courseCode]) {
     return (
       <Section title="Error course code not found">
         <p className="text-destructive">Course code {courseCode} not found.</p>
@@ -78,7 +85,7 @@ const noteForm = useForm({
     )
   }
 
-  if (!lecturerCLass.tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
+  if (!classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === tutorEmail)) {
     return (
       <Section title="Error tutor not in shortlist, only shortlisted tutors may have notes">
         <p className="text-destructive">Tutor {tutorEmail} not shortlisted.</p>
@@ -89,9 +96,9 @@ const noteForm = useForm({
   
 
 
-  const handleAdd = (values: {noteBody: string}) => {
+  const handleAdd = async(values: {noteBody: string}) => {
 
-    if (addNote(courseCode, tutorEmail, currUser.email, values.noteBody)){
+    if (await addNote(courseCode, tutorEmail, currUser.email, values.noteBody)){
       // if successful in adding note hide add note section
       setVisibilityTrigger(false);
       setRerenderParentCounter(rerenderParentCounter + 1);

@@ -1,5 +1,5 @@
 import { createContext, useEffect, useContext, ReactNode } from "react";
-import { Qualification, Skill, Experience, User, NewSkill } from "@/types/types";
+import { Qualification, Skill, Experience, User} from "@/types/types";
 import { userService } from "@/services/api";
 
 // const values for maximum number of skills, qualifications and experiences
@@ -16,23 +16,39 @@ export const MAX_CHAR_EXPERIENCES : number = 35;
 export interface UserDataProvision {
     // TODO: 10/06/2025 change all functions to DB functions
     addUserSkill: (skill: string, email: string) => Promise<boolean>;
-    removeUserSkill: (skill: string, email: string) => boolean;
-    addUserExperience: (experience: experienceData, email: string) => boolean;
-    removeUserExperience: (experience: experienceData, email: string) => boolean;
-    addUserQualification: (newQualification: string, email: string) => boolean;
-    removeUserQualification: (qualification: string, email: string) => boolean;
-    changeAvailability: (fullTime: boolean, email: string) => boolean;
+    removeUserSkill: (skill: string, email: string) => Promise<boolean>;
+    addUserExperience: (experience: Experience, email: string) => Promise<boolean>;
+    removeUserExperience: (experience: Experience, email: string) => Promise<boolean>;
+    addUserQualification: (newQualification: string, email: string) => Promise<boolean>;
+    removeUserQualification: (qualification: string, email: string) => Promise<boolean>;
+    changeAvailability: (fullTime: boolean, email: string) => Promise<boolean>;
     getUserRecords: () => UserRecord ;
+    getAllUsers: () => Promise<User[]>;
+    getUser: (email: string) => Promise<User>;
+    getUserSkills: (email: string) => Promise<Skill[]>;
+    getUserQualifications: (email: string) => Promise<Qualification[]>;
+    getUserExperiences: (email: string) => Promise<Experience[]>;
     saveUserRecords: (userRecords: UserRecord) => void;
+    // TODO: Rewire how get and save user records work.
     
 }
 
 // experience details
-export interface experienceData {
+export interface localStorageExperienceData {
     title: string;
     company: string;
     timeStarted: string; // this is an ISO string
     timeFinished?: string; // this is an ISO string
+}
+
+const fetchAllUsers = async () => {
+    try {
+        const allUsers = await userService.getAllUsers();
+        return allUsers;
+    }
+    catch(error) {
+        console.error("Error fetching all users in userDataProvider", error);
+    }
 }
 
 const fetchUser = async (email: string) => {
@@ -50,17 +66,60 @@ try {
     }
 };
 
-const createSkill = async (email: string, skill: NewSkill) => {
+const updateUser = async (email: string, newUpdatedUser: Partial<User>) => {
+    try {
+        const userToUpdate = await fetchUser(email);
+        if (userToUpdate) {
+            const changedUser = await userService.updateUser(email, newUpdatedUser);
+        }
+    }
+    catch {
+        return null;
+    }
+}
+
+const createSkill = async (email: string, skill: Skill) => {
     try {
         const userWithSkill = await fetchUser(email);
         if (!userWithSkill) {
             console.warn("User not found for skill creation:", email);
             return null;
         }
-        const skillData = await userService.addSkillToUser(userWithSkill.email, skill);
+        const skillData = await userService.addSkillToUser(userWithSkill.email!, skill);
         return skillData;
     } catch (error) {
         console.error("Error creating skill for user:", error);
+        return null;
+    }
+}
+
+const createQualification = async (email: string, qualification: Qualification) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for qualification creation:", email);
+            return null;
+        }
+        console.log(qualification.qualification + " string data for passed qualification. " + qualification.userEmail + " user email.")
+        const qualificationData = await userService.addQualificationToUser(user.email!, qualification);
+        return qualificationData;
+    } catch (error) {
+        console.error("Error creating qualification for user:", error);
+        return null;
+    }
+}
+
+const createExperience = async (email: string, experience: Experience) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for experience creation:", email);
+            return null;
+        }
+        const experienceData = await userService.addExperienceToUser(email, experience);
+        return experienceData;
+    } catch (error) {
+        console.error("Error creating experience for user:", error);
         return null;
     }
 }
@@ -76,8 +135,92 @@ const fetchUserSkills = async (email: string) => {
         return skillData;
     }
     catch (error) {
-        console.error("Error get getting user skills");
+        console.error("Error get getting user skills", error);
         return null;
+    }
+}
+
+const fetchUserQualifications = async (email: string) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for qualifications:", email);
+            return null;
+        }
+        const qualificationData = await userService.getUserQualifications(user.email);
+        return qualificationData;
+    }
+    catch (error) {
+        console.error("Error getting user qualifications", error);
+        return null;
+    }
+}
+
+const fetchUserExperiences = async (email: string) => {
+    try {
+        const user = await fetchUser(email);
+        if (!user) {
+            console.warn("User not found for experiences:", email);
+            return null;
+        }
+        const experienceData = await userService.getUserExperiences(user.email);
+        return experienceData;
+    }
+    catch (error) {
+        console.error("Error getting user experiences", error);
+        return null;
+    }
+}
+
+const removeSkill = async (email: string, id: number) => {
+    try {
+        const userSkills = await fetchUserSkills(email);
+        console.log(userSkills);
+        if (userSkills) {
+            // Try to find a Skill object that matches the skill string
+            const matchingSkill = userSkills.find(s => s.id === id);
+            console.log(matchingSkill?.id + " TEST, REMOVE SKILL ID");
+            if (matchingSkill) {
+                const userSkillToDelete = await userService.deleteSkill(email, matchingSkill.id!);
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen skill", error);
+    }
+}
+
+const removeQualification = async (email: string, id: number) => {
+    try {
+        const userQualifications = await fetchUserQualifications(email);
+        if (userQualifications) {
+            // Try to find a Qualification object that matches the qualification string
+            const matchingQualification = userQualifications.find(s => s.id === id);
+
+            if (matchingQualification) {
+                const userQualificationToDelete = await userService.deleteQualification(matchingQualification?.userEmail, matchingQualification?.id!);
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen qualification", error);
+    }
+}
+
+const removeExperience = async (email: string, id: number) => {
+    try {
+        const userExperiences = await fetchUserExperiences(email);
+        if (userExperiences) {
+            // Try to find an experience object that matches the experience id
+            const matchingExperience = userExperiences.find(s => s.id === id);
+
+            if (matchingExperience) {
+                const userExperienceToDelete = await userService.deleteExperience(matchingExperience?.userEmail, matchingExperience?.id!);
+            }
+        }
+    }
+    catch(error) {
+        console.error("Error removing chosen qualification", error);
     }
 }
 
@@ -85,7 +228,7 @@ const fetchUserSkills = async (email: string) => {
 // interface for user's data details
 export interface UserData {
     email: string; // ? unsure whether the key should be reused as a data member
-    experience: experienceData[]; 
+    experience: localStorageExperienceData[]; 
     skills: string[];
     qualifications: string[];
     fullTime: boolean;
@@ -102,35 +245,32 @@ const UserDataContext = createContext<UserDataProvision | undefined>(undefined);
 
 
 export const UserDataProvider = ({ children }: { children: ReactNode }) => {
-
-    
-
     useEffect(() => {   
         // !!! load dummy data 
 
-        const userRecords: UserRecord = getUserRecords();
+        // const userRecords: UserRecord = getUserRecords();
 
-        userRecords["example123@gmail.com"] = {
-            email: "example123@gmail.com",
-            experience: [{title: "Soft Eng.",company: "Microsoft", timeStarted: new Date("2022-01-01").toISOString()}],
-            skills: ["OOP", "C#", "Azure"],
-            qualifications: ["Bachelor", "Cert."],
-            fullTime: true,
-        };
-        userRecords["lecturer123@gmail.com"] = {
-            email: "lecturer123@gmail.com",
-            experience: [{
-                title: "Soft Eng.",
-                company: "Nintendo", 
-                timeStarted: new Date("2020-01-01").toISOString(), 
-                timeFinished: new Date("2022-01-01").toISOString()}],
-            skills: ["Python", "Machine Learning"],
-            qualifications: ["Master's", "Cert."],
-            fullTime: true,
-        };
+        // userRecords["example123@gmail.com"] = {
+        //     email: "example123@gmail.com",
+        //     experience: [{title: "Soft Eng.",company: "Microsoft", timeStarted: new Date("2022-01-01").toISOString()}],
+        //     skills: ["OOP", "C#", "Azure"],
+        //     qualifications: ["Bachelor", "Cert."],
+        //     fullTime: true,
+        // };
+        // userRecords["lecturer123@gmail.com"] = {
+        //     email: "lecturer123@gmail.com",
+        //     experience: [{
+        //         title: "Soft Eng.",
+        //         company: "Nintendo", 
+        //         timeStarted: new Date("2020-01-01").toISOString(), 
+        //         timeFinished: new Date("2022-01-01").toISOString()}],
+        //     skills: ["Python", "Machine Learning"],
+        //     qualifications: ["Master's", "Cert."],
+        //     fullTime: true,
+        // };
 
 
-        saveUserRecords(userRecords);
+        // saveUserRecords(userRecords);
 
         
         // !!! end loading dummy data 
@@ -167,7 +307,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             }
             // push the skill into the record 
             const newSkillToAdd: Skill = {
-                email: email,
+                userEmail: email,
                 skill: newSkill,
             };
 
@@ -188,49 +328,51 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     };
 
-    const removeUserSkill = (skill: string, email: string): boolean => {
-        const userRecords: UserRecord = getUserRecords();
+    const removeUserSkill = async (skillToRemove: string, email: string): Promise<boolean> => {    
+        try {
+            console.log(email + " remove user skill start of function: " + skillToRemove);
+            const currUserRecord = await getUser(email);
+            if (currUserRecord) { // check whether record actually exists
 
-        if (!userRecords){return false;}
-        
-        const currUserRecord = userRecords[email];
-        if (currUserRecord) { // check whether record actually exists
+                // Ensure skills array exists before operating on it
+                const currUserSkills = await fetchUserSkills(currUserRecord.email); 
+                currUserSkills?.map((skill: Skill) => {console.log(skill.skill + "- skill name, " + skill.id + "- skill id, " + skill.userEmail + "- skill email");
+                });
+                console.log("Printing currUserSkills Array" + currUserSkills);
+                if (!currUserSkills || currUserSkills.length == 0) {
+                    console.warn(`User with email ${email} has no skills to remove`);
+                    return false;
+                }
+                
+                // Database conversion
+                // Try to find a Skill object that matches the skill string
+                const matchingSkill = currUserSkills.find(s => s.skill === skillToRemove);
 
-            // Ensure skills array exists before operating on it
-            if (!currUserRecord.skills) {
-                console.warn(`User with email ${email} has no skills to remove`);
-                return false;
+                if (!matchingSkill) {
+                    console.warn(`User with email ${email} has no skill called '${skillToRemove}' to remove.`);
+                    return false;
+                }
+
+                // Call your backend delete function using the Skill ID
+                console.log(matchingSkill.userEmail + " log in removeUserSkill and ID is:" + matchingSkill.id!);
+                await removeSkill(matchingSkill.userEmail, matchingSkill.id!);
+                return true;
             }
-            
-            // get old length of skills array
-            const oldLength = currUserRecord.skills.length;
-
-            // filter out all skills that match
-            
-            currUserRecord.skills = currUserRecord.skills.filter((recordedSkill) => {
-                return (recordedSkill.trim() !== skill.trim());
-            });
-
-            // if the length stays the same show an error that no skills matched
-            if (oldLength == currUserRecord.skills.length){
-                console.warn(`User with email ${email} has no skill called ${skill} to remove`)
-                return false;
+            else {
+                // if there is no record with that email show error 
+                console.warn(`User with email ${email} not found.`);
             }
 
-            // Update localStorage with new skills array
-            saveUserRecords(userRecords);
-            return true;
+            return false;
         }
-        else {
-            // if there is no record with that email show error 
-            console.warn(`User with email ${email} not found.`);
+        catch(error) {
+            console.error(`Error removing skill '${skillToRemove}' for ${email}:`, error);
+            return false;
         }
-
-        return false;
     };
 
     // experience functions
-    const addUserExperience = (experience: experienceData, email: string): boolean => {
+    const addUserExperience = async(experience: Experience, email: string): Promise<boolean> => {
 
         // check length of company and title
         if (experience.company.length > MAX_CHAR_EXPERIENCES){
@@ -243,32 +385,43 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
                 `is ${MAX_CHAR_EXPERIENCES} characters.`);
             return false;
         }
-
-        const userRecords: UserRecord = getUserRecords();
-
-        if (!userRecords){return false;}
         
-        const currUserRecord = userRecords[email];
+        const userRecord = await fetchUser(email);
 
-        if (currUserRecord) { // check whether record actually exists
-
+        // check whether record actually exists
+        if (!userRecord){return false;}
+        
+        if (userRecord) { 
             // Ensure experience array exists before operating on it
-            if (!currUserRecord.experience) {
-                currUserRecord.experience = [];
+            // Fetch the experiences array for that user from the DB (it will be empty if they have no experiences yet)
+            const userExperiences = await fetchUserExperiences(userRecord.email);
+
+            // Ensure skills array exists before operating on it
+            if (!userExperiences) {
+                console.warn('Cannot find Experiences array in the database')
+                return false;
             }
 
             // maximum of MAX_NUM_EXPERIENCES experiences allowed
-            if (currUserRecord.experience.length + 1 > MAX_NUM_EXPERIENCES){
+            if (userExperiences.length + 1 > MAX_NUM_EXPERIENCES){
                 console.warn(`Maximum of ${MAX_NUM_EXPERIENCES} experiences allowed per user.`);
                 return false;
             }
 
-            // push the experience into the record 
-            currUserRecord.experience.push(experience);
-            
-            // Update localStorage with new experience
-            saveUserRecords(userRecords);
-            return true;
+
+            // Clean: Remove timeFinished if it's a blank string
+            const cleanedExperience = {
+                ...experience,
+                ...(experience.timeFinished?.trim() === "" ? { timeFinished: undefined } : {})
+            };
+            const addedExperience = await createExperience(email, cleanedExperience);
+            if (addedExperience){
+                return true;
+            }
+            else {
+                console.warn("Error creating experience entry in the DB");
+                return false;
+            }
         }
         else {
             // if there is no record with that email show error 
@@ -278,53 +431,45 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         return false;
     };
 
-    const removeUserExperience = (experience: experienceData, email: string): boolean => {
-        const userRecords: UserRecord = getUserRecords();
+    const removeUserExperience = async(experience: Experience, email: string): Promise<boolean> => {
+        try {
+            const currUserRecord = await getUser(email);
+            if (currUserRecord) { // check whether record actually exists
+                // Ensure experience array exists before operating on it
+                const currUserExperiences = await fetchUserExperiences(currUserRecord.email); 
+                if (!currUserExperiences || currUserExperiences.length == 0) {
+                    console.warn(`User with email ${email} has no experiences to remove`);
+                    return false;
+                }
 
-        if (!userRecords){return false;}
-        
-        const currUserRecord = userRecords[email];
-        if (currUserRecord) { // check whether record actually exists
+                // Database conversion
+                // Try to find a Skill object that matches the skill string
+                const matchingExperience = currUserExperiences.find(s => s.id === experience.id);
 
-            // Ensure experience array exists before operating on it
-            if (!currUserRecord.experience) {
-                console.warn(`User with email ${email} has no experience to remove`);
-                return false;
+                if (!matchingExperience) {
+                    console.warn(`User with email ${email} has no experience that matches the param to remove.`);
+                    return false;
+                }
+
+                // Call your backend delete function using the Skill ID
+                await removeExperience(currUserRecord.email, matchingExperience.id!);
+                return true;
             }
-            
-            // get old length of experience array
-            const oldLength = currUserRecord.experience.length;
-
-            // filter out all experience that match
-            currUserRecord.experience = currUserRecord.experience.filter((recordedExperience) => {
-                // if all parts of experience match filter it 
-                // use toISOString() to avoid object comparison
-                return  ((recordedExperience.title !== experience.title) || 
-                        (recordedExperience.timeStarted !== experience.timeStarted) ||
-                        (recordedExperience.timeFinished !== experience.timeFinished)
-                    );
-            });
-
-            // if the length stays the same show an error that no experience matched
-            if (oldLength == currUserRecord.experience.length){
-                console.warn(`User with email ${email} has no experiences called ${experience} to remove`)
-                return false;
+            else {
+                // if there is no record with that email show error 
+                console.warn(`User with email ${email} not found.`);
             }
 
-            // Update localStorage with new experience array
-            saveUserRecords(userRecords);
-            return true;
+            return false;
         }
-        else {
-            // if there is no record with that email show error 
-            console.warn(`User with email ${email} not found.`);
+        catch (error){
+            console.error("Error removing experience", error);
+            return false;
         }
-
-        return false;
     };
 
     // qualification functions
-    const addUserQualification = (newQualification: string, email: string): boolean => {
+    const addUserQualification = async (newQualification: string, email: string): Promise<boolean> => {
         //  check qualification length
         if (newQualification.length > MAX_CHAR_EXPERIENCES){
             console.warn(`Qualification ${newQualification} is too long. Maximum length is ` + 
@@ -332,31 +477,53 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
             
         }
-        const userRecords: UserRecord = getUserRecords();
+        // const userRecords: UserRecord = getUserRecords();
 
-        if (!userRecords){return false;}
+        // if (!userRecords){return false;}
         
-        const currUserRecord = userRecords[email];
+        // const currUserRecord = userRecords[email];
+        
+        const userRecord = await fetchUser(email);
 
-        if (currUserRecord) { // check whether record actually exists
+        // check whether record actually exists
+        if (!userRecord){return false;}
 
+        // check whether record actually exists
+        if (userRecord) {
             // Ensure quualifications array exists before operating on it
-            if (!currUserRecord.qualifications) {
-                currUserRecord.qualifications = [];
+            const userQualifications = await fetchUserQualifications(userRecord.email);
+            if (!userQualifications) {
+                console.warn("User doesn't have a valid collection of qualifications");
+                return false;
             }
 
             // maximum of MAX_NUM_QUALIFICATIONS qualifications allowed
-            if (currUserRecord.qualifications.length + 1 > MAX_NUM_QUALIFICATIONS){
+            if (userQualifications.length + 1 > MAX_NUM_QUALIFICATIONS){
                 console.warn(`Maximum of ${MAX_NUM_QUALIFICATIONS} qualifications allowed per user.`);
                 return false;
             }
 
             // push the qualification into the record 
-            currUserRecord.qualifications.push(newQualification);
+            // currUserRecord.qualifications.push(newQualification);
+
             
             // Update localStorage with new qualification
-            saveUserRecords(userRecords);
-            return true;
+            // saveUserRecords(userRecords);
+            // push the qualification into the record 
+            const newQualificationToAdd: Qualification = {
+                userEmail: email,
+                qualification: newQualification,
+            };
+
+            // Attept to create a qualification entry
+            const addedQualification = await createQualification(email, newQualificationToAdd);
+            if (addedQualification){
+                return true;
+            }
+            else {
+                console.warn("Error creating qualification entry in the DB");
+                return false;
+            }
         }
         else {
             // if there is no record with that email show error 
@@ -365,68 +532,61 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
 
         return false;
     };
-    const removeUserQualification = (qualification: string, email: string): boolean => {
-        const userRecords: UserRecord = getUserRecords();
+    const removeUserQualification = async(qualification: string, email: string): Promise<boolean> => {
+        try {
+            const currUserRecord = await getUser(email);
+            if (currUserRecord) { // check whether record actually exists
+                // Ensure qualifications array exists before operating on it
+                const currUserQualifications = await fetchUserQualifications(currUserRecord.email); 
+                if (!currUserQualifications || currUserQualifications.length == 0) {
+                    console.warn(`User with email ${email} has no qualifications to remove`);
+                    return false;
+                }
 
-        if (!userRecords){return false;}
-        
-        const currUserRecord = userRecords[email];
-        if (currUserRecord) { // check whether record actually exists
+                // Database conversion
+                // Try to find a qualificaion object that matches the qualification string
+                const matchingQualification = currUserQualifications.find(s => s.qualification.trim() === qualification);
 
-            // Ensure qualifications array exists before operating on it
-            if (!currUserRecord.qualifications) {
-                console.warn(`User with email ${email} has no qualifications to remove`);
-                return false;
+                if (!matchingQualification) {
+                    console.warn(`User with email ${email} has no qualification called '${qualification}' to remove.`);
+                    return false;
+                }
+
+                // Calls backend delete function using the Skill ID
+                await removeQualification(matchingQualification.userEmail, matchingQualification.id!);
+                return true;
             }
-            
-            // get old length of qualifications array
-            const oldLength = currUserRecord.qualifications.length;
-
-            // filter out all qualifications that match
-            currUserRecord.qualifications = currUserRecord.qualifications.filter((recordedQualification) => {
-                return (recordedQualification.trim() !== qualification.trim());
-            });
-
-            // if the length stays the same show an error that no qualification matched
-            if (oldLength == currUserRecord.qualifications.length){
-                console.warn(`User with email ${email} has no qualifications called ${qualification} to remove`)
-                return false;
+            else {
+                // if there is no record with that email show error 
+                console.warn(`User with email ${email} not found.`);
             }
 
-            // Update localStorage with new qualifications array
-            saveUserRecords(userRecords);
-            return true;
+            return false;
         }
-        else {
-            // if there is no record with that email show error 
-            console.warn(`User with email ${email} not found.`);
+        catch(error) {
+            console.error(`Error removing qualification '${qualification}' for ${email}:`, error);
+            return false;
         }
-
-        return false;
     };
 
-    const changeAvailability = (fullTime: boolean, email: string): boolean => {
-        const userRecords: UserRecord = getUserRecords();
-
-        if (!userRecords){return false;}
-        
-        const currUserRecord = userRecords[email];
-
-        if (currUserRecord) { // check whether record actually exists
-
-            // push the fullTime value into the record 
-            currUserRecord.fullTime = fullTime;
-            
-            // Update localStorage with new data
-            saveUserRecords(userRecords);
-            return true;
+    const changeAvailability = async(fullTime: boolean, email: string): Promise<boolean> => {
+        try {
+            const user = await fetchUser(email);        
+            if (user) { // check whether record actually exists
+                // push the fullTime value into the record 
+                await updateUser(email, {fullTime: fullTime})
+                return true;
+            }
+            else {
+                // if there is no record with that email show error 
+                console.warn(`User with email ${email} not found.`);
+            }
+            return false;
         }
-        else {
-            // if there is no record with that email show error 
-            console.warn(`User with email ${email} not found.`);
+        catch (error) {
+            console.warn("Error updating user availability", error);
+            return false;
         }
-
-        return false;
     };
 
     // returns list of user records
@@ -434,6 +594,54 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
         const userData = localStorage.getItem("userData");
         return userData ? JSON.parse(userData) : {}; // return null object if there is no records
     };
+
+    const getAllUsers = async(): Promise<User[]> => {
+        try {
+            const allUsers = await fetchAllUsers();
+            if (allUsers) {
+                return allUsers;
+            }
+            return [];
+        }
+        catch(error) {
+            console.warn("Error getting all users in getAllUsers userDataProvider function", error);
+            return [];
+        }
+    }
+
+    const getUser = async (email: string): Promise<User> => {
+    const userInfo = await fetchUser(email);
+    return userInfo ?? { email, firstName: "", lastName: "", password: "", isLecturer: false, fullTime: false, dateJoined: "" };
+    };
+    
+    // Returns the array of Skills that are associated with the user
+    const getUserSkills = async (email: string): Promise<Skill[]> => {
+        const userSkills = await fetchUserSkills(email);
+
+        if (userSkills){
+            return userSkills;
+        }
+        return [];
+    }
+
+    const getUserQualifications = async (email: string): Promise<Qualification[]> => {
+        const userQualifications = await fetchUserQualifications(email);
+
+        if (userQualifications){
+            return userQualifications;
+        }
+        return [];
+    }
+
+    const getUserExperiences = async (email: string): Promise<Experience[]> => {
+        const userExperiences = await fetchUserExperiences(email);
+
+        if (userExperiences){
+            return userExperiences;
+        }
+        return [];
+    }
+
     // save a list of user records 
     const saveUserRecords = (userRecords: UserRecord) => {
         localStorage.setItem("userData", JSON.stringify(userRecords));
@@ -443,7 +651,7 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
     <UserDataContext.Provider value={ 
         {
             addUserSkill, removeUserSkill, addUserQualification, removeUserQualification, 
-            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, saveUserRecords
+            addUserExperience, removeUserExperience, changeAvailability, getUserRecords, getAllUsers ,getUser, getUserSkills, getUserQualifications, getUserExperiences, saveUserRecords
         } }>
       {children}
     </UserDataContext.Provider>

@@ -1,10 +1,6 @@
 import { IsEmail, IsString } from "class-validator";
 
-export class CreateQualificationDTO {
-  @IsString()
-  @IsEmail() 
-  email: string;
-  
+export class CreateQualificationDTO {  
   @IsString() 
   qualification: string;
 }

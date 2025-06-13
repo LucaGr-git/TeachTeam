@@ -3,11 +3,47 @@ import axios from "axios";
 const API_BASE_URL = "http://localhost:3001/api";
 
 
-import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill } from "../types/types";
+import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill, CourseTutor } from "../types/types";
+import TutorApplyList from "@/components/tutor-components/TutorApplyList";
 export const courseService = {
 
   getAllCourses: async (): Promise<Course[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses`);
+    return data;
+  },
+
+getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/courseLecturers`);
+    return data;
+  },
+
+  getAllTutorApplications: async (): Promise<TutorApplication[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/tutorApplications`);
+    return data;
+  },
+
+  getAllCourseTutors: async (): Promise<CourseTutor[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/courseTutors`);
+    return data;
+  },
+
+  getAllShortlistedTutors: async (): Promise<ShortlistedTutor[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/shortlistedTutors`);
+    return data;
+  },
+
+  getAllShortlistNotes: async (): Promise<ShortlistNote[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/shortlistNotes`);
+    return data;
+  },
+
+  getAllLecturerShortlists: async (): Promise<LecturerShortlist[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/lecturerShortlists`);
+    return data;
+  },
+
+  getAllPreferredSkills: async (): Promise<PreferredSkill[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/preferredSkills`);
     return data;
   },
 
@@ -20,11 +56,11 @@ export const courseService = {
     await axios.post(`${API_BASE_URL}/courses`, course);
   },
 
-  updateCourse: async (courseCode: string, course: {
+  updateCourse: async (courseCode: string, course: Partial<{
   courseTitle: string;
   partTimeFriendly: boolean;
   fullTimeFriendly: boolean;
-    }): Promise<Course> => {
+    }>): Promise<Course> => {
     const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}`, course);
     return data;
   },
@@ -47,12 +83,30 @@ export const courseService = {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/lecturers`, lecturer);
   },
 
+  deleteCourseLecturer: async (courseCode: string, lecturerEmail: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}`);
+  },
+
+  getTutorByCourseCode: async (courseCode: string): Promise<CourseTutor[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/tutors`);
+    return data;
+  },
+
+  getCoursesByTutorEmail: async (tutorEmail: string): Promise<Course[]> => {
+    const { data } = await axios.get(`${API_BASE_URL}/tutors/${tutorEmail}/courses`);
+    return data;
+  },
+
+  createCourseTutor: async (courseCode: string, tutor: CourseTutor): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/courses/${courseCode}/tutors`, tutor);
+  },
+
   getTutorApplicationsByCourseCode: async (courseCode: string): Promise<TutorApplication[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/applications`);
     return data;
   },
 
-  getCoursesByTutorEmail: async (tutorEmail: string): Promise<Course[]> => {
+  getCoursesByTutorApplicationEmail: async (tutorEmail: string): Promise<Course[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/applications/${tutorEmail}/courses`);
     return data;
   },
@@ -89,6 +143,8 @@ export const courseService = {
   },
 
   createShortlistNote: async (courseCode: string, tutorEmail: string, note: ShortlistNote): Promise<void> => {
+    console.log("These are the params passed in AXIOS, " + courseCode + " " + tutorEmail + " " + note.lecturerEmail + " " + note.date + " " + note.message
+    );
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/shortlisted-tutors/${tutorEmail}/notes`, note);
   },
 
@@ -98,12 +154,13 @@ export const courseService = {
         tutorEmail: string;
         message: string;
         date: string;
-    }): Promise<any> => {
+    }): Promise<ShortlistNote> => {
     const { data } = await axios.put(`${API_BASE_URL}/shortlistNotes/${noteId}`, note);
     return data;
   },
 
   deleteShortlistNote: async (noteId: string): Promise<void> => {
+    console.log("Deleting note with ID: " + noteId);
     await axios.delete(`${API_BASE_URL}/shortlistNotes/${noteId}`);
   },
 
@@ -121,12 +178,12 @@ export const courseService = {
         tutorEmail: string;
         rank: number;
     }): Promise<LecturerShortlist> => {
-    const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`, shortlist);
+    const { data } = await axios.put(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist/${shortlist.tutorEmail}`, shortlist);
     return data;
   },
 
-  deleteLecturerShortlist: async (courseCode: string, lecturerEmail: string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist`);
+  deleteLecturerShortlist: async (courseCode: string, lecturerEmail: string, tutorEmail: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/lecturers/${lecturerEmail}/shortlist/${tutorEmail}`);
   },
 
   getPreferredSkills: async (courseCode: string): Promise<PreferredSkill[]> => {
@@ -135,18 +192,19 @@ export const courseService = {
   },
 
   createPreferredSkill: async (courseCode: string, skill: PreferredSkill): Promise<void> => {
+    console.log("AXIOS FINAL VALUE BEFORE POST: " + skill.courseCode + " " + skill.skill);
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/preferredSkills`, skill);
   },
 
-  deletePreferredSkill: async (courseCode: string, skillId: string): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/preferredSkills/${skillId}`);
+  deletePreferredSkill: async (courseCode: string, skill: string): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/courses/${courseCode}/preferredSkills/${skill}`);
   },
 };
 
 export const userService = {
-getAllUsers: async (): Promise<User[]> => {
-    const { data } = await axios.get(`${API_BASE_URL}/users`);
-    return data;
+  getAllUsers: async (): Promise<User[]> => {
+      const { data } = await axios.get(`${API_BASE_URL}/users`);
+      return data;
   },
 
   getUserByEmail: async (email: string): Promise<User> => {
@@ -159,6 +217,7 @@ getAllUsers: async (): Promise<User[]> => {
   },
 
   updateUser: async (email: string, updatedData: Partial<User>): Promise<User> => {
+    console.log(updatedData.fullTime);
     const { data } = await axios.put(`${API_BASE_URL}/users/${email}`, updatedData);
     return data;
   },

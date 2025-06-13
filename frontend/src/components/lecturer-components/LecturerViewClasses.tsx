@@ -1,5 +1,5 @@
 import React from "react";
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import LecturerClassPopup from "./LecturerClassPopup";
@@ -12,7 +12,7 @@ interface LecturerViewClassesProps {
 
 const LecturerViewClasses = ({viewAll=false}:LecturerViewClassesProps) => {
     
-    const { getClassRecords } = useClassData();
+    const { classRecords } = useClassData();
 
 
     const  { isAuthenticated, isLecturer, getCurrentUser } = useAuth();
@@ -35,9 +35,7 @@ const LecturerViewClasses = ({viewAll=false}:LecturerViewClassesProps) => {
     const email = currUser.email;
 
     
-    // get class records
-    const classRecords: ClassRecord = getClassRecords();
-    
+    // get class records    
 
     // loop through the class records course codes
     for (const courseCode in classRecords) {

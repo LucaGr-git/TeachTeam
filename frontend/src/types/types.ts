@@ -16,8 +16,8 @@ export interface User {
 }
 
 export interface Experience {
-    ID: number;
-    email: string;
+    id?: number;
+    userEmail: string;
     title: string;
     company: string;
     timeStarted: string;
@@ -25,19 +25,14 @@ export interface Experience {
 }
 
 export interface Skill {
-    ID?: number;
-    email: string;
-    skill: string;
-}
-
-export interface NewSkill {
-    email: string;
+    id?: number;
+    userEmail: string;
     skill: string;
 }
 
 export interface Qualification {
-    ID: number;
-    email: string;
+    id?: number;
+    userEmail: string;
     qualification: string;
 }
 
@@ -49,7 +44,7 @@ export interface LecturerShortlist {
 }
 
 export interface ShortlistNote {
-    ID: number;
+    id?: number;
     courseCode: string;
     lecturerEmail: string;
     tutorEmail: string;
@@ -59,17 +54,22 @@ export interface ShortlistNote {
 
 export interface ShortlistedTutor {
     courseCode: string;
-    tuthorEmail: string;
+    tutorEmail: string;
 }
 
 export interface TutorApplication {
     courseCode: string;
-    tuthorEmail: string;
+    tutorEmail: string;
 }
 
 export interface CourseLecturer {
     courseCode: string;
-    tuthorEmail: string;
+    lecturerEmail: string;
+}
+
+export interface CourseTutor{
+    courseCode: string;
+    tutorEmail: string;
 }
 
 export interface PreferredSkill {

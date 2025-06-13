@@ -9,11 +9,27 @@ import { UpdateShortlistNoteDTO } from "../dtos/update-shortlistNote.dto";
 import { CreateLecturerShortlistDTO } from "../dtos/create-LecturerShortlist.dto";
 import { UpdateLecturerShortlistDTO } from "../dtos/update-LecturerShortlist.dto";
 import { CreatePreferredSkillDTO } from "../dtos/create-preferredSkill.dto";
+import { CreateCourseTutorDTO } from "../dtos/create-courseTutor.dto";
+import { CreateCourseLecturerDTO } from "../dtos/create-courseLecturer.dto";
 
 const router = Router();
 const controller = new CourseController();
 
-router.get('/courses', (req, res) => controller.getAll(req, res));
+router.get('/courses', (req, res) => controller.getAllCourses(req, res));
+
+router.get('/courseLecturers', (req, res) => controller.getAllCourseLecturers(req, res));
+
+router.get('/tutorApplications', (req, res) => controller.getAllTutorApplications(req, res));
+
+router.get('/courseTutors', (req, res) => controller.getAllCourseTutors(req, res));
+
+router.get('/shortlistedTutors', (req, res) => controller.getAllShortlistedTutors(req, res));
+
+router.get('/shortlistNotes', (req, res) => controller.getAllShortlistNotes(req, res));
+
+router.get('/lecturerShortlists', (req, res) => controller.getAllLecturerShortlists(req, res));
+
+router.get('/preferredSkills', (req, res) => controller.getAllPreferredSkills(req, res));
 
 router.get("/courses/:courseCode", (req, res) => controller.getCourseByCode(req, res));
 
@@ -28,8 +44,16 @@ router.get("/courses/:courseCode/lecturers", (req, res) => controller.getLecture
 
 router.get("/lecturers/:lecturerEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
 
-router.post("/courses/:courseCode/lecturers", (req, res) => controller.createCourseLecturer(req, res));
+router.post("/courses/:courseCode/lecturers", validateDto(CreateCourseLecturerDTO), (req, res) => controller.createCourseLecturer(req, res));
 
+router.delete("/courses/:courseCode/lecturers/:lecturerEmail", (req, res) => controller.deleteCourseLecturer(req, res));
+
+
+router.get("/courses/:courseCode/tutors", (req, res) => controller.getTutorByCourseCode(req, res));
+
+router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCodeByLecturer(req, res)); 
+
+router.post("/courses/:courseCode/tutors", validateDto(CreateCourseTutorDTO), (req, res) => controller.createCourseTutor(req, res));
 
 router.get("/courses/:courseCode/applications", (req, res) => controller.getTutorApplicationByCourseCode(req, res));
 
@@ -60,15 +84,15 @@ router.get("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res)
 
 router.post("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(CreateLecturerShortlistDTO),(req, res) => controller.createLecturerShortlist(req, res));
 
-router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", validateDto(UpdateLecturerShortlistDTO),(req, res) => controller.updateLecturerShortlist(req, res));
+router.put("/courses/:courseCode/lecturers/:lecturerEmail/shortlist/:tutorEmail", validateDto(UpdateLecturerShortlistDTO),(req, res) => controller.updateLecturerShortlist(req, res));
 
-router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist", (req, res) => controller.deleteLecturerShortlist(req, res));
+router.delete("/courses/:courseCode/lecturers/:lecturerEmail/shortlist/:tutorEmail", (req, res) => controller.deleteLecturerShortlist(req, res));
 
 router.get("/courses/:courseCode/preferredSkills", (req, res) => controller.getSkillByCourseCode(req, res));
 
-router.get("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
+router.post("/courses/:courseCode/preferredSkills", validateDto(CreatePreferredSkillDTO), (req, res) => controller.createPreferredSkill(req, res));
 
-router.delete("/courses/:courseCode/preferredSkills/:skillId", (req, res) => controller.deletePreferredSkill(req, res));
+router.delete("/courses/:courseCode/preferredSkills/:skill", (req, res) => controller.deletePreferredSkill(req, res));
 
 
 // todo change course code functions to reference entity not jsut code where applicable

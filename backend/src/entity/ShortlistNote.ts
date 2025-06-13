@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { Course } from './Course';
 import { User } from './User';
 
@@ -8,12 +8,15 @@ export class ShortlistNote {
   id: number;
 
   @ManyToOne(() => Course)
+  @JoinColumn({name: 'courseCode'})
   course: Course;
 
   @ManyToOne(() => User)
+  @JoinColumn({name: 'lecturerEmail'})
   lecturer: User;
 
   @ManyToOne(() => User)
+  @JoinColumn({name: 'tutorEmail'})
   tutor: User;
 
   @Column({ type: "varchar", length: 100})

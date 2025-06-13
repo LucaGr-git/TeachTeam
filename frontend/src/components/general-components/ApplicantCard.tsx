@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import { Button } from "../ui/button";
 import Section from "./Section"
-import { experienceData } from "@/database-context-providers/userDataProvider";
+import { localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import TagDisplay from "./TagDisplay";
 import ExperienceCard from "./ExperienceCard";
 import NavList from "./NavList";
@@ -13,7 +13,7 @@ interface ApplicantCardProps {
     availability: string;
     skills: string[];
     qualifications: string[];
-    experience: experienceData[];
+    experience: localStorageExperienceData[];
     children?: React.ReactNode;
 }
 

@@ -10,8 +10,8 @@ import { Form, FormControl,
 // props needed to display the tags
 interface TagCustomDisplay {
     tags: string[];
-    addTag: (tag: string) => string; // return a string error message
-    removeTag: (tag: string) => string; // return a string errror message
+    addTag: (tag: string) => Promise<string>; // return a string error message
+    removeTag: (tag: string) => Promise<string>; // return a string errror message
     placeholder?: string;
     fullWidth?: boolean; // boolean for whether tags should be full line
     inputValidation?: z.ZodString;
@@ -44,9 +44,9 @@ const TagCustomDisplay = (
     })
 
     // form handler
-    const inputFormSubmit = (values: {input: string;}) => {
+    const inputFormSubmit = async (values: {input: string;}) => {
 
-        const errorMsg = addTag(values.input);
+        const errorMsg = await addTag(values.input);
         // if there is an error, set zod error message
         if (errorMsg !== "") {
             inputForm.setError("input", {message: errorMsg});
@@ -58,8 +58,8 @@ const TagCustomDisplay = (
     }
 
     // remove tag handler
-    const removeTagHandler = (tag: string) => {
-        const errorMsg = removeTag(tag);
+    const removeTagHandler = async(tag: string) => {
+        const errorMsg = await removeTag(tag);
 
         // if there is an error, set zod error message
         if (errorMsg !== "") {
@@ -76,7 +76,7 @@ const TagCustomDisplay = (
                     key={index}
                     variant="outline"
                     size="sm"
-                    onClick={() => removeTagHandler(tag)} // Click to remove the tag
+                    onClick={async() => await removeTagHandler(tag)} // Click to remove the tag
                     >
                     {tag}
                     </Button>

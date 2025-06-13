@@ -10,7 +10,7 @@ const LecturerNavigation = () => {
 
   const { getCurrentUser, isAuthenticated, isLecturer} = useAuth();
   
-  const { getClassRecords } = useClassData();
+  const { classRecords } = useClassData();
 
   // get the current user
   const currentUser = getCurrentUser();
@@ -23,8 +23,14 @@ const LecturerNavigation = () => {
   // get array of classes that the lecturer is lecturing
   const lecturerClasses: string[] = [];
 
+  if (!classRecords) {
+    return (
+      "Error with classRecords"
+    );
+  }
+
   // get the class records
-  const classesLecturing: ClassRecord = getClassRecords();
+  const classesLecturing: ClassRecord = classRecords;
 
   // loop through all courseCodes
   for (const courseCode in classesLecturing) {

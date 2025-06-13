@@ -11,7 +11,7 @@ const TutorJobList = () => {
     // get current user
     const currUser = getCurrentUser();
 
-    const { getClassRecords } = useClassData();
+    const { getClassRecords, classRecords, isLoading } = useClassData();
     
     // return error card if not authenticated 
     if (!isAuthenticated || !currUser) {
@@ -27,7 +27,21 @@ const TutorJobList = () => {
 
     
     // get class records
-    const classRecords: ClassRecord = getClassRecords();
+    if (isLoading){ 
+        return (
+      <Section title="Loading">
+        <p>Fetching class data...</p>
+      </Section>
+    );
+    }
+
+    if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+    }
     // create a list of course codes for classes they are tutoring 
     const courseCodes: string[] = [];  
 

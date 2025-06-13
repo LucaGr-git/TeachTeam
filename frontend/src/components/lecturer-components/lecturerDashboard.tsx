@@ -22,7 +22,7 @@ const LecturerDashboard = () => {
                 <TabsList className="w-65 sm:w-xl">
                   <TabsTrigger value="view">View Your Classes</TabsTrigger>
                   <TabsTrigger value="search">Search Applicants</TabsTrigger>
-                  <TabsTrigger value="viewAll">View All Classes</TabsTrigger>
+                  {/* <TabsTrigger value="viewAll">View All Classes</TabsTrigger> */}
                 </TabsList>
               </Header>
               <div className="overflow-auto max-h-screen">
@@ -48,9 +48,9 @@ const LecturerDashboard = () => {
                   <LecturerSearch></LecturerSearch>
                 </TabsContent>
 
-                <TabsContent value="viewAll">
+                {/* <TabsContent value="viewAll">
                   <LecturerViewClasses viewAll></LecturerViewClasses>
-                </TabsContent>
+                </TabsContent> */}
 
               </div>
         </div>

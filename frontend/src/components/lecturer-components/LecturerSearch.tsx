@@ -1,10 +1,11 @@
-import React, { useState } from "react";
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import React, { useState, useEffect } from "react";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, experienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import SearchBar from "./SearchBar";
 import ApplicantCard from "../general-components/ApplicantCard";
 import LecturerSort from "./LecturerSort";
+
 
 
 export interface ApplicantInfo {
@@ -13,7 +14,7 @@ export interface ApplicantInfo {
     availability: string;
     skills: string[];
     qualifications: string[]
-    experience: experienceData[];
+    experience: localStorageExperienceData[];
     email: string;
 }
 
@@ -21,45 +22,62 @@ export interface ApplicantInfo {
 const LecturerSearch = () => {
     //useState hook to return the tutor profile information
     const [results, setResults] = useState<ApplicantInfo[]>([]);
+    const [applicants, setApplicants] = useState<ApplicantInfo[]>([]);
     //useState hook to return the filtered tutor profile information
     const [filteredResults, setFilteredResults] = useState<ApplicantInfo[]>([]);
 
-    const applicantList: ApplicantInfo[] = [];
-
     // Get the ClassRecords from local storage
-    const {getClassRecords} = useClassData();
-    const {getUserRecords} = useUserData();
-    const {getUsers} = useAuth();
+    const {classRecords} = useClassData();
+    const { getUserExperiences, getUserQualifications, getUserSkills, getAllUsers, getUser} = useUserData();
 
-    const classRecords: ClassRecord = getClassRecords();
-    const userData: UserRecord = getUserRecords();
-    const userList = getUsers();
-    
-    for (const email in userList) {
-        const currApplicant = userList[email];
-        const currUserData = userData[email]
-        const courseNames: string[] = [];
-        
-        for (const classcode in classRecords) {
-            const currentClass = classRecords[classcode]
-            if (currentClass.tutorsApplied.includes(email)) {
-                courseNames.push(currentClass.courseTitle);
-            }
-        }
 
-        if (!currApplicant.isLecturer) {
-            const newApplicant: ApplicantInfo = {
-                tutorName: currApplicant.firstName,
-                courseName: courseNames,
-                availability: ((currUserData.fullTime)? "Full time":"Part time"),
-                skills: currUserData.skills,
-                qualifications: currUserData.qualifications,
-                experience: currUserData.experience,
-                email: currApplicant.email,
-            }
-            applicantList.push(newApplicant);
+
+useEffect(() => {
+  const fetchApplicants = async () => {
+    const applicants: ApplicantInfo[] = [];
+
+    const userList = await getAllUsers();
+
+    if (!classRecords) return;
+
+    for (const user of userList) {
+        const email = user.email;
+      console.log(email);
+      const currApplicant = await getUser(email);
+      if (currApplicant.isLecturer) continue;
+
+      const userExperience = await getUserExperiences(email);
+      const userQualification = await getUserQualifications(email);
+      const userSkills = await getUserSkills(email);
+
+      // Collect all course titles they've applied to, if any
+      const courseNames: string[] = [];
+      for (const classCode in classRecords) {
+        if (classRecords[classCode].tutorsApplied.includes(email)) {
+          courseNames.push(classRecords[classCode].courseTitle);
         }
+      }
+
+      const newApplicant: ApplicantInfo = {
+        tutorName: currApplicant.firstName,
+        courseName: courseNames, // can be an empty array now
+        availability: currApplicant.fullTime ? "Full time" : "Part time",
+        skills: userSkills.map(s => s.skill),
+        qualifications: userQualification.map(q => q.qualification),
+        experience: userExperience,
+        email: currApplicant.email,
+      };
+
+      applicants.push(newApplicant);
     }
+
+    setApplicants(applicants);
+    console.log(applicants);
+  };
+
+    fetchApplicants();
+}, [classRecords]);    
+
 
      // Search function
      const searchItems = (applicants: ApplicantInfo[], searchTerm: string): ApplicantInfo[] => {
@@ -73,11 +91,9 @@ const LecturerSearch = () => {
     }
 
     const handleSearch = (query: string) => {
-        const results: ApplicantInfo[] = searchItems(applicantList, query)
+        const results: ApplicantInfo[] = searchItems(applicants, query)
         setResults(results);
-    }
-
-    
+    }    
     
     return (
         <div>

@@ -1,17 +1,17 @@
 import React from "react";
 import Section from "./Section"
-import { experienceData } from "@/database-context-providers/userDataProvider";
+import { Experience } from "@/types/types";
 
 // props needed to display the nav card
 interface ExperienceCardProps {
-    experience: experienceData;
-    removeExperience?: (experience:experienceData) => string;
+    experience: Experience;
+    removeExperience?: (experience:Experience) => Promise<string>;
     children?: React.ReactNode;
 }
 
 
 
-const ExperienceCard = ({experience, removeExperience = () => {return ""}, children} : ExperienceCardProps) => {
+const ExperienceCard = ({experience, removeExperience = async() => {return ""}, children} : ExperienceCardProps) => {
     
     return (
         <div onClick={() => removeExperience(experience)}>

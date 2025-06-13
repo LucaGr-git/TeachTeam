@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import { useClassData, LecturerShortList} from "@/database-context-providers/classDataProvider";
+import { useUserData } from "@/database-context-providers/userDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import { Switch } from "../ui/switch";
@@ -26,19 +27,26 @@ const LecturerListChart = (
     const [chartColor, setChartColor] = useState("#FF0000"); // red if the css cannot be red
 
     // get class records
-    const { getClassRecords} = useClassData();
+    const {isLoading, classRecords} = useClassData();
     // get user records
     const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+
+    const {getAllUsers, getUser} = useUserData();
     
 
     
 
     // get class record
-    const classRecords = getClassRecords();
-    const lecturerClass = classRecords[courseCode];
+    if (!classRecords) {
+    return (
+        <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+        </Section>
+    );
+    }
 
     // get users record
-    const users = getUsers();
+    const users = getAllUsers();
 
     // get current user
     const currUser = getCurrentUser();
@@ -59,109 +67,98 @@ const LecturerListChart = (
 
 
     // useEffect for loading chart data on component mount
+    // useEffect(() => {
+
+    //     const fetchingShortlistedTutors = async() => {
+    //         const shortlistedTutors: ShortlistedTutor[] = [];
+    //         // change colour based on global css var
+    //         const primaryColorCode = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+    //         // if primaryColorCode exists then set the chart colour to that code 
+    //         if (primaryColorCode) setChartColor(primaryColorCode);
+
+    //         // iterate through all shortlidted tutors emails
+    //         for (const applicant of classRecords[courseCode].tutorsShortlist){
+
+    //             // find corresponding full name
+    //             const applicantUserData = await getUser(applicant.tutorEmail);
+
+    //             // get their ranking 
+    //             let rankingScore: number = 0;
+    //             // iterate over all lecturers ranking and add indexes of current applicant
+    //             const shortlistMap: LecturerShortList = classRecords[courseCode].lecturerShortlist;
+
+    //             for (const lecturerEmail in shortlistMap){
+    //                 // gets the position relative to the end not the start by subtracting from  length
+    //                 rankingScore += 
+    //                     (shortlistMap[lecturerEmail].length - 
+    //                         shortlistMap[lecturerEmail].indexOf(applicant.tutorEmail) + 1)
+    //             }
+
+    //             // create entry in array 
+    //             shortlistedTutors.push({
+    //                 email: applicant.tutorEmail,
+    //                 fullName: applicantUserData.firstName + " " + applicantUserData.lastName,
+    //                 rankingScore: rankingScore,
+    //             })
+    //             // Sort by highest score first
+    //             shortlistedTutors.sort((applicantA, applicantB) => {
+    //                 if (applicantA.rankingScore < applicantB.rankingScore) return 1;
+    //                 if (applicantA.rankingScore > applicantB.rankingScore) return -1;
+    //                 return 0;
+    //             });
+    //             setShortlistScoreArr(shortlistedTutors);
+    //         }
+    //     }
+    //     fetchingShortlistedTutors();
+        
+        
+    // }, [courseCode, users, classRecords]);
+
     useEffect(() => {
+    const fetchingShortlistedTutors = async () => {
+        if (!classRecords[courseCode]) return;
 
-        const shortlistedTutors: ShortlistedTutor[] = [];
+        const shortlistedTutorsRaw = classRecords[courseCode].tutorsShortlist;
+        const shortlistMap = classRecords[courseCode].lecturerShortlist;
 
-        // iterate through all shortlidted tutors emails
-        for (const applicant of classRecords[courseCode].tutorsShortlist){
+        // fetch all user data in parallel
+        const userPromises = shortlistedTutorsRaw.map(applicant =>
+        getUser(applicant.tutorEmail).then(user => ({
+            email: applicant.tutorEmail,
+            fullName: `${user.firstName} ${user.lastName}`,
+        }))
+        );
 
-            // find corresponding full name
-            const applicantUserData = users[applicant.tutorEmail];
+        const userInfos = await Promise.all(userPromises);
 
-            // get their ranking 
-            let rankingScore: number = 0;
-            // iterate over all lecturers ranking and add indexes of current applicant
-            const shortlistMap: LecturerShortList = classRecords[courseCode].lecturerShortlist;
-
-            for (const lecturerEmail in shortlistMap){
-                // gets the position relative to the end not the start by subtracting from  length
-                rankingScore += 
-                    (shortlistMap[lecturerEmail].length - 
-                        shortlistMap[lecturerEmail].indexOf(applicant.tutorEmail) + 1)
+        // now calculate rankingScore for each
+        const shortlistTutors = userInfos.map(user => {
+        let rankingScore = 0;
+        for (const lecturerEmail in shortlistMap) {
+            const index = shortlistMap[lecturerEmail].indexOf(user.email);
+            if (index !== -1) {
+            rankingScore += shortlistMap[lecturerEmail].length - index + 1;
             }
-
-
-
-            // create entry in array 
-            shortlistedTutors.push({
-                email: applicant.tutorEmail,
-                fullName: applicantUserData.firstName + " " + applicantUserData.lastName,
-                rankingScore: rankingScore,
-            })
-
-            // change colour based on global css var
-            const primaryColorCode = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
-            // if primaryColorCode exists then set the chart colour to that code 
-            if (primaryColorCode) setChartColor(primaryColorCode);
         }
-        
-        // Sort by highest score first
-        shortlistedTutors.sort((applicantA, applicantB) => {
-            if (applicantA.rankingScore < applicantB.rankingScore) return 1;
-            if (applicantA.rankingScore > applicantB.rankingScore) return -1;
-            return 0;
+        return {
+            ...user,
+            rankingScore,
+        };
         });
-        setShortlistScoreArr(shortlistedTutors);
-        // setShortlistScoreArr([{
-        //         email: "1",
-        //         fullName: "1",
-        //         rankingScore: 100},
-        //     {
-        //         email: "2",
-        //         fullName: "2",
-        //         rankingScore: 90},
-        //     {
-        //         email: "3",
-        //         fullName: "3",
-        //         rankingScore: 70
-        //     },
-        //     {
-        //         email: "4",
-        //         fullName: "4",
-        //         rankingScore: 200
-        //     },
-        //     {
-        //         email: "5",
-        //         fullName: "5",
-        //         rankingScore: 1
-        //     },
-        //     {
-        //         email: "6",
-        //         fullName: "6",
-        //         rankingScore: 10
-        //     },
-        //     {
-        //         email: "7",
-        //         fullName: "7",
-        //         rankingScore: 30
-        //     },
-        //     {
-        //         email: "8",
-        //         fullName: "8",
-        //         rankingScore: 30
-        //     },
-        //     {
-        //         email: "9",
-        //         fullName: "9",
-        //         rankingScore: 30
-        //     },
-        //     {
-        //         email: "10",
-        //         fullName: "10",
-        //         rankingScore: 30
-        //     },
-        //     {
-        //         email: "11",
-        //         fullName: "11",
-        //         rankingScore: 30
-        //     },
-        // ]);
 
+    // sort once outside the loop
+    shortlistTutors.sort((a, b) => b.rankingScore - a.rankingScore);
+    setShortlistScoreArr(shortlistTutors);
 
-        
-    }, [classRecords, courseCode, users]);
-    
+    // chart color (do this once)
+    const primaryColorCode = getComputedStyle(document.documentElement)
+      .getPropertyValue("--primary")
+      .trim();
+    if (primaryColorCode) setChartColor(primaryColorCode);
+  };
+
+  fetchingShortlistedTutors();
+}, [courseCode, classRecords, getUser]);    
 
     if (!currUser || !isAuthenticated || !isLecturer) {
     return (
@@ -173,7 +170,7 @@ const LecturerListChart = (
 
 
     // return error card if course code is wrong
-    if (!lecturerClass) {
+    if (!classRecords[courseCode]) {
         return (
             <Section title="Error course code not found">
                 <p className="text-destructive">Course code {courseCode} not found.</p>

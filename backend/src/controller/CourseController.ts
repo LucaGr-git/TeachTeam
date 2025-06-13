@@ -3,6 +3,7 @@ import { AppDataSource } from "../data-source";
 import { Profile } from "../entity/Profile";
 import { Course } from "../entity/Course";
 import { CourseLecturer } from "../entity/CourseLecturer";
+import { CourseTutor } from "../entity/CourseTutor";
 import { TutorApplication } from "../entity/TutorApplication";
 import { ShortlistedTutor } from "../entity/ShortlistedTutor";
 import { ShortlistNote } from "../entity/ShortlistNote";
@@ -17,6 +18,7 @@ export class CourseController {
   /** Repository instance for database operations on Course entity */
   private courseRepo = AppDataSource.getRepository(Course);
   private courseLecturerRepo = AppDataSource.getRepository(CourseLecturer);
+  private courseTutorRepo = AppDataSource.getRepository(CourseTutor);
   private tutorApplicationRepo = AppDataSource.getRepository(TutorApplication);
   private shortlistedTutorRepo = AppDataSource.getRepository(ShortlistedTutor);
   private shortlistNoteRepo = AppDataSource.getRepository(ShortlistNote);
@@ -29,13 +31,92 @@ export class CourseController {
    * @param res - Express response object
    * @returns JSON array of all courses
    */
-  async getAll(req: Request, res: Response) {
+  async getAllCourses(req: Request, res: Response) {
     /** Retrieve all courses from the database */
     const courses = await this.courseRepo.find();
 
-    /** Return the pets */
+    /** Return the courses */
     res.json(courses);
   }
+
+  /**
+   * Retrieves all course lecturers from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all courses
+   */
+  async getAllCourseLecturers(req: Request, res: Response) {
+    /** Retrieve all courseLecturer from the database */
+    const courseLecturers = await this.courseLecturerRepo.find();
+
+    /** Return the course lecturers */
+    res.json(courseLecturers);
+  }
+
+  /**
+   * Retrieves all TutorApplications from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all TutorApplications
+   */
+  async getAllTutorApplications(req: Request, res: Response) {
+    /** Retrieve all TutorApplications from the database */
+    const tutorApplications = await this.tutorApplicationRepo.find();
+
+    /** Return the TutorApplications */
+    res.json(tutorApplications);
+  }
+
+  
+
+  /**
+   * Retrieves all CourseTutors from the database
+   * @param req - Express request object
+   * @param res - Express response object
+   * @returns JSON array of all CourseTutors
+   */
+  async getAllCourseTutors(req: Request, res: Response) {
+    /** Retrieve all CourseTutors from the database */
+    const courseTutors = await this.courseTutorRepo.find();
+
+    /** Return the CourseTutors */
+    res.json(courseTutors);
+  }
+
+// Shortlisted Tutors
+async getAllShortlistedTutors(req: Request, res: Response) {
+  const shortlistedTutors = await this.shortlistedTutorRepo.find();
+  res.json(shortlistedTutors);
+}
+
+// Shortlist Notes
+async getAllShortlistNotes(req: Request, res: Response) {
+  const shortlistNotes = await this.shortlistNoteRepo.find({
+    relations: ['course', 'lecturer', 'tutor'],
+  });
+  // Map the shortlist notes to correct structure
+  res.json(shortlistNotes.map(note => ({
+  id: note.id,
+  message: note.message,
+  date: note.date,
+  courseCode: note.course?.courseCode,
+  lecturerEmail: note.lecturer?.email,
+  tutorEmail: note.tutor?.email,
+})));
+}
+
+// Lecturer Shortlist
+async getAllLecturerShortlists(req: Request, res: Response) {
+  const lecturerShortlists = await this.lecturerShortlistRepo.find();
+  res.json(lecturerShortlists);
+}
+
+// Preferred Skills
+async getAllPreferredSkills(req: Request, res: Response) {
+  const preferredSkills = await this.preferredSkillRepo.find();
+  res.json(preferredSkills);
+}
+
 
   /**
    * Retrieves a single course by its course code
@@ -137,7 +218,7 @@ export class CourseController {
    */
    async getLecturerByCourseCode(req: Request, res: Response) {
     /** Retrieve the CourseLecturer from the database */
-    const courseLecturer = await this.courseLecturerRepo.findOneBy({
+    const courseLecturer = await this.courseLecturerRepo.findBy({
       courseCode: req.params.courseCode,
     });
 
@@ -192,6 +273,100 @@ export class CourseController {
     res.status(201).json(courseLecturer);
   }
 
+  /**
+   * Deletes a CourseLecturer record
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @returns 204 status on success or 404 if CourseLecturer not found
+   */
+  async deleteCourseLecturer(req: Request, res: Response) {
+    const courseLecturer = await this.courseLecturerRepo.findOneBy({
+       lecturerEmail: req.params.lecturerEmail,
+       courseCode: req.params.courseCode,
+    });
+
+    if (!courseLecturer) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    await this.courseLecturerRepo.remove(courseLecturer);
+
+    res.json({ message: "Course Lecturer deleted" });
+  }
+
+  /**
+   * Creates a new CourseTutor record
+   * @param req - Express request object containing course data in body
+   * @param res - Express response object
+   * @returns JSON object of the created Course with 201 status
+   */
+  async createCourseTutor(req: Request, res: Response) {
+    /** Create a new course tutor object from the request body */
+    const { courseCode, tutorEmail } = req.body;
+
+    const newCourseTutor = this.courseTutorRepo.create({
+      courseCode,
+      tutorEmail,
+      course: { courseCode },     // <-- must match PK on Course entity
+      tutor: { email: tutorEmail } // <-- must match PK on User entity
+    });
+
+    /** Save the new course to the database */
+    try {
+      await this.courseTutorRepo.save(newCourseTutor);
+    } catch (error) {
+      console.error("Error saving course Tutor ", error);
+      return res.status(500).json({ message: "Error saving course tutor "});
+    }
+
+    /** Return the created course with a 201 status */
+    res.status(201).json(newCourseTutor);
+  }
+
+  /**
+    * Gets the course code by the Tutor email in courseTutor
+    * @param req - Express request object containing lecturer email in params
+    * @param res - Express response object
+    * @return JSON object of the CourseTutor or 404 if not found
+    */
+  async getCourseCodeByTutor(req: Request, res: Response){
+    /** Retrieve the CourseTutor from the database */
+    const courseTutor = await this.courseTutorRepo.findOneBy({
+        tutorEmail: req.params.lecturerEmail,
+    });
+
+    /** Check if the course Lecturer exists, if not, return a 404 error */
+    if (!courseTutor) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course tutor */
+    res.json(courseTutor);
+  }
+
+
+  /**
+   * Gets a lecturer in CourseTutor by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the CourseTutor or 404 if not found
+   */
+  async getTutorByCourseCode(req: Request, res: Response) {
+    /** Retrieve the CourseTutor from the database */
+    const courseTutor = await this.courseTutorRepo.findOneBy({
+      courseCode: req.params.courseCode,
+    });
+
+    /** Check if the course Tutor exists, if not, return a 404 error */
+    if (!courseTutor) {
+      return res.status(404).json({ message: "Course Lecturer not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(courseTutor);
+   }
+
+
   // Tutor application entity functions
   /**
    * Gets a tutor Application in TutorApplication by course code
@@ -201,7 +376,7 @@ export class CourseController {
    */
    async getTutorApplicationByCourseCode(req: Request, res: Response) {
     /** Retrieve the TutorApplication from the database */
-    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+    const tutorApplication = await this.tutorApplicationRepo.findBy({
       courseCode: req.params.courseCode,
     });
 
@@ -263,19 +438,39 @@ export class CourseController {
    * @returns 204 status on success or 404 if tutorApplication not found
    */
   async deleteTutorApplication(req: Request, res: Response) {
-    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
-       tutorEmail: req.params.tutorEmail,
-       courseCode: req.params.courseCode,
-    });
+  const { tutorEmail, courseCode } = req.params;
 
-    if (!tutorApplication) {
-      return res.status(404).json({ message: "Tutor application not found" });
-    }
+  const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+    tutorEmail,
+    courseCode,
+  });
 
-    await this.tutorApplicationRepo.remove(tutorApplication);
-
-    res.json({ message: "Tutor application deleted" });
+  if (!tutorApplication) {
+    return res.status(404).json({ message: "Tutor application not found" });
   }
+
+  // First, delete all related shortlist notes
+  try {
+    await this.shortlistNoteRepo
+      .createQueryBuilder()
+      .delete()
+      .where("tutorEmail = :tutorEmail", { tutorEmail })
+      .andWhere("courseCode = :courseCode", { courseCode })
+      .execute();
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting related shortlist notes", error });
+  }
+
+  // Then delete the tutor application
+  try {
+    await this.tutorApplicationRepo.remove(tutorApplication);
+  } catch (error) {
+    return res.status(500).json({ message: "Error deleting tutor application", error });
+  }
+
+  res.json({ message: "Tutor application and related shortlist notes deleted" });
+}
+
 
   // Shortlisted Tutor Entity functions
   /**
@@ -357,7 +552,7 @@ export class CourseController {
       return res.status(404).json({ message: "Shortlisted tutor not found" });
     }
 
-    await this.tutorApplicationRepo.remove(shortListedTutor);
+    await this.shortlistedTutorRepo.remove(shortListedTutor);
 
     res.json({ message: "Shortlisted tutor deleted" });
   }
@@ -392,7 +587,15 @@ export class CourseController {
    */
   async createShortlistNote(req: Request, res: Response) {
     /** Create a new course note object from the request body */
-    const shortlistNote = this.shortlistNoteRepo.create(req.body);
+    const { courseCode, tutorEmail, lecturerEmail, message, date } = req.body;
+
+    const shortlistNote = this.shortlistNoteRepo.create({
+    course: { courseCode }, // must match the PK of Course entity
+        tutor: { email: tutorEmail }, // must match the PK of User
+        lecturer: { email: lecturerEmail }, // must match the PK of User
+        message,
+        date 
+    });
 
     /** Save the new course to the database */
     try {
@@ -443,7 +646,7 @@ export class CourseController {
    */
   async deleteShortlistNote(req: Request, res: Response) {
     const shortlistNote = await this.shortlistNoteRepo.findOneBy({
-       id: parseInt(req.params.id),
+       id: parseInt(req.params.noteId),
     });
 
     if (!shortlistNote) {
@@ -504,6 +707,7 @@ async updateLecturerShortlist(req: Request, res: Response) {
   let lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
     courseCode: req.params.courseCode,
     lecturerEmail: req.params.lecturerEmail,
+    tutorEmail: req.params.tutorEmail,
   });
 
   if (!lecturerShortlist) {
@@ -531,6 +735,7 @@ async deleteLecturerShortlist(req: Request, res: Response) {
   const lecturerShortlist = await this.lecturerShortlistRepo.findOneBy({
     courseCode: req.params.courseCode,
     lecturerEmail: req.params.lecturerEmail,
+    tutorEmail: req.params.tutorEmail,
   });
 
   if (!lecturerShortlist) {

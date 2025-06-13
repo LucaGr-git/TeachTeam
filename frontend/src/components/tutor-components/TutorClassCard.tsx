@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
@@ -12,12 +12,18 @@ interface TutorClassCardProps {
 
 const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   // get class records
-  const { getClassRecords } = useClassData();
+  const { classRecords } = useClassData();
   // get user records
-  const { getUsers } = useAuth();
+  const { getUsers, fetchUser } = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
+  if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
   const tutorClass = classRecords[courseCode];
 
   // get users record
@@ -33,14 +39,35 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   )
   }
 
-  const lecturerNames: string[] = [];
+   const [lecturerNames, setLecturerNames] = useState<string[]>([]);
+  
   // get the lecturers for the course
-  for (const lecturerEmail of tutorClass.lecturerEmails) {
+  useEffect(() => {
+    const fetchLecturerNames = async () => {
+      const names: string[] = [];
 
-    if (users[lecturerEmail]) {
-      lecturerNames.push(users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName);
-    }
-  }
+      // Await full loop 
+      await Promise.all(
+        tutorClass.lecturerEmails.map(async (lecturerEmail) => {
+          try {
+            const user = await fetchUser(lecturerEmail);
+            if (user) {
+              names.push(`${user.firstName} ${user.lastName}`);
+            } else {
+              names.push(lecturerEmail); // fallback 
+            }
+          } catch (error) {
+            console.error("Error fetching user:", error);
+            names.push(lecturerEmail); // fallback
+          }
+        })
+      );
+
+      setLecturerNames(names);
+    };
+
+    fetchLecturerNames();
+  }, [tutorClass.lecturerEmails]);
 
   // get the preferred availability 
   const preferredAvailabilities: string[] = [];

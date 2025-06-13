@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useClassData, MAX_NUM_SKILLS} from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
@@ -7,6 +7,7 @@ import TagCustomDisplay from "../general-components/TagCustomizableDisplay";
 import { Switch } from "../ui/switch";
 import LecturerListChart from "./LecturerListChart";
 import { Button } from "../ui/button";
+import { set } from "react-hook-form";
 
 // interface for the class card details
 interface LecturerClassCardProps {
@@ -22,13 +23,19 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   const [viewCourseInfo, setViewCourseInfo] = useState<boolean>(true);
 
   // get class records
-  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability} = useClassData();
+  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords, fetchCourse} = useClassData();
   // get user records
-  const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+  const { getUsers, getCurrentUser, isAuthenticated, isLecturer, fetchUser} = useAuth();
 
   // get class record
-  const classRecords = getClassRecords();
-  const lecturerClass = classRecords[courseCode];
+if (!classRecords) {
+    return (
+      <Section title="Error">
+        <p className="text-red-500">Failed to load class records.</p>
+      </Section>
+    );
+  }
+    const lecturerClass = classRecords[courseCode];
 
   // get users record
   const users = getUsers();
@@ -59,32 +66,56 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
     )
   }
 
-  const lecturerNames: string[] = [];
-  // get the lecturers for the course
-  for (const lecturerEmail of lecturerClass.lecturerEmails) {
+  const [lecturerNames, setLecturerNames] = useState<string[]>([]);
 
-    if (users[lecturerEmail]) {
-      lecturerNames.push(users[lecturerEmail].firstName + " " + users[lecturerEmail].lastName);
-    }
-  }
+  // get the lecturers for the course
+  useEffect(() => {
+    const fetchLecturerNames = async () => {
+      const names: string[] = [];
+
+      // Await full loop 
+      await Promise.all(
+        lecturerClass.lecturerEmails.map(async (lecturerEmail) => {
+          try {
+            const user = await fetchUser(lecturerEmail);
+            if (user) {
+              names.push(`${user.firstName} ${user.lastName}`);
+            } else {
+              names.push(lecturerEmail); // fallback 
+            }
+          } catch (error) {
+            console.error("Error fetching user:", error);
+            names.push(lecturerEmail); // fallback
+          }
+        })
+      );
+      // sort names alphabetically
+      names.sort(); 
+      setLecturerNames(names);
+    };
+
+    fetchLecturerNames();
+  }, [lecturerClass.lecturerEmails]);
 
 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const addSkillTag = (skillTag: string): string => {
+  const addSkillTag = async(skillTag: string): Promise<string> => {
     if (lecturerClass.preferredSkills.length >= MAX_NUM_SKILLS) {
       return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
 
     }
     // if the skill tag is not already in the userSkills array, add it
     if (!lecturerClass.preferredSkills.includes(skillTag)) {
-      if (addPreferredSkill(courseCode, skillTag)) {
+      const checkAddPreferredSkill = await addPreferredSkill(courseCode, skillTag);
+      console.log (checkAddPreferredSkill);
+      if (checkAddPreferredSkill == true) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
         return "";
       }
       else {
-        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed`;
+        return `Only a maximum of ${MAX_NUM_SKILLS} skills allowed!`;
       }
     }
     // if tag exists show error
@@ -95,11 +126,12 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
 
   // function to add a skill tag
   // if an error occurs a string is returned to reperesent it 
-  const removeSkillTag = (skillTag: string): string => {
+  const removeSkillTag = async(skillTag: string): Promise<string> => {
  
     // if the skill tag is already in the userSkills array, remove it
     if (lecturerClass.preferredSkills.includes(skillTag)) {
-      if (removePreferredSkill(courseCode, skillTag)) {
+      
+      if (await removePreferredSkill(courseCode, skillTag)) {
         // manual rerender to show the changes
         setRerenderCounter(rerenderCounter + 1);
         return "";
@@ -118,17 +150,35 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   
 
   // function to change the full time preferred availability
-  const toggleFullTimeFriendly = () => {
-    changeAvailability(courseCode, !fullTimeFriendly, partTimeFriendly);
+  const toggleFullTimeFriendly = async() => {
+    await changeAvailability(courseCode, !fullTimeFriendly, partTimeFriendly);
     setFullTimeFriendly(!fullTimeFriendly);
     
   }
   // function to change the part time preferred availability
-  const togglePartTimeFriendly = () => {
-    changeAvailability(courseCode, fullTimeFriendly, !partTimeFriendly);
+  const togglePartTimeFriendly = async() => {
+    await changeAvailability(courseCode, fullTimeFriendly, !partTimeFriendly);
     setPartTimeFriendly(!partTimeFriendly);
     
   }
+
+    useEffect(() => {
+      // fetches date joined and avaiability
+      const fetchCourseInfo = async () => {
+        try {
+          const course = await fetchCourse(lecturerClass.courseCode);
+
+          setFullTimeFriendly(course?.fullTimeFriendly || false);
+          setPartTimeFriendly(course?.partTimeFriendly || false);
+     
+        } catch (error) {
+          console.error("Failed to fetch class info:", error);
+        }
+      };
+  
+      fetchCourseInfo();
+
+    }, [currUser.email]);
   
   
   return (

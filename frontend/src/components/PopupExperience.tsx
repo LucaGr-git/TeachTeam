@@ -14,6 +14,7 @@ interface PopupExperienceProps {
     // Props for popup
     buttonPopup: boolean,
     setTrigger: (value: boolean) => void
+    onExperienceAdded?: () => void;
     // Zod validation
     titleValidation?: z.ZodString;
     companyValidation?: z.ZodString;
@@ -24,6 +25,7 @@ interface PopupExperienceProps {
 const PopupExperience = ({
     buttonPopup,
     setTrigger, 
+    onExperienceAdded,
     titleValidation = z.string().min(1, {message: "Required"}), 
     companyValidation = z.string().min(1, {message: "Required"}), 
     startDateValidation = z.string().min(1, {message: "Required"}),
@@ -62,7 +64,7 @@ const PopupExperience = ({
 
 
     // form handlers
-    const onSubmitExperienceForm = (
+    const onSubmitExperienceForm = async(
         values: {
             title: string;
             company: string;
@@ -112,13 +114,13 @@ const PopupExperience = ({
         }
 
 
-
-
-        
-
-        if (!addUserExperience(values, user.email)){
+        if (!await addUserExperience({...values , userEmail: user.email}, user.email)){
             return alert(`You have reached the maximum number of experiences: ${MAX_NUM_EXPERIENCES}`);
         }
+
+        experienceForm.reset();
+        
+        onExperienceAdded?.();
 
         setTrigger(false);
 
