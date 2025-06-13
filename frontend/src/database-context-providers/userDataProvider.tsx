@@ -409,7 +409,12 @@ export const UserDataProvider = ({ children }: { children: ReactNode }) => {
             }
 
 
-            const addedExperience = await createExperience(email, experience);
+            // Clean: Remove timeFinished if it's a blank string
+            const cleanedExperience = {
+                ...experience,
+                ...(experience.timeFinished?.trim() === "" ? { timeFinished: undefined } : {})
+            };
+            const addedExperience = await createExperience(email, cleanedExperience);
             if (addedExperience){
                 return true;
             }
