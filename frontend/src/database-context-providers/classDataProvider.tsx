@@ -1,5 +1,5 @@
 import { courseService } from "@/services/api";
-import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote } from "@/types/types";
+import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote, TutorApplication } from "@/types/types";
 import { isAxiosError } from "axios";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -38,6 +38,8 @@ export interface ClassDataProvision {
     fetchAllLecturerShortlists: () => Promise<LecturerShortlist[]>;
 
     fetchCourse: (courseCode: string) => Promise<Course | undefined>;
+
+    fetchTutorApplication: (courseCode: string, tutorEmail: string) => Promise<TutorApplication | undefined>;
 
     getClassRecords: () => Promise<ClassRecord>;
 }
@@ -338,6 +340,8 @@ const removePrefSkill = async (courseCode: string, skill: string) => {
     }
 }
 
+
+
 const fetchTutorApplications = async (courseCode: string) => {
     try {
         const data = await courseService.getTutorApplicationsByCourseCode(courseCode);
@@ -346,6 +350,7 @@ const fetchTutorApplications = async (courseCode: string) => {
     catch(error) {
         console.error("Error fetching tutorApplications entity entries in classDataProvider", error);
     }
+
 }
 
 const removeTutorApplication = async (tutorEmail: string, courseCode: string) => {
@@ -454,6 +459,17 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     useEffect (() => {
         refreshRecords();
     }, [])
+
+    const fetchTutorApplication = async (courseCode: string, tutorEmail: string) => {
+    try {
+        const data = await courseService.getTutorApplication(courseCode, tutorEmail);
+        return data;
+    }
+    catch(error) {
+        console.error("Error fetching tutorApplication entity entries in classDataProvider", error);
+    }
+    refreshRecords();
+}
 
 
     const addLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
@@ -1069,6 +1085,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
                 getTutorNotes,
                 changeAvailability,
                 fetchAllLecturerShortlists,
+                fetchTutorApplication,
                 fetchCourse,
                 getClassRecords,
             }}

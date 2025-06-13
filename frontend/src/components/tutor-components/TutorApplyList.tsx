@@ -12,7 +12,7 @@ const TutorApplyList = () => {
 
     const  { isAuthenticated, getCurrentUser } = useAuth();
 
-    const { addApplication, classRecords} = useClassData();
+    const { addApplication, classRecords, fetchTutorApplication} = useClassData();
     
     // get current user
     const currUser = getCurrentUser();
@@ -64,7 +64,9 @@ const TutorApplyList = () => {
         )
     };
 
-    const handleApply = async(courseCode: string) => {
+    
+
+    const handleApply = async(courseCode: string, isLabAssistant: boolean) => {
         if (!courseCodes.includes(courseCode)) {
             return alert("Course code not found");
         }
@@ -77,8 +79,11 @@ const TutorApplyList = () => {
         if (classRecords[courseCode].tutorEmails.includes(email)) {
             return alert("You are already tutoring this course");
         }
+
+        // get application
+
         // finally add application 
-        const noError: boolean = await addApplication(courseCode, email);
+        const noError: boolean = await addApplication(courseCode, email, isLabAssistant);
 
         // if an error within the addApplication function occurs display an error message
         if (!noError) {
@@ -98,8 +103,10 @@ const TutorApplyList = () => {
                     return (
                         <TutorClassCard courseCode={courseCode} key={courseCode}>
                             <p className="mt-4 mb-4">Click to <b>quick apply</b></p>
-                            <Button onClick={() => handleApply(courseCode)}> Quick Apply </Button>
+                            <Button className="mr-2" onClick={() => handleApply(courseCode, false)}> Quick Apply (Tutor) </Button>
+                            <Button className="ml-2" onClick={() => handleApply(courseCode, true)}> Quick Apply (Lab Assistant) </Button>
                         </TutorClassCard>
+                        
                     );
                 })
 

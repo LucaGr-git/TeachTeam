@@ -55,6 +55,8 @@ router.get("/tutors/:tutorEmail/courses", (req, res) => controller.getCourseCode
 
 router.post("/courses/:courseCode/tutors", validateDto(CreateCourseTutorDTO), (req, res) => controller.createCourseTutor(req, res));
 
+router.get("/courses/:courseCode/applications/:tutorEmail", (req, res) => controller.getTutorApplication(req, res));
+
 router.get("/courses/:courseCode/applications", (req, res) => controller.getTutorApplicationByCourseCode(req, res));
 
 router.get("/applications/:tutorEmail/courses", (req, res) => controller.getCourseCodeByTutorApplication(req, res)); 

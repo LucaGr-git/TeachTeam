@@ -16,6 +16,7 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     return data;
   },
 
+  
   getAllTutorApplications: async (): Promise<TutorApplication[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/tutorApplications`);
     return data;
@@ -100,6 +101,20 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/tutors`, tutor);
   },
 
+
+
+  getTutorApplication: async (courseCode: string, tutorEmail: string) => {
+    console.log(courseCode, " : ", tutorEmail);
+    try {
+      const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/applications/${tutorEmail}`);
+      return data;
+    }
+    catch{
+      return null;
+    }
+    
+  },
+
   getTutorApplicationsByCourseCode: async (courseCode: string): Promise<TutorApplication[]> => {
     const { data } = await axios.get(`${API_BASE_URL}/courses/${courseCode}/applications`);
     return data;
@@ -111,6 +126,7 @@ getAllCourseLecturers: async (): Promise<CourseLecturer[]> => {
   },
 
   createTutorApplication: async (courseCode: string, application: TutorApplication): Promise<void> => {
+    console.log(application);
     await axios.post(`${API_BASE_URL}/courses/${courseCode}/applications`, application);
   },
 

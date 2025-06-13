@@ -375,6 +375,27 @@ async getAllPreferredSkills(req: Request, res: Response) {
    * @param res - Express response object
    * @return JSON object of the TutorApplication or 404 if not found
    */
+   async getTutorApplication(req: Request, res: Response) {
+    /** Retrieve the TutorApplication from the database */
+    const tutorApplication = await this.tutorApplicationRepo.findOneBy({
+      courseCode: req.params.courseCode,
+      tutorEmail: req.params.tutorEmail,
+    });
+
+    /** Check if the tutor application exists, if not, return a 404 error */
+    if (!tutorApplication) {
+      return res.status(404).json({ message: "Tutor application not found" });
+    }
+
+    /** Return the course lecturer */
+    res.json(tutorApplication);
+   }
+  /**
+   * Gets all tutor Applications in TutorApplication by course code
+   * @param req - Express request object containing course code in params
+   * @param res - Express response object
+   * @return JSON object of the TutorApplication or 404 if not found
+   */
    async getTutorApplicationByCourseCode(req: Request, res: Response) {
     /** Retrieve the TutorApplication from the database */
     const tutorApplication = await this.tutorApplicationRepo.findBy({

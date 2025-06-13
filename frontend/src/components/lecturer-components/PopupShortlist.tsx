@@ -37,8 +37,7 @@ const PopupShortlist = ({
     courseCode}: PopupShortlistProps) => {
 
     
-    // Get the records from local storage
-    const {removeFromShortlist, acceptApplication, fetchAllLecturerShortlists, orderLecturerShortList, classRecords} = useClassData();
+    const {removeFromShortlist, acceptApplication, fetchAllLecturerShortlists, orderLecturerShortList, classRecords, fetchTutorApplication} = useClassData();
     const { getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const {getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
@@ -165,13 +164,34 @@ const PopupShortlist = ({
         }
     }
 
-    const acceptApplicant = async(email: string) => {
-        // check if user is shortlisted
+    const getApplication = async(email: string) => {
         const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
-        
+
         // if user is shortlisted accept Applicant
         if (shortlisted) {
-            if (await acceptApplication(courseCode, email)){
+            const data = await fetchTutorApplication(courseCode, email)
+            return data;
+            
+        } 
+        else {
+            alert ("Error: Not part of shortlist, must be in the shortlist to accept");
+        }
+        
+    }
+
+    const acceptApplicant = async(email: string) => {
+
+        // check if user is shortlisted
+        const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutor => tutor.tutorEmail === email);
+
+        const application = await getApplication(email)
+
+
+        
+        
+        // if user is shortlisted accept Applicant
+        if (shortlisted && application) {
+            if (await acceptApplication(courseCode, email, application.isLabAssistant)){
                 // rerender
                 setShortlist ( shortList.filter((applicant) => {
                     return (applicant.email !== email);

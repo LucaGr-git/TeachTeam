@@ -1,32 +1,61 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
 import TutorClassCard from "./TutorClassCard";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
+
+interface ApplicationEntry {
+  courseCode: string;
+  isLabAssistant: boolean;
+}
 
 const TutorJobList = () => {
-    
-    // useState solely used to force re-render of component 
-    const [rerenderCounter, setrerenderCounter] = useState(0)
+  const [rerenderCounter, setRerenderCounter] = useState(0);
+  const [applications, setApplications] = useState<ApplicationEntry[]>([]);
 
-    const  { isAuthenticated, getCurrentUser } = useAuth();
-    // get current user
-    const currUser = getCurrentUser();
-    
+  const { isAuthenticated, getCurrentUser } = useAuth();
+  const currUser = getCurrentUser();
+  const { rejectApplication, classRecords, fetchTutorApplication } = useClassData();
 
-    const { rejectApplication, classRecords } = useClassData();
-    
-    // return error card if not authenticated 
-    if (!isAuthenticated || !currUser) {
-        return (
-        <Section title="Not Authenticated">
-            <p className="text-red-500"> User is not authenticated.</p>
-        </Section>
-        )
-    }
+  useEffect(() => {
+    const fetchApplications = async () => {
+      if (!currUser || !classRecords) return;
 
-    if (!classRecords) {
+      const email = currUser.email;
+      const results: ApplicationEntry[] = [];
+
+      for (const courseCode in classRecords) {
+        const record = classRecords[courseCode];
+
+        if (!record.tutorEmails.includes(email) && record.tutorsApplied.includes(email)) {
+          const application = await fetchTutorApplication(courseCode, email);
+
+          if (application) {
+            results.push({
+              courseCode,
+              isLabAssistant: application.isLabAssistant,
+            });
+          }
+        }
+      }
+
+      setApplications(results);
+    };
+
+    fetchApplications();
+  }, [rerenderCounter]);
+
+  if (!isAuthenticated || !currUser) {
+    return (
+      <Section title="Not Authenticated">
+        <p className="text-red-500">User is not authenticated.</p>
+      </Section>
+    );
+  }
+
+  if (!classRecords) {
     return (
       <Section title="Error">
         <p className="text-red-500">Failed to load class records.</p>
@@ -34,81 +63,52 @@ const TutorJobList = () => {
     );
   }
 
-
-    // get user email 
-    const email = currUser.email;
-
-    
-    // get class records
-    // create a list of course codes for classes they have applied for 
-    const courseCodes: string[] = [];  
-
-    // loop through the class records course codes
-    for (const courseCode in classRecords) {
-        // check if the user is not tutoring
-        if (!classRecords[courseCode].tutorEmails.includes(email)) {
-            // check if the user has applied
-            if (classRecords[courseCode].tutorsApplied.includes(email)) {
-                // if the user has applied add it to the list
-                courseCodes.push(courseCode);
-            }
-        }
-    }
-
-
-    // if there are no course codes return an error message
-    if (courseCodes.length === 0) {
-        return (
-            <Section title="No classes available">
-                <p className="text-red-500"> No classes available.</p>
-            </Section>
-        )
-    };
-
-
-    const handleCancellation = async(courseCode: string) => {
-        if (!courseCodes.includes(courseCode)) {
-            return alert("Course code not found");
-        }
-
-        // check if the user has already applied
-        if (!classRecords[courseCode].tutorsApplied.includes(email)) {
-            return alert("You have not applied for this course");
-        }
-        // check if the user is already tutoring
-        if (classRecords[courseCode].tutorEmails.includes(email)) {
-            return alert("You are already tutoring this course");
-        }
-        // finally remove application 
-        const noError: boolean = await rejectApplication(courseCode, email);
-
-        // if an error within the addApplication function occurs display an error message
-        if (!noError) {
-            return alert("Error cancelling application for course");
-        }
-
-        // use useState to force a re-render
-        setrerenderCounter(rerenderCounter + 1);
-    }
-
-
-    // returns a list of cards for each matching course 
+  if (applications.length === 0) {
     return (
-        <>
-            {
-                courseCodes.map((courseCode) => {
-                    return (
-                        <TutorClassCard courseCode={courseCode} key = {courseCode}>
-                            <p className="mt-4 mb-4"><i> You have applied to this course</i> </p>
-                            <p className="mt-4 mb-4">Click to <b>cancel appliation</b></p>
-                            <Button onClick={() => handleCancellation(courseCode)}> Cancel Application </Button>
-                        </TutorClassCard>
-                    );
-                })
-            }
-        
-        </>
+      <Section title="No classes available">
+        <p className="text-red-500">No classes available.</p>
+      </Section>
     );
+  }
+
+  const handleCancellation = async (courseCode: string) => {
+    const email = currUser.email;
+    const record = classRecords[courseCode];
+    if (!record) return alert("Course not found");
+
+    if (!record.tutorsApplied.includes(email)) {
+      return alert("You have not applied for this course");
+    }
+
+    if (record.tutorEmails.includes(email)) {
+      return alert("You are already tutoring this course");
+    }
+
+    const success = await rejectApplication(courseCode, email);
+    if (!success) {
+      return alert("Error cancelling application");
+    }
+
+    setRerenderCounter((r) => r + 1); // Re-fetch application data
+  };
+
+  return (
+    <>
+      {applications.map((app) => (
+        
+        <TutorClassCard courseCode={app.courseCode} key={app.courseCode}>
+          <p className="mt-4 mb-4 mr-10">
+            <i>You have applied to this course</i>
+            
+          </p>
+          <Badge>{app.isLabAssistant ? "Lab Assistant" : "Tutor"}</Badge>
+          <p className="mt-4 mb-4">Click to <b>cancel application</b></p>
+          <Button onClick={() => handleCancellation(app.courseCode)}>Cancel Application</Button>
+          
+        </TutorClassCard>
+      ))}
+    </>
+  );
 };
 
 export default TutorJobList;

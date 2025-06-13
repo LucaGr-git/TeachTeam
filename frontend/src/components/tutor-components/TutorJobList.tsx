@@ -72,7 +72,7 @@ const TutorJobList = () => {
                 courseCodes.map((courseCode) => {
                     return (
                         <TutorClassCard courseCode={courseCode} key={courseCode}>
-                            <p className="mt-4 mb-4"><i> You are tutoring this course </i> </p>
+                            <p className="mt-4 mb-4"><i> Your application was successful</i> </p>
                         </TutorClassCard>
                     );
                 })
