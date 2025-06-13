@@ -75,7 +75,7 @@ useEffect(() => {
   };
 
   fetchNotesAndNames();
-}, [classRecords?.[courseCode]?.lecturerEmails?.join(","), courseCode, tutorEmail]);
+}, [classRecords?.[courseCode]?.lecturerEmails?.join(","), courseCode, tutorEmail, rerenderCounter]);
 
   // get class record
 if (!classRecords) {

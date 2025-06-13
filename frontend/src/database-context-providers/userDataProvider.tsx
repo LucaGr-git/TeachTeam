@@ -127,7 +127,6 @@ const createExperience = async (email: string, experience: Experience) => {
 const fetchUserSkills = async (email: string) => {
     try {
         const userSkillList = await fetchUser(email);
-        console.log(userSkillList + " email " + email);
         if (!userSkillList) {
             console.warn("User not found for skill creation:", email);
             return null;
