@@ -13,7 +13,7 @@ Important Info:
 - We have implemented all PA, CR, DI tasks but not the HD task
 - to test the project you can use npm install and then npm run dev on both the frontend and backend folders
 - we only store the logged in user's info like email/hashed password in localStorage as a session token. 
-- 
+- please refer to main branch for most recent version of repo
 
 
 References/Libraries Used: A2
