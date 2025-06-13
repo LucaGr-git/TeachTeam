@@ -1,5 +1,6 @@
 import { courseService } from "@/services/api";
 import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote, TutorApplication } from "@/types/types";
+import { match } from "assert";
 import { isAxiosError } from "axios";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -527,15 +528,25 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
 
-        // checking if needing to remove from tutorShortlist entity
-        // if the applicant is in the short list remove them
-        const shortlistedTutors = await fetchShortlistedTutor();
-        if (shortlistedTutors) {
-            const matchingTutor = shortlistedTutors.find(app => app.tutorEmail === tutorEmail && app.courseCode === courseCode);
-            if (matchingTutor) {
-                await removeShortlistedTutor(courseCode, tutorEmail);
-            }
-        }
+        const removedShortlistEntities = await removeFromShortlist(courseCode, tutorEmail);
+
+        // // checking if needing to remove from tutorShortlist entity
+        // // if the applicant is in the short list remove them
+        // const shortlistedTutors = await fetchShortlistedTutor();
+        // if (shortlistedTutors) {
+        //     const matchingTutor = shortlistedTutors.find(app => app.tutorEmail === tutorEmail && app.courseCode === courseCode);
+        //     if (matchingTutor) {
+        //         await removeShortlistedTutor(courseCode, tutorEmail);
+        //     }
+        // }
+        // // checking and removing all lecturerShortlist entries
+        // const shortlistLecturers = await fetchAllLecturerShortlists();
+        // if (shortlistLecturers) {
+        //     const matchingLecturer = shortlistLecturers.filter(app => app.courseCode === courseCode && app.tutorEmail === tutorEmail); 
+        //         for (const lecturer of matchingLecturer){
+        //             await removeLecturerShortlist(courseCode, tutorEmail, lecturer.lecturerEmail);
+        //         }    
+        // }
 
         refreshRecords();
         return true;
