@@ -1,6 +1,5 @@
 import { courseService } from "@/services/api";
 import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote, TutorApplication } from "@/types/types";
-import { match } from "assert";
 import { isAxiosError } from "axios";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
@@ -528,7 +527,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
             return false;
         }
 
-        const removedShortlistEntities = await removeFromShortlist(courseCode, tutorEmail);
+        await removeFromShortlist(courseCode, tutorEmail);
 
         // // checking if needing to remove from tutorShortlist entity
         // // if the applicant is in the short list remove them

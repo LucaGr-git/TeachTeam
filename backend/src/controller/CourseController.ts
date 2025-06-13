@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../data-source";
-import { Profile } from "../entity/Profile";
 import { Course } from "../entity/Course";
 import { CourseLecturer } from "../entity/CourseLecturer";
 import { CourseTutor } from "../entity/CourseTutor";
