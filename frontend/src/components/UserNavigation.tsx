@@ -11,8 +11,7 @@ import {
   MAX_NUM_QUALIFICATIONS, 
   MAX_NUM_SKILLS, 
   MAX_CHAR_EXPERIENCES, 
-  MAX_CHAR_QUALIFICATIONS, 
-  localStorageExperienceData} from "@/database-context-providers/userDataProvider";
+  MAX_CHAR_QUALIFICATIONS} from "@/database-context-providers/userDataProvider";
 import TagCustomDisplay from "./general-components/TagCustomizableDisplay";
 import { z } from "zod";
 import PopupProfile from "./PopupProfile";
@@ -138,14 +137,13 @@ const UserNavigation = () => {
       setUserExperiences(experiences);
     }
     catch (error){
-      console.warn("Error fetching or setting experiences");
+      console.warn("Error fetching or setting experiences", error);
     }
   }
 
 
   // get the current user availability
   const [userAvailability, setUserAvailability] = useState<boolean>(false);
-  const [availabilityLoaded, setAvailabilityLoaded] = useState<boolean>(false);
 
   const monthYearFormats: Intl.DateTimeFormatOptions = {
     year: 'numeric',

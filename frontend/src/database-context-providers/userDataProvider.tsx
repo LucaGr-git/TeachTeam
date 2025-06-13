@@ -1,6 +1,7 @@
 import { createContext, useEffect, useContext, ReactNode } from "react";
 import { Qualification, Skill, Experience, User} from "@/types/types";
 import { userService } from "@/services/api";
+import { isAxiosError } from "axios";
 
 // const values for maximum number of skills, qualifications and experiences
 export const MAX_NUM_SKILLS : number = 10;
@@ -54,8 +55,10 @@ const fetchUser = async (email: string) => {
 try {
     const data = await userService.getUserByEmail(email);
     return data;
-} catch (error: any) {
-    if (error.response && error.response.status === 404) {
+} catch (error) {
+    if (isAxiosError(error)){
+        if (error.response && error.response.status === 404) {
+    }
     // This is expected during signup
     return null;
     }
@@ -69,7 +72,7 @@ const updateUser = async (email: string, newUpdatedUser: Partial<User>) => {
     try {
         const userToUpdate = await fetchUser(email);
         if (userToUpdate) {
-            const changedUser = await userService.updateUser(email, newUpdatedUser);
+            await userService.updateUser(email, newUpdatedUser);
         }
     }
     catch {
@@ -180,7 +183,7 @@ const removeSkill = async (email: string, id: number) => {
             const matchingSkill = userSkills.find(s => s.id === id);
             console.log(matchingSkill?.id + " TEST, REMOVE SKILL ID");
             if (matchingSkill) {
-                const userSkillToDelete = await userService.deleteSkill(email, matchingSkill.id!);
+                await userService.deleteSkill(email, matchingSkill.id!);
             }
         }
     }
@@ -196,8 +199,8 @@ const removeQualification = async (email: string, id: number) => {
             // Try to find a Qualification object that matches the qualification string
             const matchingQualification = userQualifications.find(s => s.id === id);
 
-            if (matchingQualification) {
-                const userQualificationToDelete = await userService.deleteQualification(matchingQualification?.userEmail, matchingQualification?.id!);
+            if (matchingQualification && matchingQualification?.id) {
+                await userService.deleteQualification(matchingQualification?.userEmail, matchingQualification.id!);
             }
         }
     }
@@ -213,8 +216,8 @@ const removeExperience = async (email: string, id: number) => {
             // Try to find an experience object that matches the experience id
             const matchingExperience = userExperiences.find(s => s.id === id);
 
-            if (matchingExperience) {
-                const userExperienceToDelete = await userService.deleteExperience(matchingExperience?.userEmail, matchingExperience?.id!);
+            if (matchingExperience && matchingExperience?.id) {
+                await userService.deleteExperience(matchingExperience?.userEmail, matchingExperience.id!);
             }
         }
     }

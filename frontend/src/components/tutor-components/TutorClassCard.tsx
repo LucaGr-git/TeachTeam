@@ -14,7 +14,7 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   // get class records
   const { classRecords } = useClassData();
   // get user records
-  const { getUsers, fetchUser } = useAuth();
+  const { fetchUser } = useAuth();
 
   // get class record
   if (!classRecords) {
@@ -26,8 +26,6 @@ const TutorClassCard = ({ courseCode, children }: TutorClassCardProps) => {
   }
   const tutorClass = classRecords[courseCode];
 
-  // get users record
-  const users = getUsers();
 
   
   // return error card if course code is wrong

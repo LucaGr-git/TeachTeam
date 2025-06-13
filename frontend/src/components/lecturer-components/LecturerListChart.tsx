@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import { useClassData, LecturerShortList} from "@/database-context-providers/classDataProvider";
+import { useClassData} from "@/database-context-providers/classDataProvider";
 import { useUserData } from "@/database-context-providers/userDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
 import Section from "@/components/general-components/Section";
@@ -27,11 +27,11 @@ const LecturerListChart = (
     const [chartColor, setChartColor] = useState("#FF0000"); // red if the css cannot be red
 
     // get class records
-    const {isLoading, classRecords} = useClassData();
+    const {classRecords} = useClassData();
     // get user records
-    const { getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+    const {getCurrentUser, isAuthenticated, isLecturer} = useAuth();
 
-    const {getAllUsers, getUser} = useUserData();
+    const {getUser} = useUserData();
     
 
     
@@ -45,8 +45,6 @@ const LecturerListChart = (
     );
     }
 
-    // get users record
-    const users = getAllUsers();
 
     // get current user
     const currUser = getCurrentUser();

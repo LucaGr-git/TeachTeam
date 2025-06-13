@@ -7,7 +7,6 @@ import TagCustomDisplay from "../general-components/TagCustomizableDisplay";
 import { Switch } from "../ui/switch";
 import LecturerListChart from "./LecturerListChart";
 import { Button } from "../ui/button";
-import { set } from "react-hook-form";
 
 // interface for the class card details
 interface LecturerClassCardProps {
@@ -23,9 +22,9 @@ const LecturerClassCard = ({ courseCode, children }: LecturerClassCardProps) => 
   const [viewCourseInfo, setViewCourseInfo] = useState<boolean>(true);
 
   // get class records
-  const { getClassRecords, addPreferredSkill, removePreferredSkill, changeAvailability, isLoading, classRecords, fetchCourse} = useClassData();
+  const { addPreferredSkill, removePreferredSkill, changeAvailability, classRecords, fetchCourse} = useClassData();
   // get user records
-  const { getUsers, getCurrentUser, isAuthenticated, isLecturer, fetchUser} = useAuth();
+  const { getCurrentUser, isAuthenticated, isLecturer, fetchUser} = useAuth();
 
   // get class record
 if (!classRecords) {
@@ -37,8 +36,7 @@ if (!classRecords) {
   }
     const lecturerClass = classRecords[courseCode];
 
-  // get users record
-  const users = getUsers();
+
 
   // get current user
   const currUser = getCurrentUser();

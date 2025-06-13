@@ -1,7 +1,6 @@
 import React, {useState} from "react";
 import { Button } from "../ui/button";
 import Section from "./Section"
-import { localStorageExperienceData } from "@/database-context-providers/userDataProvider";
 import TagDisplay from "./TagDisplay";
 import ExperienceCard from "./ExperienceCard";
 import NavList from "./NavList";

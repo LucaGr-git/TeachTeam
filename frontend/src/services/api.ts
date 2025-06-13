@@ -4,7 +4,6 @@ const API_BASE_URL = "http://localhost:3001/api";
 
 
 import { Course, CourseLecturer, TutorApplication, ShortlistedTutor, ShortlistNote, PreferredSkill, User, LecturerShortlist, Qualification, Experience, Skill, CourseTutor } from "../types/types";
-import TutorApplyList from "@/components/tutor-components/TutorApplyList";
 export const courseService = {
 
   getAllCourses: async (): Promise<Course[]> => {

@@ -34,7 +34,7 @@ const LecturerAddNote = (
 
 
   // get class records
-  const { getClassRecords, addNote, isLoading, classRecords} = useClassData();
+  const { addNote, classRecords} = useClassData();
   // get user records
   const {getCurrentUser, isAuthenticated, isLecturer} = useAuth();
 

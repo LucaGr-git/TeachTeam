@@ -1,6 +1,6 @@
 import { courseService } from "@/services/api";
 import { Course, CourseLecturer, LecturerShortlist, ShortlistedTutor, ShortlistNote } from "@/types/types";
-import { get } from "http";
+import { isAxiosError } from "axios";
 import { createContext, useEffect, useContext, ReactNode, useCallback, useState } from "react";
 
 export const MAX_NUM_SKILLS: number = 10;
@@ -171,15 +171,15 @@ const getClassRecords = async (): Promise<ClassRecord> => {
 
 
 
-const fetchAllCourses = async () => {
-    try {
-        const data = await courseService.getAllCourses();
-        return data;
-    }
-    catch (error) {
-        console.error("Error fetching all courses from DB in 'fetchAllCourses' function in classDataProvider", error);
-    }
-}
+// const fetchAllCourses = async () => {
+//     try {
+//         const data = await courseService.getAllCourses();
+//         return data;
+//     }
+//     catch (error) {
+//         console.error("Error fetching all courses from DB in 'fetchAllCourses' function in classDataProvider", error);
+//     }
+// }
 
 const fetchCourse = async (courseCode: string) => {
     try {
@@ -191,14 +191,14 @@ const fetchCourse = async (courseCode: string) => {
     }
 }
 
-const removeCourse = async (courseCode: string) => {
-    try {
-        const data = await courseService.deleteCourse(courseCode);
-    }
-    catch (error){
-        console.error("Error delete course: " + courseCode + " from the DB in function remove course");
-    }
-} 
+// const removeCourse = async (courseCode: string) => {
+//     try {
+//         const data = await courseService.deleteCourse(courseCode);
+//     }
+//     catch (error){
+//         console.error("Error delete course: " + courseCode + " from the DB in function remove course");
+//     }
+// } 
 
 const createLecturer = async (courseCode: string, email: string) => {
     try {
@@ -215,8 +215,8 @@ const fetchLecturer = async (CourseCode: string) => {
     try {
         const data = await courseService.getLecturerByCourseCode(CourseCode);
         return data;
-    } catch (error: any) {
-        if (error.response && error.response.status === 404) {
+    } catch (error) {
+        if (isAxiosError(error) && error.response?.status === 404) {
             return null;
         }
 
@@ -225,14 +225,14 @@ const fetchLecturer = async (CourseCode: string) => {
      }
 };
 
-const removeLecturer = async (courseCode: string, lecturerEmail: string) => {
-    try {
-        await courseService.deleteCourseLecturer(courseCode, lecturerEmail);
-    }
-    catch (error) {
-        console.error("Error removing user in class data provider: " + error);
-    }
-}
+// const removeLecturer = async (courseCode: string, lecturerEmail: string) => {
+//     try {
+//         await courseService.deleteCourseLecturer(courseCode, lecturerEmail);
+//     }
+//     catch (error) {
+//         console.error("Error removing user in class data provider: " + error);
+//     }
+// }
 
 const createShortlistedTutor = async (courseCode: string, email: string) => {
     try {
@@ -260,7 +260,7 @@ const removeShortlistedTutor = async (courseCode: string, tutorEmail: string) =>
         return data;
     }
     catch(error){
-        console.error("Unable to remove Shortlisted Tutor entry in classDataProvider");
+        console.error("Unable to remove Shortlisted Tutor entry in classDataProvider", error);
     }
 }
 
@@ -334,7 +334,7 @@ const removePrefSkill = async (courseCode: string, skill: string) => {
         }
     }
     catch(error) {
-        console.error("Error removing chosen skill");
+        console.error("Error removing chosen skill", error);
     }
 }
 
@@ -344,7 +344,7 @@ const fetchTutorApplications = async (courseCode: string) => {
         return data;
     }
     catch(error) {
-        console.error("Error fetching tutorApplications entity entries in classDataProvider");
+        console.error("Error fetching tutorApplications entity entries in classDataProvider", error);
     }
 }
 
@@ -439,7 +439,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
     const [classRecords, setClassRecords] = useState<ClassRecord | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [version, setVersion] = useState(0);
 
     const refreshRecords= () => {
         const fetchRecords = async () => {
@@ -470,7 +469,6 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const removeLecturer = async (courseCode: string, lecturerEmail: string): Promise<boolean> => {
-        const classRecords = await getClassRecords();
         const currClass = await fetchCourse(courseCode);
 
         if (!currClass) {
@@ -723,6 +721,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
     // TODO: REMOVE DEFUCT FUNCTION
     const changeCourseTitle = async (courseCode: string, newTitle: string): Promise<boolean> => {
+        console.log(courseCode);
+        console.log(newTitle);
         // const classRecords = await getClassRecords();
         // const currClass = classRecords[courseCode];
 
@@ -918,7 +918,7 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
 
         // Add note to the DB
         try {
-            const data = await createShortlistNote(courseCode, tutorEmail, lecturerEmail, message);
+            await createShortlistNote(courseCode, tutorEmail, lecturerEmail, message);
             refreshRecords();
             return true;
         }
@@ -972,8 +972,8 @@ export const ClassDataProvider = ({ children }: { children: ReactNode }) => {
         let matchingNote: ShortlistNote | undefined;
         if (shortListNotes){
             matchingNote = shortListNotes.find(match => match.courseCode === courseCode && match.message === message && match.lecturerEmail === lecturerEmail && match.tutorEmail === tutorEmail);
-            if (matchingNote) {
-                await removeShortlistNote(matchingNote.id?.toString()!);
+            if (matchingNote && matchingNote.id) {
+                await removeShortlistNote(matchingNote.id.toString()!);
             }
         }
         refreshRecords();

@@ -3,9 +3,9 @@ import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
 import Section from "../general-components/Section";
 
-import { useClassData, ClassRecord } from "@/database-context-providers/classDataProvider";
+import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { UserRecord, useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 import NavList from "../general-components/NavList";
@@ -38,16 +38,14 @@ const PopupShortlist = ({
 
     
     // Get the records from local storage
-    const {getClassRecords, removeFromShortlist, acceptApplication, fetchAllLecturerShortlists, orderLecturerShortList, classRecords} = useClassData();
-    const {getUserRecords, getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
-    const {getUsers, getCurrentUser, isAuthenticated, isLecturer} = useAuth();
+    const {removeFromShortlist, acceptApplication, fetchAllLecturerShortlists, orderLecturerShortList, classRecords} = useClassData();
+    const { getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
+    const {getCurrentUser, isAuthenticated, isLecturer} = useAuth();
     
     // get user data
     const [shortList, setShortlist] = useState<ApplicantInfo[]>([]);
 
     const [shortlistArray, setApplicantList] = useState<ApplicantInfo[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-
 
     useEffect(() => {
     const fetchApplicants = async () => {
@@ -87,7 +85,6 @@ const PopupShortlist = ({
         }
 
         setApplicantList(applicants);
-        setLoading(false);
     };
 
     fetchApplicants();
@@ -102,8 +99,6 @@ const PopupShortlist = ({
         );
     }
 
-    const userData: UserRecord = getUserRecords();
-    const userList = getUsers();
     //get current user email
     const currUser = getCurrentUser();
     if (currUser == null || !isAuthenticated || !isLecturer){
@@ -112,15 +107,11 @@ const PopupShortlist = ({
     const currEmail = currUser.email;
 
     // shortlist that will be checked through 
-    let lecturersShortlist = classRecords[courseCode].lecturerShortlist[currEmail];
     
     // See if user is lecturing the course 
     const lecturingThisCourse: boolean = classRecords[courseCode].lecturerEmails.includes(currEmail);
 
     // if the user is not a lecturer of this course use the default shortlist not a ranked shortlist
-    if (!lecturingThisCourse){
-        lecturersShortlist = classRecords[courseCode].tutorsShortlist.map((tutor) => tutor.tutorEmail);
-    }
     // if the user is a lecturer ensure that their shortlist ahs been initialized
     
     

@@ -5,7 +5,7 @@ import Section from "../general-components/Section";
 
 import { useClassData } from "@/database-context-providers/classDataProvider";
 import { useAuth } from "@/database-context-providers/auth";
-import { useUserData, localStorageExperienceData } from "@/database-context-providers/userDataProvider";
+import { useUserData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 import { Experience } from "@/types/types";
@@ -41,7 +41,7 @@ const PopupApplicantList = ({
     const [shortlistOnly, setShortlistOnly] = useState<boolean>(false);
 
     // Get the records from local storage
-    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords, acceptApplication} = useClassData();
+    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
     const {getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const { getCurrentUser} = useAuth();
 
