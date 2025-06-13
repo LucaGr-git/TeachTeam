@@ -1,5 +1,4 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn, PrimaryColumn} from "typeorm";
-import { Profile } from "./Profile";
+import { Column, Entity, PrimaryColumn} from "typeorm";
 
 @Entity()
 export class Course {

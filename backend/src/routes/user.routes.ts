@@ -1,9 +1,5 @@
 import { Router } from "express";
-import { PetController } from "../controller/PetController";
 import { validateDto } from "../middlewares/validate";
-import { CreatePetDTO } from "../exampledtos/create-pet.dto";
-import { UpdatePetDTO } from "../exampledtos/update-pet.dto";
-import { CourseController } from "../controller/CourseController";
 
 
 import { UserController } from '../controller/UserController'
