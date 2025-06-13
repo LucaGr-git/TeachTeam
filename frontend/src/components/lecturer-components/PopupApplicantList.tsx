@@ -9,6 +9,7 @@ import { useUserData } from "@/database-context-providers/userDataProvider";
 import ApplicantCard from "../general-components/ApplicantCard";
 import TagDisplay from "../general-components/TagDisplay";
 import { Experience } from "@/types/types";
+import { Badge } from "../ui/badge";
 
 interface PopupApplicantListProps {
     // Props for popup
@@ -27,6 +28,7 @@ interface ApplicantInfo {
     experience: Experience[];
     shortListed: boolean;
     email: string;
+    isLabAssistant: boolean;
 }
 
 const PopupApplicantList = ({
@@ -41,12 +43,18 @@ const PopupApplicantList = ({
     const [shortlistOnly, setShortlistOnly] = useState<boolean>(false);
 
     // Get the records from local storage
-    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords} = useClassData();
+    const { addToShortlist, removeFromShortlist, rejectApplication, classRecords, fetchTutorApplication} = useClassData();
     const {getUser, getUserExperiences, getUserQualifications, getUserSkills} = useUserData();
     const { getCurrentUser} = useAuth();
 
     const [applicantList, setApplicantList] = useState<ApplicantInfo[]>([]);
 
+    
+    const getApplication = async(email: string) => {
+        const data = await fetchTutorApplication(courseCode, email)
+        return data;
+        
+    }
 
     useEffect(() => {
     const fetchApplicants = async () => {
@@ -59,8 +67,9 @@ const PopupApplicantList = ({
             const userQualification = await getUserQualifications(tutor);
             const userSkills = await getUserSkills(tutor);
             const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
+            const application = await getApplication(tutor);
 
-            if (!currApplicant.isLecturer) {
+            if (application && !currApplicant.isLecturer) {
                 const newApplicant: ApplicantInfo = {
                     tutorName: currApplicant.firstName,
                     courseName: [classRecords[courseCode].courseTitle],
@@ -70,6 +79,8 @@ const PopupApplicantList = ({
                     experience: userExperience,
                     shortListed: shortlisted,
                     email: currApplicant.email,
+                    isLabAssistant: application.isLabAssistant
+                    
                 };
                 applicants.push(newApplicant);
             }
@@ -192,6 +203,9 @@ const PopupApplicantList = ({
                                 qualifications = {applicant.qualifications}
                                 experience = {applicant.experience}
                                 key = {index}>
+                        <div className="w-max">
+                        <Badge className = "mt-4 mb-4">{((applicant.isLabAssistant) ? "Lab Assistant":"Tutor")}</Badge>
+                        </div>
                         {(lecturingThisCourse)? 
                         // if lecturing the course show the option to shortlist
                         (
@@ -225,7 +239,7 @@ const PopupApplicantList = ({
 
             {
             // if the applicant list filtered by 
-            (shortlist.length === 0)? 
+            (applicantList.length === 0)? 
                 <TagDisplay tags={[]}></TagDisplay> : <></>}
             </div>
             </div>

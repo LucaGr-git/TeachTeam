@@ -12,6 +12,7 @@ import NavList from "../general-components/NavList";
 import { ChevronDown, ChevronDownCircle, ChevronUp, ChevronUpCircle } from "lucide-react";
 import LecturerViewNotes from "./LecturerViewNotes";
 import { Experience, LecturerShortlist } from "@/types/types";
+import { Badge } from "../ui/badge";
 
 interface PopupShortlistProps {
     // Props for popup
@@ -29,6 +30,7 @@ interface ApplicantInfo {
     experience: Experience[];
     shortListed: boolean;
     email: string;
+    isLabAssistant: boolean;
 }
 
 const PopupShortlist = ({
@@ -59,6 +61,7 @@ const PopupShortlist = ({
                 .filter(entry => entry.courseCode === courseCode && entry.lecturerEmail === currEmail)
                 .sort((a, b) => a.rank - b.rank);       
 
+
             for (const shortlistEntry of filteredShortlist) {
                 const tutor = shortlistEntry.tutorEmail;
                 const currApplicant = await getUser(tutor);
@@ -66,8 +69,12 @@ const PopupShortlist = ({
                 const userQualification = await getUserQualifications(tutor);
                 const userSkills = await getUserSkills(tutor);
                 const shortlisted = classRecords[courseCode].tutorsShortlist.some(tutorData => tutorData.tutorEmail === tutor);
+                const application = await getApplication(tutor);
 
-                if (!currApplicant.isLecturer && classRecords[courseCode].tutorsShortlist.map(t => t.tutorEmail).includes(currApplicant.email))  {
+                
+                
+
+                if (application && !currApplicant.isLecturer && classRecords[courseCode].tutorsShortlist.map(t => t.tutorEmail).includes(currApplicant.email))  {
                     const newApplicant: ApplicantInfo = {
                         tutorName: currApplicant.firstName,
                         courseName: [classRecords[courseCode].courseTitle],
@@ -77,6 +84,7 @@ const PopupShortlist = ({
                         experience: userExperience,
                         shortListed: shortlisted,
                         email: currApplicant.email,
+                        isLabAssistant: application.isLabAssistant
                     };
                     applicants.push(newApplicant);
                 }
@@ -174,7 +182,6 @@ const PopupShortlist = ({
             
         } 
         else {
-            alert ("Error: Not part of shortlist, must be in the shortlist to accept");
         }
         
     }
@@ -330,6 +337,7 @@ const PopupShortlist = ({
                         experience = {applicant.experience}
                         key = {applicant.email}
                     >
+                    <Badge className = "mt-4 mb-4">{((applicant.isLabAssistant) ? "Lab Assistant":"Tutor")}</Badge>
                     {(lecturingThisCourse? (
                         // if not lecturing the course extra details like notes are not rendered
                         <>
@@ -348,7 +356,7 @@ const PopupShortlist = ({
                             key = {applicant.email + "accept"} 
                             type="button" 
                             onClick={() => acceptApplicant(applicant.email)}>
-                                Accept Applicant as Tutor!
+                                Accept Applicant as {((applicant.isLabAssistant) ? "Lab Assistant" : "Tutor")}!
                         </Button> 
                         <div className="flex flex-row justify-evenly rounded-2xl bg-accent mt-3">
                             <div className="mt-4 mb-3">
@@ -387,7 +395,7 @@ const PopupShortlist = ({
                     
                     </ApplicantCard>})}
 
-            {(shortList.length === 0)? <TagDisplay tags={[]}></TagDisplay> : <></>}
+            {(shortlistArray.length === 0)? <TagDisplay tags={[]}></TagDisplay> : <></>}
             </div>
             </div>
             
