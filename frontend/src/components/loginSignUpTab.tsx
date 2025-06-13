@@ -84,7 +84,10 @@ const LoginSignUpTab = (
         },
     });
 
-
+    const waitFunction = async() => {
+        const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+        return sleep(1500);        
+    }
     // form handlers
     const onSubmitSignUp = async (
         values: {
@@ -111,25 +114,45 @@ const LoginSignUpTab = (
             
         }
         else { 
+        const loginPromise = new Promise<void>(async (resolve, reject) => {
             // // when signup is successful auto logs in 
-            const loggedIn = handleLogin(values.email, values.password);
+            const loggedIn = await handleLogin(values.email, values.password);
             
             // zod error when log in fails
             if (!loggedIn){
                 signUpForm.setError("email", 
                     { message: "There was a problem making this account"});
             }
-            else{
+            else {
                 // pushes to dashboard after sucessful sign in 
+                await waitFunction();
+                if (loggedIn) {
+                    resolve(); // login success
+                    router.push("/dashboard");
+                } else {
+                    logInForm.setError("email", {
+                        message: "The password is incorrect or that email has not been registered",
+                    });
+                    reject(); // login failed
+                }
+            }
+        });
+          try {
+
+            await toast.promise(loginPromise, {
+              loading: "Logging in...",
+              success: "Successfully logged in!",
+              error: "Invalid email or password",
+            });
+
+
+          } catch {
                 router.push("/dashboard");
             }
         }
     }
 
-    const waitFunction = async() => {
-        const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-        return sleep(1500);        
-    }
+
       
 
     const onSubmitLogIn = async (values: {

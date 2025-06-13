@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { User } from "@/types/types";
 import { userService } from "@/services/api";
 import bcrypt from 'bcryptjs';
-import { isAxiosError } from "axios";
+import { AxiosError } from "axios";
 
 // interface for user records details
 export interface LocalStorageUser {
@@ -41,8 +41,10 @@ export interface Authentication {
       const data = await userService.getUserByEmail(email);
       return data;
     } catch (error) { // todo fix any type issue
-        if (isAxiosError(error) && error.response?.status === 404) {
-            return null;
+        if (error instanceof AxiosError) {
+            if (error.response && error.response.status === 404) {
+                return null;
+            }   
         }
 
         console.error("Unexpected error fetching user:", error);
@@ -86,6 +88,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         try {
             await createUser(user);
+        
             return true;
         } catch (error) {
             console.error("User creation failed:", error);
