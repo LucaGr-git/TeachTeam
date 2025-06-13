@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
 import { Course } from './Course';
 import { User } from './User';
 
@@ -9,6 +9,9 @@ export class CourseTutor {
 
   @PrimaryColumn({ type: "varchar", length: 40})
   tutorEmail: string;
+
+  @Column({type: "boolean"})
+  isLabAssistant: boolean;
 
   @ManyToOne(() => Course)
   @JoinColumn({name: 'courseCode'})

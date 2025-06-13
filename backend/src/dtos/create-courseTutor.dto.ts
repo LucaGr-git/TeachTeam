@@ -1,4 +1,4 @@
-import { IsEmail, IsString, Length } from 'class-validator';
+import { IsBoolean, IsEmail, IsString, Length } from 'class-validator';
 
 export class CreateCourseTutorDTO {
   @IsString()
@@ -8,4 +8,7 @@ export class CreateCourseTutorDTO {
   @IsEmail()
   @Length(1, 40)
   tutorEmail: string;
+
+  @IsBoolean()
+  isLabAssistant: boolean;
 }

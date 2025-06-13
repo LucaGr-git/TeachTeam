@@ -302,11 +302,12 @@ async getAllPreferredSkills(req: Request, res: Response) {
    */
   async createCourseTutor(req: Request, res: Response) {
     /** Create a new course tutor object from the request body */
-    const { courseCode, tutorEmail } = req.body;
+    const { courseCode, tutorEmail, isLabAssistant } = req.body;
 
     const newCourseTutor = this.courseTutorRepo.create({
       courseCode,
       tutorEmail,
+      isLabAssistant,
       course: { courseCode },     // <-- must match PK on Course entity
       tutor: { email: tutorEmail } // <-- must match PK on User entity
     });

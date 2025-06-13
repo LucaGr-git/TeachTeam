@@ -9,4 +9,7 @@ export class CreateTutorApplicationDTO {
   @IsString() 
   @IsEmail()
   tutorEmail: string;
+
+  @IsBoolean()
+  isLabAssistant: boolean;
 }
