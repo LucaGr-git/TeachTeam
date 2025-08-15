@@ -41,7 +41,7 @@ A full-stack **React + TypeScript + Next.js** application designed to help stude
 
 ```bash
 git clone https://github.com/LucaGr-git/TeachTeam
-cd s4095471-s4093817-a2
+cd TeachTeam
 ```
 
 ## 2. Install dependencies
