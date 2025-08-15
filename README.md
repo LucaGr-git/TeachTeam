@@ -29,7 +29,7 @@ A full-stack **React + TypeScript + Next.js** application designed to help stude
 | Page                  | Screenshot |
 |-----------------------|------------|
 | **Login Page**        | <img width="1886" height="909" alt="Screenshot 2025-08-15 at 11 49 38 pm" src="https://github.com/user-attachments/assets/0241b239-a079-4fa5-9f33-bf654a6970e4" />|
-| **Applicant Page **   | <img width="1868" height="915" alt="Screenshot 2025-08-15 at 11 50 32 pm" src="https://github.com/user-attachments/assets/3a6a1e60-51bc-49a7-9e27-94f25be5921a" />|
+| **Applicant Page**   | <img width="1868" height="915" alt="Screenshot 2025-08-15 at 11 50 32 pm" src="https://github.com/user-attachments/assets/3a6a1e60-51bc-49a7-9e27-94f25be5921a" />|
 | **Lecturer Page**     | <img width="1853" height="907" alt="Screenshot 2025-08-15 at 11 50 15 pm" src="https://github.com/user-attachments/assets/1868486c-4add-4eae-baf6-cc622e888df0" />|
 ---
 
