@@ -1,6 +1,6 @@
 # TeachTeam / Tutor - Lab Assistant Job Platform
 
-A full-stack **React + TypeScript + Next.js** application designed to help students apply for **tutor and lab assistant jobs**.  
+A full-stack **React + TypeScript + Next.js** application designed as a Proof-of-Concept to help students apply for **tutor and lab assistant jobs**.  
 
 
 ---
