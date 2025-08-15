@@ -36,6 +36,8 @@ A full-stack **React + TypeScript + Next.js** application designed to help stude
 
 ## 🛠️ How to Run the Project
 
+- You must have a MySQL instance set up and referenced in the data-source.ts in backend
+
 **1. Clone the repository**
 
 ```bash
