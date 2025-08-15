@@ -1,39 +1,96 @@
-# s4095471-s4093817-a2
+# 🎓 s4095471-s4093817-a2 — Tutor / Lab Assistant Job Platform
 
-Github repository link:
-https://github.com/rmit-fsd-2025-s1/s4095471-s4093817-a2
+A full-stack **React + TypeScript + Next.js** application designed to help students apply for **tutor and lab assistant jobs**.  
+This project was completed as part of the **RMIT Full Stack Development** course (A2).
 
-Group Details:
-- Luca Grosso: s4093817@student.rmit.edu.au
-- Alysha Khan: s4095471@student.rmit.edu.au
+---
 
-Important Info:
-- Look at the php my admin website to get access to account emails
-- all existing account passwords are Password123! (hashed in the db)
-- We have implemented all PA, CR, DI tasks but not the HD task
-- to test the project you can use npm install and then npm run dev on both the frontend and backend folders
-- we only store the logged in user's info like email/hashed password in localStorage as a session token. 
-- please refer to main branch for most recent version of repo
+## 👨‍💻 Group Details
 
+| Name         | Student ID | Email                                      |
+|--------------|------------|--------------------------------------------|
+| Luca Grosso  | s4093817   | s4093817@student.rmit.edu.au               |
+| Alysha Khan  | s4095471   | s4095471@student.rmit.edu.au               |
 
-References/Libraries Used: A2
-- https://typeorm.io/ (necessary for this assignment | documentation regarding entities was used)
-- https://nextjs.org/docs (necessary for this assignment | config documentation was used)
-- https://eslint.org/docs/latest/ (necessary for this assignment | used for npm run build / linting )
-- Weekly Practical answers W7-10 (the weekly practicals were used as a structure to connect backend and frontend)
-- https://www.npmjs.com/package/bcrypt (library used for hashing passwords)
-- https://www.npmjs.com/package/react-loading-icons?activeTab=readme (module used to implement a loading spinner)
-- https://axios-http.com/docs/intro (necessary for this assignment | documentation regarding HTTP promises)
-- https://excalidraw.com/ (used to sketch the ERD model image)
+👉 **GitHub Repository:** https://github.com/rmit-fsd-2025-s1/s4095471-s4093817-a2  
+👉 **Branch:** `main` (contains the most recent version)
 
+---
 
+## 🚀 Key Features
+- 📝 **Account Management** – create, log in, and manage user accounts  
+- 📄 **Job Listings** – browse available tutor / lab assistant roles  
+- 💼 **Applications** – apply for positions directly in the platform  
+- 🗂️ **User Dashboard** – view active / past applications  
+- 🗃️ **Admin Panel** (PA, CR and DI) – manage accounts and postings  
+- 🔐 **Session Storage** – logged in user info is stored as a **hashed token** in localStorage  
 
-References/Libraries Used: A1
-- https://app.haikei.app/ (used to create login page SVG's)
-- https://ui.shadcn.com/ (used this component library for primitive components)
-- https://zod.dev/?id=introduction (used this popular and well-documented 3rd party validation library for form validations within our project, additionally shadcn has built in support for Zod)
-- https://www.canva.com/en_gb/ (used for making the TeachTeam logo icons)
-- https://nextjs.org/ (Required framework used in this assignment)
-- https://recharts.org/en-US/ (used this to display data graphs/visualisations, has shadcn built in support and is well documented)
-- https://jestjs.io/ (used this to make Unit Tests for the HD tasks for the assignment)
-- https://babeljs.io/ (used in conjuction with jest for tsx handling for Unit tests)
+> ✅ All **PA**, **CR**, **DI** tasks implemented  
+> ❌ **HD** task not implemented
+
+---
+
+## 🖼️ Screenshots
+
+| Page                  | Screenshot |
+|-----------------------|------------|
+| **Login Page**        | ![Login Page](./screenshots/login.png) |
+| **Home / Job List**   | ![Job List](./screenshots/job-list.png) |
+| **User Dashboard**    | ![User Dashboard](./screenshots/dashboard.png) |
+| **Admin Panel**       | ![Admin Panel](./screenshots/admin-panel.png) |
+
+> 💡 *Place your actual screenshots inside a folder called `/screenshots` in the root of the repository.*
+
+---
+
+## 🛠️ How to Run the Project
+
+**1. Clone the repository**
+
+```bash
+git clone https://github.com/rmit-fsd-2025-s1/s4095471-s4093817-a2.git
+cd s4095471-s4093817-a2
+```
+
+## 2. Install dependencies
+
+```bash
+# Frontend
+cd frontend
+npm install
+
+# Backend
+cd ../backend
+npm install
+```
+
+## 3. Start the dev servers
+
+```bash
+# Frontend
+npm run dev
+
+# Backend
+npm run dev
+```
+
+💡 You will need to have **MySQL / phpMyAdmin** running locally to view the database
+
+📌 **Login Information**  
+All existing account passwords are: `Password123!`  
+Passwords in the database are already **hashed**
+
+---
+
+## 🌐 Technologies Used
+
+| Category      | Technologies / Libraries                      |
+|---------------|-----------------------------------------------|
+| Frontend      | React (Next.js), TypeScript, ShadCN UI        |
+| Backend       | Node.js, Express, TypeORM                     |
+| DB / Tools    | MySQL, phpMyAdmin, Excalidraw                 |
+| Security      | bcrypt                                        |
+| Charts / UI   | Recharts, React Loading Icons                 |
+| Testing       | Jest, Babel                                   |
+| Validation    | Zod                                           |
+| CI / Linting  | ESLint                                        |
