@@ -68,10 +68,6 @@ npm run dev
 
 You will need to have **MySQL / phpMyAdmin** running locally to view the database
 
-**Login Information**  
-All existing account passwords are: `Password123!`  
-Passwords in the database are already **hashed**
-
 ---
 
 ## 🌐 Technologies Used
