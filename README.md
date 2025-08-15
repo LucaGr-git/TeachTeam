@@ -41,7 +41,7 @@ A full-stack **React + TypeScript + Next.js** application designed to help stude
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/rmit-fsd-2025-s1/s4095471-s4093817-a2.git
+git clone https://github.com/LucaGr-git/TeachTeam
 cd s4095471-s4093817-a2
 ```
 
