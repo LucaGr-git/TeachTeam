@@ -10,7 +10,7 @@ A full-stack **React + TypeScript + Next.js** application designed as a Proof-of
 | Name         | Student ID | Email                                      |
 |--------------|------------|--------------------------------------------|
 | Luca Grosso  | s4093817   | s4093817@student.rmit.edu.au               |
-| Alysha Khan  | s4095471   | s4095471@student.rmit.edu.au               |
+| Alysha Khan  |            | AKhan-SD                                   |
 
 **Branch:** `main` (contains the most recent version)
 
